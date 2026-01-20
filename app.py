@@ -146,3 +146,13 @@ def enviar():
 if __name__ == '__main__':
     init_db()
     app.run(debug=True, port=5001)
+
+@app.route('/dashboard')
+def dashboard():
+    conn = sqlite3.connect('prodi_salud.db')
+    conn.row_factory = sqlite3.Row  # Esto permite acceder a las columnas por nombre
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM historias_clinicas ORDER BY fecha_registro DESC")
+    pacientes = cursor.fetchall()
+    conn.close()
+    return render_template('dashboard.html', pacientes=pacientes)
