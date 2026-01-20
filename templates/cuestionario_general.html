@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario de Evaluación de Salud</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_cuestionario.css') }}">
+</head>
+
+<body>
+
+    <form id="questionnaire-form">
+        <div class="container">
+            <form id="health-form" action="/enviar" method="POST">
+            <section class="banner-section" style="background-image: url('static/img/A6.jpg');">
+                    <h1 class="section-header">Cuestionario de Salud PRODI</h1>
+                </section>
+                <fieldset>
+                    <legend>1. DATOS PERSONALES</legend>
+
+                    <div class="form-group-grid">
+
+                        <div class="input-group">
+                            <input class="input" type="text" id="nombre" name="nombre" placeholder=" " required>
+                            <label class="user-label" for="nombre">Nombre</label>
+                        </div>
+
+                        <div class="input-group">
+                            <input class="input" type="text" id="apellidos" name="apellidos" placeholder=" " required>
+                            <label class="user-label" for="apellidos">Apellidos</label>
+                        </div>
+
+                        <div class="input-group">
+                            <input class="input" type="number" id="edad" name="edad" min="1" max="150" placeholder=" "
+                                required>
+                            <label class="user-label" for="edad">Edad</label>
+                        </div>
+
+                        <div class="radio-group radio-wrapper-18">
+                            <p class="group-label">Sexo</p>
+
+                            <label class="round control--radio">
+                                <input type="radio" id="sexo-m" name="sexo" value="Masculino" required>
+                                <span class="radio-indicator"></span>
+                                Masculino
+                            </label>
+
+                            <label class="round control--radio">
+                                <input type="radio" id="sexo-f" name="sexo" value="Femenino">
+                                <span class="radio-indicator"></span>
+                                Femenino
+                            </label>
+                        </div>
+
+                        <div class="input-group">
+                            <input class="input" type="email" id="email" name="email" placeholder=" " required>
+                            <label class="user-label" for="email">Correo Electrónico</label>
+                        </div>
+
+                        <div class="input-group">
+                            <input class="input" type="tel" id="telefono" name="telefono" placeholder="+34 123 456 7890"
+                                pattern="[+]?[0-9\s\-\(\)]+" title="Formato: +34 123 456 7890">
+                            <label class="user-label" for="telefono">Teléfono</label>
+                        </div>
+
+                        <div class="input-group">
+                            <input class="input" type="text" id="ciudad" name="ciudad" placeholder=" ">
+                            <label class="user-label" for="ciudad">Ciudad</label>
+                        </div>
+
+                        <div class="input-group full-width">
+                            <input class="input" type="text" id="pais" name="pais" placeholder=" ">
+                            <label class="user-label" for="pais">País</label>
+                        </div>
+
+                    </div>
+                </fieldset>
+                <fieldset>
+                    <legend>2.¿TIENE FAMILIARES CON ALGUNA DE LAS SIGUIENTES CONDICIONES?</legend>
+                    <div class="checkbox-group checkbox-wrapper-21">
+
+                        <label class="control control--checkbox">
+                            Diabetes
+                            <input type="checkbox" id="ant-diabetes" name="antecedentes" value="Diabetes">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Hipertensión
+                            <input type="checkbox" id="ant-hipertension" name="antecedentes" value="Hipertensión">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Sobrepeso u Obesidad
+                            <input type="checkbox" id="ant-sobrepeso" name="antecedentes" value="Sobrepeso u Obesidad">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Infarto al Corazón o Accidente Cerebrovascular
+                            <input type="checkbox" id="ant-infarto" name="antecedentes"
+                                value="Infarto al Corazón o Accidente Cerebrovascular">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Colesterol o Triglicéridos Elevados
+                            <input type="checkbox" id="ant-colesterol" name="antecedentes"
+                                value="Colesterol o Triglicéridos Elevados">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>PRESION ARTERIAL</legend>
+                    <div class="input-group">
+                        <input class="input" type="number" id="presion-sistolica" name="presion-sistolica" min="60"
+                            max="230" placeholder=" ">
+                        <label class="user-label" for="presion-sistolica">3. Sistólica (Alta)</label>
+
+                    </div>
+
+                    <div class="input-group">
+                        <input class="input" type="number" id="presion-diastolica" name="presion-diastolica" min="30"
+                            max="150" placeholder=" ">
+                        <label class="user-label" for="presion-diastolica">4. Diastólica (Baja)</label>
+
+                    </div>
+
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">5. ¿Toma medicamentos para bajar la presión arterial?</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="med-presion-si" name="med-presion" value="Sí">
+                            <span class="radio-indicator"></span>
+                            Sí
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="med-presion-no" name="med-presion" value="No">
+                            <span class="radio-indicator"></span>
+                            No
+                        </label>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>GLUCOSA EN SANGRE</legend>
+                    <div class="input-group">
+                        <input class="input" type="number" id="glucosa-ayunas" name="glucosa-ayunas" min="40" max="700"
+                            placeholder=" ">
+                        <label class="user-label" for="glucosa-ayunas">6. Glucosa (azúcar)</label>
+
+                    </div>
+
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">7. ¿Toma medicamentos para bajar los niveles de azúcar?</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="med-glucosa-si" name="med-glucosa" value="Sí">
+                            <span class="radio-indicator"></span>
+                            Sí
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="med-glucosa-no" name="med-glucosa" value="No">
+                            <span class="radio-indicator"></span>
+                            No
+                        </label>
+                    </div>
+                    <div class="input-group">
+                        <input class="input" type="number" id="hba1c" name="hba1c" min="5" max="14" step="0.1"
+                            placeholder=" ">
+                        <label class="user-label" for="hba1c">8. HbA1c</label>
+
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>LÍPIDOS EN SANGRE</legend>
+                    <div class="input-group">
+                        <input class="input" type="number" id="colesterol-total" name="colesterol-total" min="40"
+                            max="700" placeholder=" ">
+                        <label class="user-label" for="colesterol-total">9. Valor de colesterol total</label>
+
+                    </div>
+
+                    <div class="input-group">
+                        <input class="input" type="number" id="trigliceridos" name="trigliceridos" min="40" max="700"
+                            placeholder=" ">
+                        <label class="user-label" for="trigliceridos">10. Valor de triglicéridos</label>
+
+                    </div>
+
+                    <div class="input-group">
+                        <input class="input" type="number" id="colesterol-ldl" name="colesterol-ldl" min="40" max="350"
+                            placeholder=" ">
+                        <label class="user-label" for="colesterol-ldl">11. Valor de colesterol LDL</label>
+
+                    </div>
+
+                    <div class="input-group">
+                        <input class="input" type="number" id="colesterol-hdl" name="colesterol-hdl" min="10" max="110"
+                            placeholder=" ">
+                        <label class="user-label" for="colesterol-hdl">12. Valor de colesterol HDL</label>
+
+                    </div>
+
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">13. ¿Toma medicamentos para bajar los niveles de colesterol o
+                            triglicéridos?</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="med-lipidos-si" name="med-lipidos" value="Sí">
+                            <span class="radio-indicator"></span>
+                            Sí
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="med-lipidos-no" name="med-lipidos" value="No">
+                            <span class="radio-indicator"></span>
+                            No
+                        </label>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>MEDIDAS CORPORALES</legend>
+                    <div class="input-group">
+                        <input class="input" type="number" id="peso" name="peso" min="40" max="400" placeholder=" ">
+                        <label class="user-label" for="peso">14. Peso en kilogramos</label>
+                    </div>
+
+                    <div class="input-group">
+                        <input class="input" type="number" id="talla" name="talla" min="100" max="240" placeholder=" ">
+                        <label class="user-label" for="talla">15. Talla en centímetros</label>
+                    </div>
+
+                    <div class="input-group">
+                        <input class="input" type="number" id="perimetro-abdominal" name="perimetro-abdominal" min="40"
+                            max="300" placeholder=" ">
+                        <label class="user-label" for="perimetro-abdominal">16. Perímetro abdominal</label>
+                    </div>
+
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">17. ¿Toma medicamentos para bajar de peso?</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="med-peso-si" name="med-peso" value="Sí">
+                            <span class="radio-indicator"></span>
+                            Sí
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="med-peso-no" name="med-peso" value="No">
+                            <span class="radio-indicator"></span>
+                            No
+                        </label>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>OBJETIVO DE PESO</legend>
+
+                    <!-- Pregunta principal -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">¿Deseas bajar de peso?</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="bajar-peso-si" name="bajar-peso" value="Sí">
+                            <span class="radio-indicator"></span>
+                            Sí
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="bajar-peso-no" name="bajar-peso" value="No">
+                            <span class="radio-indicator"></span>
+                            No
+                        </label>
+                    </div>
+
+                    <!-- Preguntas adicionales (ocultas por defecto) -->
+                    <div id="objetivo-extra" style="display:none; margin-top:15px;">
+                        <div class="radio-group radio-wrapper-18">
+                            <p class="group-label">¿Cuánto desea perder?</p>
+                            <label class="round control--radio">
+                                <input type="radio" name="porcentaje-perdida" value="5%">
+                                <span class="radio-indicator"></span>
+                                5%
+                            </label>
+                            <label class="round control--radio">
+                                <input type="radio" name="porcentaje-perdida" value="10%">
+                                <span class="radio-indicator"></span>
+                                10%
+                            </label>
+                        </div>
+
+                        <div class="radio-group radio-wrapper-18">
+                            <p class="group-label">¿En cuánto tiempo?</p>
+                            <label class="round control--radio">
+                                <input type="radio" name="tiempo-perdida" value="3 meses">
+                                <span class="radio-indicator"></span>
+                                3 meses
+                            </label>
+                            <label class="round control--radio">
+                                <input type="radio" name="tiempo-perdida" value="6 meses">
+                                <span class="radio-indicator"></span>
+                                6 meses
+                            </label>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>HÁBITO TABÁQUICO Y ACTIVIDAD FÍSICA</legend>
+                    <!-- 18 -->
+                    <div class="input-group">
+                        <label for="habito-tabaquico" class="group-label">18. Hábito Tabáquico</label>
+                        <select id="habito-tabaquico" name="habito-tabaquico">
+                            <option value="" disabled selected>Selecciona una opción</option>
+                            <option value="Actualmente fumo">Actualmente fumo</option>
+                            <option value="Dejé de fumar hace menos de 1 año">Dejé de fumar hace menos de 1 año</option>
+                            <option value="Dejé de fumar entre 1 a 5 años">Dejé de fumar entre 1 a 5 años</option>
+                            <option value="Dejé de fumar hace más de 5 años">Dejé de fumar hace más de 5 años</option>
+                            <option value="Nunca he fumado">Nunca he fumado</option>
+                        </select>
+                    </div>
+
+                    <!-- 19 -->
+                    <div class="input-group">
+                        <label for="exposicion-humo" class="group-label">19. ¿Sus familiares, amigos o compañeros de
+                            trabajo fuman?</label>
+                        <select id="exposicion-humo" name="exposicion-humo">
+                            <option value="" disabled selected>Selecciona una opción</option>
+                            <option value="Sí, fuman en mi presencia">Sí, fuman en mi presencia</option>
+                            <option value="Sí, pero no en mi presencia">Sí, pero no en mi presencia</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+
+                    <!-- 20 -->
+                    <div class="input-group">
+                        <label for="nivel-actividad" class="group-label">20. Nivel de actividad física</label>
+                        <select id="nivel-actividad" name="nivel-actividad">
+                            <option value="" disabled selected>Selecciona una opción</option>
+                            <option value="Poco Activo">Poco Activo — Actividad mínima</option>
+                            <option value="Moderadamente Activo">Moderado — ~30 min/día</option>
+                            <option value="Muy Activo">Muy Activo — Ejercicio regular</option>
+                        </select>
+
+                    </div>
+
+                    <!-- 21 -->
+                    <div class="input-group">
+                        <label for="minutos-actividad" class="group-label">21. Minutos de actividad física por
+                            semana</label>
+                        <select id="minutos-actividad" name="minutos-actividad">
+                            <option value="" disabled selected>Selecciona una opción</option>
+                            <option value="0 minutos">0 minutos</option>
+                            <option value="1 a 29 minutos">1 a 29 minutos</option>
+                            <option value="30 a 59 minutos">30 a 59 minutos</option>
+                            <option value="60 a 89 minutos">60 a 89 minutos</option>
+                            <option value="90 a 119 minutos">90 a 119 minutos</option>
+                            <option value="120 a 149 minutos">120 a 149 minutos</option>
+                            <option value="150 o más minutos">150 o más minutos</option>
+                        </select>
+                    </div>
+
+                </fieldset>
+                <fieldset>
+                    <legend>HÁBITOS DE ALIMENTACIÓN Y CONSUMO</legend>
+
+                    <p>Nota: 1 ración equivale a 1 unidad mediana o 1 taza de 240 cc, a menos que se indique lo
+                        contrario.</p>
+
+                    <!-- 22 - Frutas -->
+                    <div class="range-group">
+                        <label for="frutas" class="group-label">22. ¿Cuántas raciones de frutas consume
+                            DIARIAMENTE?</label>
+
+                        <input type="range" id="frutas" name="frutas" min="0" max="5" step="1" value="0"
+                            class="modern-range">
+
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span>5</span>
+                        </div>
+
+                        <span id="frutas-value" class="range-value">0</span>
+                    </div>
+
+                    <!-- 23 - Vegetales -->
+                    <div class="range-group">
+                        <label for="vegetales" class="group-label">23. ¿Cuántas raciones de vegetales consume
+                            DIARIAMENTE?</label>
+
+                        <input type="range" id="vegetales" name="vegetales" min="0" max="5" step="1" value="0"
+                            class="modern-range">
+
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span>5</span>
+                        </div>
+
+                        <span id="vegetales-value" class="range-value">0</span>
+                    </div>
+
+                    <!-- 24 - Grano entero -->
+                    <div class="range-group">
+                        <label for="grano-entero" class="group-label">24. ¿Cuántas raciones de grano entero (arroz
+                            integral, avena, etc.) consume DIARIAMENTE?</label>
+                        <p class="note">1 ración es igual a 1 taza de 240 cc.</p>
+
+                        <input type="range" id="grano-entero" name="grano-entero" min="0" max="5" step="1" value="0"
+                            class="modern-range">
+
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span>5</span>
+                        </div>
+
+                        <span id="grano-entero-value" class="range-value">0</span>
+                    </div>
+
+                    <!-- 25 - Pescado -->
+                    <div class="range-group">
+                        <label for="pescado" class="group-label">25. ¿Cuántas raciones de pescado consume
+                            SEMANALMENTE?</label>
+                        <p class="note">1 ración de pescado es igual a 120 gramos.</p>
+
+                        <input type="range" id="pescado" name="pescado" min="0" max="5" step="1" value="0"
+                            class="modern-range">
+
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span>5</span>
+                        </div>
+
+                        <span id="pescado-value" class="range-value">0</span>
+                    </div>
+
+                    <!-- 26 - Bebidas azucaradas -->
+                    <div class="range-group">
+                        <label for="bebidas-azucaradas" class="group-label">26. ¿Cuántos vasos de bebidas azucaradas
+                            toma SEMANALMENTE?</label>
+                        <p class="note">1 ración de bebida azucarada es igual a un vaso de 350 cc.</p>
+
+                        <input type="range" id="bebidas-azucaradas" name="bebidas-azucaradas" min="0" max="5" step="1"
+                            value="0" class="modern-range">
+
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span>5</span>
+                        </div>
+
+                        <span id="bebidas-azucaradas-value" class="range-value">0</span>
+                    </div>
+
+                </fieldset>
+                <fieldset>
+                    <legend>HÁBITOS DE SAL, LÁCTEOS, CARNES Y ALCOHOL</legend>
+                    <!-- 27 -->
+                    <div class="checkbox-group checkbox-wrapper-21">
+                        <p class="group-label">27. ¿Cuál de las siguientes frases se aplica a usted? (Elija una o más
+                            opciones)</p>
+
+                        <label class="control">
+                            Evito comer comidas procesadas y empaquetadas.
+                            <input type="checkbox" id="sal-procesadas" name="habitos-sal"
+                                value="Evito comer comidas procesadas y empaquetadas">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control">
+                            Raramente como afuera, pero cuando lo hago busco opciones bajas en sal.
+                            <input type="checkbox" id="sal-fuera" name="habitos-sal"
+                                value="Raramente como afuera, pero busco opciones bajas en sal">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control">
+                            Evito la sal cuando estoy cocinando en casa.
+                            <input type="checkbox" id="sal-casa" name="habitos-sal"
+                                value="Evito la sal cuando estoy cocinando en casa">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control">
+                            Ninguna de las anteriores
+                            <input type="checkbox" id="sal-ninguna" name="habitos-sal"
+                                value="Ninguna de las anteriores">
+                            <div class="control__indicator"></div>
+                        </label>
+                    </div>
+
+
+                    <!-- 28 -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">28. ¿Con qué frecuencia consume productos lácteos bajos en grasa o
+                            quesos?</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="lacteos-menos1" name="frecuencia-lacteos"
+                                value="Menos de una vez al día">
+                            <span class="radio-indicator"></span>
+                            Menos de una vez al día
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="lacteos-1-2" name="frecuencia-lacteos" value="1-2 veces al día">
+                            <span class="radio-indicator"></span>
+                            1-2 veces al día
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="lacteos-3-mas" name="frecuencia-lacteos"
+                                value="3 veces al día o más">
+                            <span class="radio-indicator"></span>
+                            3 veces al día o más
+                        </label>
+                    </div>
+
+
+                    <!-- 29 -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">29. ¿Con qué frecuencia consume carnes rojas y procesadas?</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="carnes-menos1" name="frecuencia-carnes"
+                                value="Menos de una vez a la semana">
+                            <span class="radio-indicator"></span>
+                            Menos de una vez a la semana
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="carnes-1-2" name="frecuencia-carnes" value="1-2 veces a la semana">
+                            <span class="radio-indicator"></span>
+                            1-2 veces a la semana
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="carnes-3-mas" name="frecuencia-carnes"
+                                value="3 o más veces a la semana">
+                            <span class="radio-indicator"></span>
+                            3 o más veces a la semana
+                        </label>
+                    </div>
+
+
+                    <!-- 30 -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">30. ¿Con qué frecuencia consume bebidas alcohólicas?</p>
+                        <p class="note">Una bebida se refiere a cerveza, vino, whisky, ron u otros.</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="alcohol-nunca" name="frecuencia-alcohol" value="Nunca">
+                            <span class="radio-indicator"></span>
+                            Nunca
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="alcohol-1mes" name="frecuencia-alcohol"
+                                value="1 vez al mes o menos">
+                            <span class="radio-indicator"></span>
+                            1 vez al mes o menos
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="alcohol-2-4mes" name="frecuencia-alcohol"
+                                value="2 a 4 veces al mes">
+                            <span class="radio-indicator"></span>
+                            2 a 4 veces al mes
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="alcohol-2-3sem" name="frecuencia-alcohol"
+                                value="2 a 3 veces por semana">
+                            <span class="radio-indicator"></span>
+                            2 a 3 veces por semana
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="alcohol-4-mas-sem" name="frecuencia-alcohol"
+                                value="4 o más veces por semana">
+                            <span class="radio-indicator"></span>
+                            4 o más veces por semana
+                        </label>
+                    </div>
+
+
+                    <!-- 31 -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">31. ¿Cuántas bebidas alcohólicas suele tomar usted en un día de consumo
+                            normal?</p>
+                        <p class="note">Cerveza (360cc ≈ 1.5 unidades), Vino (150 cc ≈ 1 copa), Destilados (45 cc ≈ 1
+                            unidad).</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="cant-alcohol-1-2" name="cantidad-alcohol" value="1 a 2">
+                            <span class="radio-indicator"></span>
+                            1 a 2
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="cant-alcohol-3-4" name="cantidad-alcohol" value="3 a 4">
+                            <span class="radio-indicator"></span>
+                            3 a 4
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="cant-alcohol-5-mas" name="cantidad-alcohol" value="5 o más">
+                            <span class="radio-indicator"></span>
+                            5 o más
+                        </label>
+                    </div>
+
+                </fieldset>
+                <fieldset>
+                    <legend>CALIDAD DEL SUEÑO</legend>
+
+                    <!-- 32 - Calidad del sueño -->
+                    <div class="range-group">
+                        <label for="calidad-sueno" class="group-label">
+                            32. Durante los últimos 7 días, ¿qué puntuación le pondría a la calidad general de su sueño?
+                        </label>
+
+                        <input type="range" id="calidad-sueno" name="calidad-sueno" min="0" max="10" step="1" value="0"
+                            class="modern-range">
+
+                        <!-- Etiquetas izquierda/derecha -->
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span>10</span>
+                        </div>
+
+                        <!-- Valor dinámico -->
+                        <span id="calidad-sueno-value" class="range-value">0</span>
+                    </div>
+
+                    <!-- 33 - Ronquido -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">33. ¿Ha notado o le han dicho que ronca al dormir?</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="ronca-si" name="ronca" value="Sí">
+                            <span class="radio-indicator"></span>
+                            Sí
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="ronca-no" name="ronca" value="No">
+                            <span class="radio-indicator"></span>
+                            No
+                        </label>
+                    </div>
+                    <!-- 34 - Circunferencia del cuello -->
+                    <div class="input-group" style="margin-top: 15px;">
+                        <label for="circunferencia-cuello">34. ¿Cuál es la circunferencia de su cuello en
+                            centímetros?</label>
+                        <input type="number" id="circunferencia-cuello" name="circunferencia-cuello" min="10" max="100">
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>ENFERMEDADES Y PERCEPCIÓN DE SALUD</legend>
+
+                    <!-- 35 - Checkboxes con separación moderna -->
+                    <div class="checkbox-group checkbox-wrapper-21">
+                        <p class="group-label">
+                            35. Seleccione si ha presentado alguna de las siguientes enfermedades
+                            <span class="note">(Elija una o más opciones)</span>
+                        </p>
+
+                        <label class="control control--checkbox">
+                            Infarto al corazón o angina
+                            <input type="checkbox" id="enf-infarto" name="enfermedades"
+                                value="Infarto al corazón o angina">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Accidente cerebrovascular
+                            <input type="checkbox" id="enf-acv" name="enfermedades" value="Accidente cerebrovascular">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Arritmia cardiaca
+                            <input type="checkbox" id="enf-arritmia" name="enfermedades" value="Arritmia cardiaca">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Crecimiento cardiaco
+                            <input type="checkbox" id="enf-crecimiento" name="enfermedades"
+                                value="Crecimiento cardiaco">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Insuficiencia cardiaca
+                            <input type="checkbox" id="enf-insuficiencia" name="enfermedades"
+                                value="Insuficiencia cardiaca">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Artrosis de cadera o rodillas consecuencia del peso
+                            <input type="checkbox" id="enf-artrosis" name="enfermedades"
+                                value="Artrosis de cadera o rodillas consecuencia del peso">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Nefropatía (enfermedad de los riñones) consecuencia de la diabetes
+                            <input type="checkbox" id="enf-nefropatia" name="enfermedades"
+                                value="Nefropatía (enfermedad de los riñones) consecuencia de la diabetes">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Neuropatía (enfermedad del sistema nervioso) consecuencia de la diabetes
+                            <input type="checkbox" id="enf-neuropatia" name="enfermedades"
+                                value="Neuropatía (enfermedad del sistema nervioso) consecuencia de la diabetes">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Disminución de la visión o ceguera consecuencia de la diabetes
+                            <input type="checkbox" id="enf-ceguera" name="enfermedades"
+                                value="Disminución de la visión o ceguera consecuencia de la diabetes">
+                            <div class="control__indicator"></div>
+                        </label>
+
+                        <label class="control control--checkbox">
+                            Ninguna de las anteriores
+                            <input type="checkbox" id="enf-ninguna" name="enfermedades"
+                                value="Ninguna de las anteriores">
+                            <div class="control__indicator"></div>
+                        </label>
+                    </div>
+
+                    <!-- 36 - Input numérico con separación -->
+                    <div class="input-group">
+                        <label for="escala-salud">36. En una escala de 0 a 100, ¿qué tan buena o mala es su salud
+                            HOY?</label>
+                        <p class="note">Donde 0 es la PEOR salud y 100 la MEJOR salud que usted se pueda imaginar.</p>
+                        <input type="number" id="escala-salud" name="escala-salud" min="0" max="100">
+                    </div>
+                </fieldset>
+
+                <fieldset>
+                    <legend>SALUD MENTAL</legend>
+
+                    <p>Durante las últimas 2 semanas, ¿qué tan seguido se ha molestado por los siguientes problemas?</p>
+
+                    <!-- 37 -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">37. Sentirse nervioso, ansioso o inquieto</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="ansioso-0" name="ansioso" value="Para nada">
+                            <span class="radio-indicator"></span>
+                            Para nada
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="ansioso-1" name="ansioso" value="Algunos días">
+                            <span class="radio-indicator"></span>
+                            Algunos días
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="ansioso-2" name="ansioso" value="Más de la mitad de los días">
+                            <span class="radio-indicator"></span>
+                            Más de la mitad de los días
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="ansioso-3" name="ansioso" value="Casi todos los días">
+                            <span class="radio-indicator"></span>
+                            Casi todos los días
+                        </label>
+                    </div>
+
+                    <!-- 38 -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">38. No poder parar o controlar la preocupación</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="preocupacion-0" name="preocupacion" value="Para nada">
+                            <span class="radio-indicator"></span>
+                            Para nada
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="preocupacion-1" name="preocupacion" value="Algunos días">
+                            <span class="radio-indicator"></span>
+                            Algunos días
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="preocupacion-2" name="preocupacion"
+                                value="Más de la mitad de los días">
+                            <span class="radio-indicator"></span>
+                            Más de la mitad de los días
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="preocupacion-3" name="preocupacion" value="Casi todos los días">
+                            <span class="radio-indicator"></span>
+                            Casi todos los días
+                        </label>
+                    </div>
+
+                    <!-- 39 -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">39. Poco interés o placer en hacer cosas</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="interes-0" name="interes" value="Para nada">
+                            <span class="radio-indicator"></span>
+                            Para nada
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="interes-1" name="interes" value="Algunos días">
+                            <span class="radio-indicator"></span>
+                            Algunos días
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="interes-2" name="interes" value="Más de la mitad de los días">
+                            <span class="radio-indicator"></span>
+                            Más de la mitad de los días
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="interes-3" name="interes" value="Casi todos los días">
+                            <span class="radio-indicator"></span>
+                            Casi todos los días
+                        </label>
+                    </div>
+
+                    <!-- 40 -->
+                    <div class="radio-group radio-wrapper-18">
+                        <p class="group-label">40. Se ha sentido decaído, deprimido o sin esperanzas</p>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="deprimido-0" name="deprimido" value="Para nada">
+                            <span class="radio-indicator"></span>
+                            Para nada
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="deprimido-1" name="deprimido" value="Algunos días">
+                            <span class="radio-indicator"></span>
+                            Algunos días
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="deprimido-2" name="deprimido" value="Más de la mitad de los días">
+                            <span class="radio-indicator"></span>
+                            Más de la mitad de los días
+                        </label>
+
+                        <label class="round control--radio">
+                            <input type="radio" id="deprimido-3" name="deprimido" value="Casi todos los días">
+                            <span class="radio-indicator"></span>
+                            Casi todos los días
+                        </label>
+                    </div>
+
+                </fieldset>
+
+                <fieldset>
+                    <legend>OPTIMISMO Y PESIMISMO</legend>
+
+                    <p class="note">
+                        Los optimistas ven el futuro con confianza y esperan, mayormente, que pasen cosas buenas.
+                        Los pesimistas están llenos de dudas y esperan que pasen cosas malas.
+                    </p>
+
+                    <!-- 41 - Optimismo -->
+                    <div class="range-group">
+                        <label for="optimismo" class="group-label">41. ¿Qué tan optimista eres en general?</label>
+
+                        <input type="range" id="optimismo" name="optimismo" min="0" max="7" step="1" value="0"
+                            class="modern-range">
+
+                        <!-- Etiquetas izquierda/derecha -->
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span>7</span>
+                        </div>
+
+                        <!-- Valor dinámico -->
+                        <span id="optimismo-value" class="range-value">0</span>
+                    </div>
+
+                    <!-- 42 - Pesimismo -->
+                    <div class="range-group">
+                        <label for="pesimismo" class="group-label">42. ¿Qué tan pesimista eres en general?</label>
+
+                        <input type="range" id="pesimismo" name="pesimismo" min="0" max="7" step="1" value="0"
+                            class="modern-range">
+
+                        <!-- Etiquetas izquierda/derecha -->
+                        <div class="range-labels">
+                            <span>0</span>
+                            <span>7</span>
+                        </div>
+
+                        <!-- Valor dinámico -->
+                        <span id="pesimismo-value" class="range-value">0</span>
+                    </div>
+                </fieldset>
+
+                <button id="submit-button" type="submit">
+                    <span id="button-text">Enviar</span>
+                    <span id="loading-spinner" class="hidden">...</span>
+                </button>
+
+            </form>
+
+            <div id="message-box" class="hidden"></div>
+            <div id="user-info" class="hidden"></div>
+            <script type="module" src="{{ url_for('static', filename='js/js_cuestionario.js') }}"></script>
+</body>
+
+</html>

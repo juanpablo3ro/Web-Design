@@ -1,0 +1,16 @@
+Para crear entorno virtual: python3 -m venv venv
+
+Para activar el entorno: source .venv/bin/activate
+
+
+activar el python3; python3 app.py
+
+para abrir al dashboard http://localhost:5001/dashboard.html
+
+Desactivar el Entorno: Cuando termines de trabajar, desactívalo: deactivate
+
+Para guardar versiones
+Paso,Comando,Qué hace
+1. Preparar,git add .,Selecciona todos los cambios para guardar.
+2. Comentar,"git commit -m ""Mi primer cambio""","Crea la ""versión"" con una descripción."
+3. Subir,git push -u origin main,Envía tus versiones a la nube (GitHub).
