@@ -2,51 +2,144 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard PRODI - Pacientes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_cuestionario.css') }}">
     <style>
-        .dashboard-container { padding: 40px; max-width: 1200px; margin: auto; background: white; border-radius: 15px; margin-top: 50px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; border-bottom: 1px solid #ddd; text-align: left; }
-        th { background-color: #2c3e50; color: white; }
-        tr:hover { background-color: #f5f5f5; }
-        .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
-        .badge-imc { background: #e1f5fe; color: #01579b; }
+  body {
+        font-family: Georgia, 'Times New Roman', Times, serif;
+        background: linear-gradient(180deg, #2a2a2a 0%, #333333 40%, #3a3a3a 100%);
+        color: #f0f0f0;
+        line-height: 1.6;
+        padding: 1.5; /* Cambiado a 0 para que el banner toque los bordes */
+        margin: 0;
+    }
+
+    /* Ajuste de Banner */
+    .banner-section {
+        position: relative;
+        height: 120px; /* Altura ajustada */
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    /* Estilo del título del banner (H1) */
+    .section-header {
+        color: white;
+        z-index: 2;
+        font-size: 3rem;
+        text-shadow: 2px 2px 10px rgba(0,0,0,0.8);
+        border-bottom: none !important; /* ELIMINA LA LÍNEA DEL BANNER */
+        margin: 0;
+    }
+
+    /* Contenedor del Dashboard */
+    .dashboard-container { 
+        padding: 30px; 
+        max-width: 1200px; 
+        margin: 20px auto; /* REDUCIDO: De 50px a 20px para acercarlo al banner */
+        background: white; 
+        border-radius: 7px; /* AUMENTADO: Esquinas mucho más redondeadas */
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        color: #333; /* Texto oscuro para legibilidad sobre blanco */
+    }
+
+    /* Línea solo para el título INTERNO del dashboard (H2) */
+    h2 { 
+        color: #2c3e50; 
+        margin-bottom: 20px; 
+        border-bottom: 2px solid #27ae60; 
+        padding-bottom: 10px; 
+    }
+
+    /* Tabla y otros estilos */
+    .table-responsive { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-family: sans-serif; }
+    th { background-color: #2c3e50; color: white; padding: 15px; text-align: left; font-size: 0.9rem; }
+    td { padding: 12px 15px; border-bottom: 1px solid #eee; color: #444; font-size: 0.85rem; }
+    tr:hover { background-color: #f9f9f9; }
+
+    .btn-detalle {
+        background-color: #158082;
+        color: white;
+        border: none;
+        padding: 6px 15px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    .btn-detalle:hover { background-color: #cac40d; }
+    .back-link { color: #197ca1; text-decoration: none; font-weight: bold; }
+    
+    .logo-container { 
+    position: absolute; 
+    top: 50%;             /* Lo baja al 50% de la altura del banner */
+    left: 40px;           /* Espacio desde la izquierda */
+    transform: translateY(-50%); /* Lo sube exactamente la mitad de su propia altura */
+    z-index: 10; 
+    display: flex;
+    align-items: center;
+    }       
+    .banner-logo { height: 50px; width: auto; }
     </style>
 </head>
-<body style="background-color: #f0f2f5; background-image: none;">
+<body>
+    <section class="banner-section" style="background-image: url('{{ url_for('static', filename='img/bds.jpg') }}');">
+        <div class="logo-container">
+            <a href="/">
+                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="Logo PRODI" class="banner-logo">
+            </a>
+        </div>
+        <h1 class="section-header">Panel de Control - PRODI</h1>
+    </section>
+
     <div class="dashboard-container">
-        <h1>Panel de Control - Historias Clínicas</h1>
-        <a href="/" style="text-decoration: none; color: #3498db;">← Volver al Cuestionario</a>
-        
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha</th>
-                    <th>Paciente</th>
-                    <th>Edad</th>
-                    <th>Email/Tel</th>
-                    <th>Análisis Automático (JS)</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in pacientes %}
-                <tr>
-                    <td>{{ p['fecha_registro'] }}</td>
-                    <td><strong>{{ p['nombre'] }} {{ p['apellidos'] }}</strong></td>
-                    <td>{{ p['edad'] }} años</td>
-                    <td>{{ p['email'] }}<br><small>{{ p['telefono'] }}</small></td>
-                    <td>
-                        <span class="badge badge-imc">{{ p['analisis_driver'] }}</span>
-                    </td>
-                    <td>
-                        <button onclick="alert('Aquí podrías abrir el PDF del paciente {{ p['id'] }}')">Ver Detalle</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h2 style="color: #2c3e50; margin: 0;">Listado de Participantes</h2>
+            <a href="/" class="back-link" style="margin: 0;">← Ir al Cuestionario</a>
+        </div>
+
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Ciudad</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in pacientes %}
+                    <tr>
+                        <td><strong>#{{ p.id }}</strong></td>
+                        <td>{{ p.nombre }} {{ p.apellidos }}</td>
+                        <td>{{ p.email }}</td>
+                        <td>{{ p.telefono }}</td>
+                        <td>{{ p.ciudad }}</td>
+                        <td>{{ p.fecha_registro }}</td>
+                        <td>
+                            <button class="btn-detalle" onclick="verDetalle('{{ p.id }}', '{{ p.nombre }}')">Ver</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
+
+    <script>
+        function verDetalle(id, nombre) {
+            alert("Cargando expediente de: " + nombre + " (Registro #" + id + ")");
+            // Aquí podrías redirigir a una vista detallada: window.location.href = "/paciente/" + id;
+        }
+    </script>
 </body>
 </html>

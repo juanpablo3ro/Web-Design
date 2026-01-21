@@ -13,7 +13,12 @@
     <form id="questionnaire-form">
         <div class="container">
             <form id="health-form" action="/enviar" method="POST">
-            <section class="banner-section" style="background-image: url('static/img/A6.jpg');">
+                <section class="banner-section" style="background-image: url('static/img/A6.jpg');">
+                    <div class="logo-container">
+                        <a href="/">
+                            <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="Logo PRODI" class="banner-logo">
+                        </a>
+                    </div>
                     <h1 class="section-header">Cuestionario de Salud PRODI</h1>
                 </section>
                 <fieldset>

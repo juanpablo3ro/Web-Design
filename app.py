@@ -1,18 +1,37 @@
 from flask import Flask, render_template, request, jsonify
+from flask_mail import Mail, Message
 import sqlite3
+import os
+from dotenv import load_dotenv
+import threading
+from datetime import datetime
 
 app = Flask(__name__)
 
-# --- FUNCIÓN DE BASE DE DATOS ---
+load_dotenv()
+# --- CONFIGURACIÓN DE FLASK-MAIL ---
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+# RECUERDA: Usa aquí tu "Contraseña de Aplicación" de 16 caracteres de Google
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD') 
+app.config['MAIL_DEFAULT_SENDER'] = 'proditeamweb@gmail.com'
+
+mail = Mail(app)
+
+# --- 1. CONFIGURACIÓN DE BASE DE DATOS ---
 def init_db():
     conn = sqlite3.connect('prodi_salud.db')
     cursor = conn.cursor()
+    # Eliminamos cualquier rastro de UNIQUE en esta sentencia
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS historias_clinicas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fecha_registro TEXT DEFAULT CURRENT_TIMESTAMP,
             nombre TEXT, apellidos TEXT, edad INTEGER, sexo TEXT,
-            email TEXT, telefono TEXT, ciudad TEXT, pais TEXT,
+            email TEXT, 
+            telefono TEXT, ciudad TEXT, pais TEXT,
             antecedentes TEXT, presion_sistolica INTEGER, presion_diastolica INTEGER,
             medicamento_presion TEXT, glucosa_ayunas INTEGER, medicamento_glucosa TEXT,
             hba1c REAL, colesterol_total INTEGER, trigliceridos INTEGER,
@@ -33,90 +52,80 @@ def init_db():
     conn.commit()
     conn.close()
 
-# --- RUTAS ---
+# --- 2. FUNCIONES DE CORREO ELECTRÓNICO ---
+def enviar_email_al_equipo(data, resumen_salud):
+    """Envía notificación interna con datos técnicos al equipo médico"""
+    # Usamos el contexto de la app para que el hilo reconozca a Flask-Mail
+    with app.app_context():
+        try:
+            subject = f"NUEVO REGISTRO: {data.get('nombre')} {data.get('apellidos')}"
+            recipient = "proditeamweb@gmail.com"
+            
+            html_content = f"""
+            <div style="font-family: sans-serif; max-width: 600px; border: 1px solid #ddd; padding: 20px;">
+                <h2 style="color: #158082;">Aviso de Nuevo Paciente</h2>
+                <p><strong>Nombre:</strong> {data.get('nombre')} {data.get('apellidos')}</p>
+                <p><strong>Email:</strong> {data.get('email')}</p>
+                <p><strong>Ciudad:</strong> {data.get('ciudad')}</p>
+                <div style="background: #f4f4f4; padding: 15px; border-left: 4px solid #158082;">
+                    <strong>Resumen Clínico Automático:</strong><br>
+                    {resumen_salud}
+                </div>
+                <p>Revisar detalles completos en el Dashboard del sistema.</p>
+            </div>
+            """
+            msg = Message(subject=subject, recipients=[recipient], html=html_content)
+            mail.send(msg)
+            print("Notificación enviada al equipo con éxito.")
+        except Exception as e:
+            print(f"Error al notificar al equipo: {e}")
+
+def enviar_confirmacion_al_paciente(data):
+    """Envía confirmación de cortesía al paciente sin datos médicos"""
+    # Usamos el contexto de la app aquí también
+    with app.app_context():
+        try:
+            email_paciente = data.get('email')
+            if not email_paciente: return
+
+            subject = "Confirmación de recepción - Cuestionario PRODI Salud"
+            html_content = f"""
+            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; text-align: center;">
+                <h2 style="color: #158082;">¡Gracias por tu confianza, {data.get('nombre')}!</h2>
+                <p>Hemos recibido exitosamente los datos de tu cuestionario de salud.</p>
+                <p>Próximamente recibirás tu reporte detallado.</p>
+            </div>
+            """
+            msg = Message(subject=subject, recipients=[email_paciente], html=html_content)
+            mail.send(msg)
+            print(f"Confirmación enviada al paciente: {email_paciente}")
+        except Exception as e:
+            print(f"Error al enviar confirmación al paciente: {e}")
+
+# --- 3. RUTAS ---
 
 @app.route('/')
 def index():
     return render_template('cuestionario_general.html')
 
-@app.route('/submit_form', methods=['POST'])
-def enviar():
-    # IMPORTANTE: Tu JS envía JSON, por lo tanto usamos get_json()
-    data = request.get_json()
+@app.route('/dashboard')
+def dashboard():
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM historias_clinicas ORDER BY fecha_registro DESC")
+        pacientes = cursor.fetchall()
+        conn.close()
+        return render_template('dashboard.html', pacientes=pacientes)
+    except Exception as e:
+        return f"Error al cargar el dashboard: {e}"
     
-    if not data:
-        return jsonify({"error": "No se recibieron datos"}), 400
-
-    # Extraer cálculos de salud generados por el JS
-    calculos = data.get('calculos_salud', {})
-    resumen_salud = f"IMC: {calculos.get('imc')} ({calculos.get('estado_nutricional')}). " \
-                    f"Sueño: {calculos.get('calidad_sueno_evaluacion')}. " \
-                    f"Ansiedad/Depresión: {calculos.get('sintomas_ansiedad')}/{calculos.get('sintomas_depresion')}."
-
-    # Preparamos la tupla de datos para SQL (usando .get para evitar errores si falta un campo)
-    datos_tupla = (
-        data.get('nombre'),
-        data.get('apellidos'),
-        data.get('edad'),
-        data.get('sexo'),
-        data.get('email'),
-        data.get('telefono'),
-        data.get('ciudad'),
-        data.get('pais'),
-        ", ".join(data.get('antecedentes', [])),
-        data.get('presion-sistolica'),
-        data.get('presion-diastolica'),
-        data.get('med-presion'),
-        data.get('glucosa-ayunas'),
-        data.get('med-glucosa'),
-        data.get('hba1c'),
-        data.get('colesterol-total'),
-        data.get('trigliceridos'),
-        data.get('colesterol-ldl'),
-        data.get('colesterol-hdl'),
-        data.get('med-lipidos'),
-        data.get('peso'),
-        data.get('talla'),
-        data.get('perimetro-abdominal'),
-        data.get('med-peso'),
-        data.get('bajar-peso'),
-        data.get('porcentaje-perdida'),
-        data.get('tiempo-perdida'),
-        data.get('habito-tabaquico'),
-        data.get('exposicion-humo'),
-        data.get('nivel-actividad'),
-        data.get('minutos-actividad'),
-        data.get('frutas'),
-        data.get('vegetales'),
-        data.get('grano-entero'),
-        data.get('pescado'),
-        data.get('bebidas-azucaradas'),
-        ", ".join(data.get('habitos-sal', [])),
-        data.get('frecuencia-lacteos'),
-        data.get('frecuencia-carnes'),
-        data.get('frecuencia-alcohol'),
-        data.get('cantidad-alcohol'),
-        data.get('calidad-sueno'),
-        data.get('ronca'),
-        data.get('circunferencia-cuello'),
-        ", ".join(data.get('enfermedades', [])),
-        data.get('escala-salud'),
-        data.get('ansioso'),
-        data.get('preocupacion'),
-        data.get('interes'),
-        data.get('deprimido'),
-        data.get('optimismo'),
-        data.get('pesimismo'),
-        data.get('notas-medico'),
-        resumen_salud # Se guarda en la columna analisis_driver
-    )
-
+def guardar_en_db(datos_tupla):
+    """Guarda los datos en la base de datos en background"""
     try:
         conn = sqlite3.connect('prodi_salud.db')
         cursor = conn.cursor()
-        
-        # Hay 54 columnas en total (incluyendo id y fecha que son automáticas)
-        # Aquí insertamos 54 valores manuales (id/fecha se omiten o se dejan automáticos)
         cursor.execute('''INSERT INTO historias_clinicas (
             nombre, apellidos, edad, sexo, email, telefono, ciudad, pais, antecedentes,
             presion_sistolica, presion_diastolica, medicamento_presion, glucosa_ayunas,
@@ -132,27 +141,88 @@ def enviar():
             nivel_optimismo, nivel_pesimismo, notas_medico, analisis_driver
         ) VALUES (''' + "?,"*53 + "?)", datos_tupla)
         
+        conn.commit()
+        conn.close()
+        print("✓ Datos guardados en BD")
+    except Exception as e:
+        print(f"✗ Error guardando en BD: {e}")
+
+@app.route('/submit_form', methods=['POST'])
+def enviar():
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "No se recibieron datos"}), 400
+
+    # Preparación de resumen para el equipo médico
+    calculos = data.get('calculos_salud', {})
+    resumen_salud = (f"IMC: {calculos.get('imc')} ({calculos.get('estado_nutricional')}). "
+                    f"Sueño: {calculos.get('calidad_sueno_evaluacion')}. "
+                    f"Ansiedad/Depresión: {calculos.get('sintomas_ansiedad')}/{calculos.get('sintomas_depresion')}.")
+
+    # Lista de campos exactos según tu tabla historias_clinicas
+    columnas = [
+        "nombre", "apellidos", "edad", "sexo", "email", "telefono", "ciudad", "pais", "antecedentes",
+        "presion_sistolica", "presion_diastolica", "medicamento_presion", "glucosa_ayunas",
+        "medicamento_glucosa", "hba1c", "colesterol_total", "trigliceridos", "colesterol_ldl",
+        "colesterol_hdl", "medicamento_lipidos", "peso_kg", "talla_cm", "perimetro_abdominal",
+        "medicamento_peso", "desea_bajar_peso", "porcentaje_perdida", "tiempo_perdida",
+        "habito_tabaquico", "exposicion_humo", "nivel_actividad", "minutos_actividad_semana",
+        "raciones_frutas", "raciones_vegetales", "raciones_grano_entero", "raciones_pescado",
+        "vasos_bebidas_azucaradas", "habitos_sal", "frecuencia_lacteos", "frecuencia_carnes",
+        "frecuencia_alcohol", "cantidad_alcohol_dia", "puntuacion_sueno", "ronca",
+        "circunferencia_cuello", "enfermedades_presentadas", "escala_salud_hoy",
+        "ansiedad_nervios", "control_preocupacion", "poco_interes", "sentimiento_deprimido",
+        "nivel_optimismo", "nivel_pesimismo", "notas_medico", "analisis_driver"
+    ]
+
+    # Mapeo de datos (asegúrate de que los nombres coincidan con los 'name' de tu HTML/JS)
+    datos_tupla = (
+        data.get('nombre'), data.get('apellidos'), data.get('edad'), data.get('sexo'),
+        data.get('email'), data.get('telefono'), data.get('ciudad'), data.get('pais'),
+        ", ".join(data.get('antecedentes', [])) if isinstance(data.get('antecedentes'), list) else data.get('antecedentes'), 
+        data.get('presion-sistolica'), data.get('presion-diastolica'), data.get('med-presion'), data.get('glucosa-ayunas'),
+        data.get('med-glucosa'), data.get('hba1c'), data.get('colesterol-total'),
+        data.get('trigliceridos'), data.get('colesterol-ldl'), data.get('colesterol-hdl'),
+        data.get('med-lipidos'), data.get('peso'), data.get('talla'),
+        data.get('perimetro-abdominal'), data.get('med-peso'), data.get('bajar-peso'),
+        data.get('porcentaje-perdida'), data.get('tiempo-perdida'), data.get('habito-tabaquico'),
+        data.get('exposicion-humo'), data.get('nivel-actividad'), data.get('minutos-actividad'),
+        data.get('frutas'), data.get('vegetales'), data.get('grano-entero'),
+        data.get('pescado'), data.get('bebidas-azucaradas'), 
+        ", ".join(data.get('habitos-sal', [])) if isinstance(data.get('habitos-sal'), list) else data.get('habitos-sal'),
+        data.get('frecuencia-lacteos'), data.get('frecuencia-carnes'), data.get('frecuencia-alcohol'),
+        data.get('cantidad-alcohol'), data.get('calidad-sueno'), data.get('ronca'),
+        data.get('circunferencia-cuello'), 
+        ", ".join(data.get('enfermedades', [])) if isinstance(data.get('enfermedades'), list) else data.get('enfermedades'),
+        data.get('escala-salud'), data.get('ansioso'), data.get('preocupacion'),
+        data.get('interes'), data.get('deprimido'), data.get('optimismo'),
+        data.get('pesimismo'), data.get('notas-medico'), resumen_salud
+    )
+
+    try:
+        # Generar la query dinámicamente para evitar errores de comas o puntos
+        placeholders = ", ".join(["?"] * len(columnas))
+        query = f"INSERT INTO historias_clinicas ({', '.join(columnas)}) VALUES ({placeholders})"
+        
+        conn = sqlite3.connect('prodi_salud.db')
+        cursor = conn.cursor()
+        cursor.execute(query, datos_tupla)
         id_generado = cursor.lastrowid
         conn.commit()
         conn.close()
-        
-        # Respondemos en JSON para que el JS pueda mostrar el mensaje de éxito
+        print(f"✓ Guardado exitoso. ID: {id_generado}")
+
+        # Ejecutar correos en hilos
+        threading.Thread(target=enviar_email_al_equipo, args=(data, resumen_salud), daemon=True).start()
+        threading.Thread(target=enviar_confirmacion_al_paciente, args=(data,), daemon=True).start()
+
         return jsonify({"status": "success", "id": id_generado}), 200
 
     except Exception as e:
-        print(f"Error en DB: {e}")
+        print(f"Error en proceso: {e}")
         return jsonify({"error": str(e)}), 500
 
+# --- EJECUCIÓN ---
 if __name__ == '__main__':
     init_db()
     app.run(debug=True, port=5001)
-
-@app.route('/dashboard')
-def dashboard():
-    conn = sqlite3.connect('prodi_salud.db')
-    conn.row_factory = sqlite3.Row  # Esto permite acceder a las columnas por nombre
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM historias_clinicas ORDER BY fecha_registro DESC")
-    pacientes = cursor.fetchall()
-    conn.close()
-    return render_template('dashboard.html', pacientes=pacientes)

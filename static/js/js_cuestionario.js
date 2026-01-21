@@ -1,10 +1,6 @@
 // Archivo: js_cuestionario.js
-// Serializa el formulario completo, calcula índices de salud y envía JSON a /submit_form
 
-/**
- * Función para convertir valor de respuesta a número (0-3)
- * Para nada = 0, Algunos días = 1, Más de la mitad = 2, Casi todos = 3
- */
+// --- FUNCIONES DE APOYO ---
 function responseToScore(response) {
   const scoreMap = {
     'Para nada': 0,
@@ -15,9 +11,7 @@ function responseToScore(response) {
   return scoreMap[response] || 0;
 }
 
-/**
- * Función para mostrar/ocultar el campo de objetivo extra preguntas obesidad
- */
+// Lógica para mostrar/ocultar objetivo extra
 document.querySelectorAll('input[name="bajar-peso"]').forEach(el => {
   el.addEventListener('change', function () {
     const extra = document.getElementById('objetivo-extra');
@@ -29,25 +23,12 @@ document.querySelectorAll('input[name="bajar-peso"]').forEach(el => {
   });
 });
 
-
-/**
- * Calcula el Índice de Masa Corporal (IMC)
- * IMC = peso (kg) / (talla (m))²
- * talla debe estar en centímetros
- */
 function calculateIMC(peso, talla) {
   if (!peso || !talla || peso <= 0 || talla <= 0) return null;
   const tallaMts = talla / 100;
   return (peso / (tallaMts * tallaMts)).toFixed(1);
 }
 
-/**
- * Determina el estado nutricional basado en IMC
- * Bajo peso: < 18.5
- * Normopeso: 18.5 - 24.9
- * Sobrepeso: 25.0 - 29.9
- * Obesidad: >= 30
- */
 function getEstadoNutricional(imc) {
   if (!imc) return null;
   const imcNum = parseFloat(imc);
@@ -57,29 +38,14 @@ function getEstadoNutricional(imc) {
   return 'Obesidad';
 }
 
-/**
- * Determina si hay obesidad abdominal
- * Presente: mujer y circunferencia >= 86 cm O hombre >= 90 cm
- */
 function getObesidadAbdominal(perimetroAbdominal, sexo) {
   if (!perimetroAbdominal || !sexo) return null;
   const perimetro = parseFloat(perimetroAbdominal);
-  if (sexo === 'Femenino') {
-    return perimetro >= 86 ? 'Presente' : 'Normal';
-  } else if (sexo === 'Masculino') {
-    return perimetro >= 90 ? 'Presente' : 'Normal';
-  }
+  if (sexo === 'Femenino') return perimetro >= 86 ? 'Presente' : 'Normal';
+  if (sexo === 'Masculino') return perimetro >= 90 ? 'Presente' : 'Normal';
   return null;
 }
 
-/**
- * Evalúa la calidad del sueño
- * < 1 = Terrible
- * < 4 = Mala
- * < 7 = Regular
- * < 10 = Buena
- * = 10 = Excelente
- */
 function getCalidadSueno(puntaje) {
   if (puntaje === null || puntaje === undefined || puntaje === '') return null;
   const p = parseFloat(puntaje);
@@ -87,51 +53,28 @@ function getCalidadSueno(puntaje) {
   if (p < 4) return 'Mala';
   if (p < 7) return 'Regular';
   if (p < 10) return 'Buena';
-  if (p === 10) return 'Excelente';
+  if (p == 10) return 'Excelente';
   return null;
 }
 
-/**
- * Calcula puntaje de ansiedad (preguntas 37 + 38)
- * Suma de dos respuestas (0-3 cada una)
- * Presente >= 3, resto Ausente
- */
 function calcularAnsiedad(ansioso, preocupacion) {
-  const score1 = responseToScore(ansioso);
-  const score2 = responseToScore(preocupacion);
-  const total = score1 + score2;
-  return {
-    puntaje: total,
-    estado: total >= 3 ? 'Presente' : 'Ausente'
-  };
+  const s1 = responseToScore(ansioso);
+  const s2 = responseToScore(preocupacion);
+  const total = s1 + s2;
+  return { puntaje: total, estado: total >= 3 ? 'Presente' : 'Ausente' };
 }
 
-/**
- * Calcula puntaje de depresión (preguntas 39 + 40)
- * Suma de dos respuestas (0-3 cada una)
- * Presente >= 3, resto Ausente
- */
 function calcularDepresion(interes, deprimido) {
-  const score1 = responseToScore(interes);
-  const score2 = responseToScore(deprimido);
-  const total = score1 + score2;
-  return {
-    puntaje: total,
-    estado: total >= 3 ? 'Presente' : 'Ausente'
-  };
+  const s1 = responseToScore(interes);
+  const s2 = responseToScore(deprimido);
+  const total = s1 + s2;
+  return { puntaje: total, estado: total >= 3 ? 'Presente' : 'Ausente' };
 }
 
-/**
- * Evalúa riesgo de apnea obstructiva del sueño
- * Presente si: ronca (pregunta 33) = Sí AND circunferencia cuello >= 40 cm
- */
 function riesgoApneaSueno(ronca, circunferenciaCuello) {
   if (!ronca || !circunferenciaCuello) return null;
   const cuello = parseFloat(circunferenciaCuello);
-  if (ronca === 'Sí' && cuello >= 40) {
-    return 'Presente';
-  }
-  return 'Ausente';
+  return (ronca === 'Sí' && cuello >= 40) ? 'Presente' : 'Ausente';
 }
 
 function serializeForm(form) {
@@ -139,100 +82,60 @@ function serializeForm(form) {
   const elements = Array.from(form.elements).filter(el => el.name && !el.disabled);
 
   elements.forEach(el => {
-    const name = el.name;
-    const type = el.type;
-
-    if (type === 'checkbox') {
-      if (!data[name]) data[name] = [];
-      if (el.checked) data[name].push(el.value);
-    } else if (type === 'radio') {
-      if (el.checked) data[name] = el.value;
-    } else if (el.tagName === 'SELECT' && el.multiple) {
-      data[name] = Array.from(el.selectedOptions).map(o => o.value);
+    if (el.type === 'checkbox') {
+      if (!data[el.name]) data[el.name] = [];
+      if (el.checked) data[el.name].push(el.value);
+    } else if (el.type === 'radio') {
+      if (el.checked) data[el.name] = el.value;
     } else {
-      // Inputs normales, textarea, selects single
-      data[name] = el.value;
+      data[el.name] = el.value;
     }
   });
 
-  // Añadir timestamp
-  data.timestamp = new Date().toISOString();
-
-  // CALCULAR ÍNDICES DE SALUD
-  const calculosde_Salud = {};
-
-  // 1. IMC
+  // Cálculos de Salud Automáticos
+  const cal = {};
   const imc = calculateIMC(data.peso, data.talla);
-  if (imc) {
-    calculosde_Salud.imc = parseFloat(imc);
-    calculosde_Salud.estado_nutricional = getEstadoNutricional(imc);
-  }
-
-  // 2. Obesidad abdominal
-  const obesidadAbdominal = getObesidadAbdominal(data['perimetro-abdominal'], data.sexo);
-  if (obesidadAbdominal) {
-    calculosde_Salud.obesidad_abdominal = obesidadAbdominal;
-  }
-
-  // 3. Calidad del sueño
-  const calidadSueno = getCalidadSueno(data['calidad-sueno']);
-  if (calidadSueno) {
-    calculosde_Salud.calidad_sueno_evaluacion = calidadSueno;
-  }
-
-  // 4. Síntomas de ansiedad
-  const ansiedad = calcularAnsiedad(data.ansioso, data.preocupacion);
-  if (ansiedad) {
-    calculosde_Salud.puntaje_ansiedad = ansiedad.puntaje;
-    calculosde_Salud.sintomas_ansiedad = ansiedad.estado;
-  }
-
-  // 5. Síntomas de depresión
-  const depresion = calcularDepresion(data.interes, data.deprimido);
-  if (depresion) {
-    calculosde_Salud.puntaje_depresion = depresion.puntaje;
-    calculosde_Salud.sintomas_depresion = depresion.estado;
-  }
-
-  // 6. Riesgo de apnea obstructiva del sueño
-  const apnea = riesgoApneaSueno(data.ronca, data['circunferencia-cuello']);
-  if (apnea) {
-    calculosde_Salud.riesgo_apnea_sueno = apnea;
-  }
-
-  // Agregar cálculos al objeto de datos
-  data.calculos_salud = calculosde_Salud;
-
+  if (imc) { cal.imc = imc; cal.estado_nutricional = getEstadoNutricional(imc); }
+  cal.obesidad_abdominal = getObesidadAbdominal(data['perimetro-abdominal'], data.sexo);
+  cal.calidad_sueno_evaluacion = getCalidadSueno(data['calidad-sueno']);
+  
+  const ans = calcularAnsiedad(data.ansioso, data.preocupacion);
+  cal.sintomas_ansiedad = ans.estado;
+  
+  const dep = calcularDepresion(data.interes, data.deprimido);
+  cal.sintomas_depresion = dep.estado;
+  
+  data.calculos_salud = cal;
   return data;
 }
 
-function showMessage(text, isError = false) {
-  const box = document.getElementById('message-box');
-  if (!box) return alert(text);
-  box.className = isError ? 'message error' : 'message success';
-  box.textContent = text;
-  box.classList.remove('hidden');
-  setTimeout(() => box.classList.add('hidden'), 6000);
-}
-
+// --- INICIALIZACIÓN ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Inicializar sliders: actualizar el span con id '<slider-id>-value' al mover el control
+  // 1. Inicializar Sliders (Esto es lo que faltaba en tu versión)
   const sliders = document.querySelectorAll('.modern-range');
   sliders.forEach(slider => {
     const valueSpan = document.getElementById(slider.id + '-value');
-    if (!valueSpan) return;
-    // establecer valor inicial
-    valueSpan.textContent = slider.value;
-    slider.addEventListener('input', () => {
+    if (valueSpan) {
       valueSpan.textContent = slider.value;
-    });
+      slider.addEventListener('input', () => {
+        valueSpan.textContent = slider.value;
+      });
+    }
   });
 
+  // 2. Manejo del Formulario
   const form = document.getElementById('health-form') || document.getElementById('questionnaire-form');
-  if (!form) return console.warn('Formulario no encontrado: id=health-form o questionnaire-form');
+  if (!form) return;
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+    
+    const btnSubmit = form.querySelector('button[type="submit"]');
+    const originalText = btnSubmit.innerHTML;
+    
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = 'Enviando información segura...';
+
     const data = serializeForm(form);
 
     try {
@@ -242,17 +145,23 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(data)
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Error en el servidor');
-      }
+      if (!res.ok) throw new Error('Error en el servidor');
 
-      const json = await res.json();
-      showMessage('Formulario enviado. ID: ' + (json.id || '---'));
+      alert("¡Registro Exitoso!\n\nGracias por completar el cuestionario. Tu reporte será enviado pronto.");
+      
       form.reset();
+      // Resetear visualmente los valores de los sliders tras el reset
+      sliders.forEach(s => {
+          const span = document.getElementById(s.id + '-value');
+          if(span) span.textContent = s.value;
+      });
+
     } catch (err) {
-      console.error(err);
-      showMessage('Error enviando formulario: ' + err.message, true);
+      alert('Error: ' + err.message);
+    } finally {
+      // Restaurar botón siempre (éxito o error)
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = originalText;
     }
   });
 });

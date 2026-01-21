@@ -92,24 +92,34 @@ body {
         line-height: 1.1;
     }
 }
-/* 1. Estilo para el contenedor principal (el cuadro) */
 .container fieldset {
     margin-top: 30px;
     padding: 20px;
     border-radius: 12px;
-    border: none; /* Quitamos el borde predeterminado para que luzca el degradado */
+    position: relative;
+    border: 2px solid transparent; /* Espacio para el borde */
+    
+    /* 1. Fondo: El primer gradient es para el fondo, el segundo para el borde */
+    background: 
+        linear-gradient(#2a2a2a, #1a1a1a) padding-box, /* Capa fondo */
+        linear-gradient(135deg, #201d12 0%, #767345 45%, #b8860b 70%, #5d4000 100%) border-box; /* Capa borde */
 
-    /* Degradado gris oscuro con foco central */
-    background: radial-gradient(circle,
-            #3a3a3a 0%,
-            #2a2a2a 40%,
-            #1a1a1a 100%);
+    /* 2. Aplicamos el borde degradado */
+    border: 2px solid transparent;
+    
+    /* 3. Sombra reforzada (mantenemos la tuya pero con un toque ámbar) */
+    box-shadow: 
+        0 12px 28px rgba(0, 0, 0, 0.55), 
+        0 0 15px rgba(212, 175, 55, 0.1); /* Brillo dorado sutil exterior */
+}
 
-    /* Sombra reforzada con efecto de profundidad */
-    box-shadow:
-        0 12px 28px rgba(0, 0, 0, 0.55),
-        0 6px 12px rgba(0, 0, 0, 0.35),
-        0 0 4px rgba(0, 0, 0, 0.6);
+/* Efecto opcional: Brillo extra en el título del fieldset (legend) */
+.container fieldset legend {
+    color: #f9f295;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
 }
 
 /* 2. Estilo para los textos dentro del fieldset */
@@ -442,7 +452,7 @@ input[type="number"] {
 }
 
 #submit-button:hover {
-    background-color: #cdfa06;
+    background-color: #ebe005;
     color: #000000;
     /* Efecto de aumento de tamaño */
     transform: scale(1.04);
@@ -496,4 +506,35 @@ input[type="number"] {
     background-color: rgba(0, 0, 128, 0.25) !important;
     border-color: #6ba8ff !important;
     color: #d6e6ff !important;
+}
+
+.logo-container {
+    position: absolute;
+    top: 15px;    /* Un poco más cerca del borde superior */
+    left: 25px;   /* Un poco más separado del borde izquierdo */
+    z-index: 10;
+}
+
+.banner-logo {
+    height: 60px;          /* Tamaño reducido para estética minimalista */
+    width: auto;           
+    opacity: 0.9;          /* Ligera transparencia para integrar con el fondo */
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); /* Sombra suave */
+}
+
+.banner-logo:hover {
+    opacity: 1;            /* Resalta al pasar el mouse */
+    transform: scale(1.05); /* Pequeño efecto de crecimiento */
+}
+
+/* En pantallas pequeñas, el logo se reduce aún más para no estorbar */
+@media (max-width: 768px) {
+    .banner-logo {
+        height: 45px; 
+    }
+    .logo-container {
+        top: 10px;
+        left: 15px;
+    }
 }

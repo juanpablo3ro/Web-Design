@@ -5,7 +5,12 @@ Para activar el entorno: source .venv/bin/activate
 
 activar el python3; python3 app.py
 
+Cuando el puerto se queda pegado: kill -9 $(lsof -ti:5001)
+
 para abrir al dashboard http://localhost:5001/dashboard.html
+http://127.0.0.1:5001/dashboard
+
+git add app.py cuestionario_general.html dashboard.html styles_cuestionario.css js_cuestionario.js notas.txt
 
 Desactivar el Entorno: Cuando termines de trabajar, desactívalo: deactivate
 
