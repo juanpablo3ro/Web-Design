@@ -24,7 +24,6 @@ mail = Mail(app)
 def init_db():
     conn = sqlite3.connect('prodi_salud.db')
     cursor = conn.cursor()
-    # Eliminamos cualquier rastro de UNIQUE en esta sentencia
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS historias_clinicas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -153,12 +152,6 @@ def enviar():
     if not data:
         return jsonify({"error": "No se recibieron datos"}), 400
 
-    # Preparación de resumen para el equipo médico
-    calculos = data.get('calculos_salud', {})
-    resumen_salud = (f"IMC: {calculos.get('imc')} ({calculos.get('estado_nutricional')}). "
-                    f"Sueño: {calculos.get('calidad_sueno_evaluacion')}. "
-                    f"Ansiedad/Depresión: {calculos.get('sintomas_ansiedad')}/{calculos.get('sintomas_depresion')}.")
-
     # Lista de campos exactos según tu tabla historias_clinicas
     columnas = [
         "nombre", "apellidos", "edad", "sexo", "email", "telefono", "ciudad", "pais", "antecedentes",
@@ -176,6 +169,9 @@ def enviar():
     ]
 
     # Mapeo de datos (asegúrate de que los nombres coincidan con los 'name' de tu HTML/JS)
+    # Generar resumen de salud básico
+    resumen_salud = f"Paciente: {data.get('nombre')}. Edad: {data.get('edad')}. Sexo: {data.get('sexo')}."
+    
     datos_tupla = (
         data.get('nombre'), data.get('apellidos'), data.get('edad'), data.get('sexo'),
         data.get('email'), data.get('telefono'), data.get('ciudad'), data.get('pais'),
@@ -222,7 +218,145 @@ def enviar():
         print(f"Error en proceso: {e}")
         return jsonify({"error": str(e)}), 500
 
-# --- EJECUCIÓN ---
+# --- 1. VISTA PRINCIPAL DEL REPORTE ---
+@app.route('/reporte/<int:p_id>')
+def reporte_detalle(p_id):
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row # Esto es vital
+        cursor = conn.cursor()
+        
+        # 1. Datos del paciente actual
+        cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
+        paciente = cursor.fetchone()
+
+        # 2. Lista para el selector lateral
+        cursor.execute("SELECT id, nombre, apellidos FROM historias_clinicas ORDER BY nombre ASC")
+        filas = cursor.fetchall()
+        lista_nombres = [(r['id'], f"{r['nombre']} {r['apellidos']}") for r in filas]
+        
+        conn.close()
+
+        if not paciente:
+            return "Paciente no encontrado", 404
+
+        return render_template('reporte_paciente.html', 
+                               datos=paciente, 
+                               inscripciones_nombres=lista_nombres)
+    except Exception as e:
+        return f"Error: {e}", 500
+
+# --- 2. API PARA CARGAR DATOS (USADA POR EL JAVASCRIPT DEL REPORTE) ---
+@app.route('/get_submission/<int:p_id>')
+def get_submission(p_id):
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
+        p = cursor.fetchone()
+        conn.close()
+        
+        if p:
+            return jsonify(dict(p))
+        return jsonify({"error": "No encontrado"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# --- NUEVOS ENDPOINTS PARA INTEGRACIÓN Y BUSQUEDA ---
+
+@app.route('/api/all_participants')
+def all_participants():
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, nombre, apellidos FROM historias_clinicas ORDER BY nombre ASC")
+        filas = cursor.fetchall()
+        conn.close()
+        
+        lista = [{"id": r["id"], "nombre_completo": f"{r['nombre']} {r['apellidos']}"} for r in filas]
+        return jsonify(lista)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/download_raw_data/<int:p_id>')
+def download_raw_data(p_id):
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
+        p = cursor.fetchone()
+        conn.close()
+        
+        if p:
+            data = dict(p)
+            response = jsonify(data)
+            response.headers.set('Content-Disposition', 'attachment', filename=f'paciente_{p_id}.json')
+            return response
+        return jsonify({"error": "No encontrado"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/save_gemini_analysis', methods=['POST'])
+def save_gemini_analysis():
+    data = request.get_json()
+    p_id = data.get('id')
+    analysis = data.get('analysis')
+    
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        cursor = conn.cursor()
+        cursor.execute("UPDATE historias_clinicas SET analisis_driver = ? WHERE id = ?", (analysis, p_id))
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- 3. API PARA GUARDAR CAMBIOS ---
+@app.route('/update_submission', methods=['POST'])
+def update_submission():
+    data = request.get_json()
+    p_id = data.get('id')
+    
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        cursor = conn.cursor()
+        
+        # Aquí actualizamos todos los campos editables que definimos en el HTML
+        cursor.execute("""
+            UPDATE historias_clinicas 
+            SET nombre = ?, 
+                notas_medico = ?,
+                rec_actividad = ?,
+                rec_tabaco = ?,
+                rec_apnea = ?,
+                rec_glucosa = ?,
+                rec_lipidos = ?,
+                diag_lipidos = ?
+            WHERE id = ?
+        """, (
+            data.get('nombre'), 
+            data.get('notas_medico'),
+            data.get('rec_actividad'),
+            data.get('rec_tabaco'),
+            data.get('rec_apnea'),
+            data.get('rec_glucosa'),
+            data.get('rec_lipidos'),
+            data.get('diag_lipidos'),
+            p_id
+        ))
+        
+        conn.commit()
+        conn.close()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# --- 4. EJECUCIÓN DEL SERVIDOR (SIEMPRE AL FINAL) ---
 if __name__ == '__main__':
-    init_db()
+    # Asegúrate de mantener tus rutas de /dashboard y /submit aquí arriba
     app.run(debug=True, port=5001)

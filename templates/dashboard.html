@@ -125,8 +125,14 @@
                         <td>{{ p.telefono }}</td>
                         <td>{{ p.ciudad }}</td>
                         <td>{{ p.fecha_registro }}</td>
-                        <td>
+                        <td class="flex gap-2">
                             <button class="btn-detalle" onclick="verDetalle('{{ p.id }}', '{{ p.nombre }}')">Ver</button>
+                            
+                            <a href="{{ url_for('reporte_detalle', p_id=p.id) }}" 
+                            class="btn-reporte" 
+                            style="background-color: #F27405; color: white; padding: 5px 12px; border-radius: 4px; text-decoration: none; font-size: 0.9em; font-weight: bold; display: inline-block;">
+                            Reporte
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}

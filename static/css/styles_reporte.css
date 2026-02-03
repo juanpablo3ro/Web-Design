@@ -1,0 +1,874 @@
+:root {
+    --color-bg: #014040;
+    --color-primary: #02735E;
+    --color-secondary: #ffffff;
+    --color-accent: #F27405;
+    --color-alert: rgba(115, 23, 2, 0.4);
+    --glass-bg: #101010;
+    --glass-border: rgba(255, 255, 255, 0.2);
+}
+
+body {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+
+    /* Reemplazo del degradado por imagen */
+    background-image: url('../img/A5.jpg');
+    background-size: cover;
+    /* Ajusta la imagen para cubrir todo el fondo */
+    background-position: center;
+    /* Centra la imagen */
+    background-repeat: repeat;
+    /* Evita que la imagen se duplique como mosaico */
+    background-attachment: fixed;
+    /* La imagen se queda quieta al hacer scroll */
+
+    color: #f0f0f0;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+h1 {
+    font-family: 'Playfair Display', serif;
+}
+
+.glass-card {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+
+    /* Borde superior tipo highlight */
+    border-top: 2px solid rgba(255, 255, 255, 0.10);
+
+    /* Mantienes el resto igual */
+    border-radius: 16px;
+    box-shadow: 0 8px 32px 0 rgba(0, 191, 249, 0.4);
+    padding: 24px;
+}
+
+
+.section-header {
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    color: var(--color-secondary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    margin-top: 2rem;
+}
+
+.section-header::after {
+    content: "";
+    height: 1px;
+    flex-grow: 1;
+    background: linear-gradient(to right, var(--color-secondary), transparent);
+    opacity: 0.3;
+}
+
+.data-label {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-accent);
+    text-shadow: 0 0 2px rgba(0, 0, 0, 0.6);
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.data-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #f0f0f0;
+}
+
+.value-alert {
+    color: #ffffff !important;
+    background-color: var(--color-alert);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.value-success {
+    color: var(--color-secondary) !important;
+}
+
+.grid-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+}
+
+.metric-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.1rem;
+}
+
+.metric-table th {
+    text-align: left;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--color-secondary);
+    opacity: 0.9;
+}
+
+.metric-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    color: #ffffff;
+}
+
+.comp-item {
+    font-size: 0.9rem;
+    /* ≈14–15px */
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+    padding: 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Gauge Styles */
+
+.gauge-card-modern {
+    position: relative;
+    padding: 2rem;
+    background: linear-gradient(145deg, #0a0a0a, #121212);
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    min-height: 280px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.glow-overlay-modern {
+    position: absolute;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 160px;
+    height: 160px;
+    filter: blur(50px);
+    opacity: 0.12;
+    border-radius: 50%;
+    transition: background 0.6s ease;
+    pointer-events: none;
+}
+
+.gauge-svg-modern {
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.8));
+}
+
+.value-text-modern {
+    font-variant-numeric: tabular-nums;
+    background: linear-gradient(180deg, #ffffff 30%, #888888 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1;
+}
+
+.status-badge-modern {
+    padding: 6px 16px;
+    border-radius: 4px;
+    /* Bordes técnicos según solicitado */
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.5s ease;
+    display: inline-block;
+}
+
+/* Contenedor de cada fila de indicador (Nutrición, Actividad, etc.) */
+.item-aha-row {
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+/* Títulos de las categorías (ej: NUTRICIÓN) */
+.item-aha-row .text-label {
+    font-size: 0.95rem !important;
+    /* Aumentado de ~0.7rem */
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 0.5rem;
+    display: block;
+    text-transform: uppercase;
+}
+
+/* Valor numérico a la derecha (ej: 100) */
+.item-aha-row .text-value {
+    font-size: 1.1rem !important;
+    /* Más grande y destacado */
+    font-weight: 900;
+    color: #ffffff;
+}
+
+/* Si usas un contenedor para el texto superior de la barra */
+.aha-label-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin-bottom: 8px;
+    /* Espacio entre texto y barra */
+}
+
+/* Ajuste de la barra para que no se vea muy delgada comparada con el texto */
+.health-bar-container-modern {
+    height: 6px;
+    /* Aumentado de 4px */
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+
+.download-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: linear-gradient(135deg, var(--color-accent), #f39c12);
+    color: #ffffff;
+    padding: 14px 28px;
+    border-radius: 50px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    z-index: 100;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+@media print {
+    body {
+        background: white !important;
+        color: black !important;
+        padding: 0;
+    }
+
+    .glass-card {
+        border: 1px solid #ddd !important;
+        background: none !important;
+        color: black !important;
+        box-shadow: none !important;
+    }
+
+    .section-header,
+    .data-label,
+    .highlight-value {
+        color: black !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .metric-table th {
+        background: #f0f0f0 !important;
+        color: black !important;
+    }
+
+    .metric-table td {
+        border-bottom: 1px solid #ddd !important;
+        color: black !important;
+    }
+
+    .value-alert {
+        background-color: #731702 !important;
+        color: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .data-value {
+        color: black !important;
+    }
+}
+
+/* Ajuste para los textos secundarios */
+#val-aha-status {
+    color: #444;
+    /* gris oscuro, mejor contraste sobre fondo claro */
+    opacity: 1;
+    /* quitar transparencia */
+    font-weight: 600;
+    /* más marcado */
+    letter-spacing: 0.05em;
+}
+
+/* Ajuste para los valores principales */
+#val-aha-total {
+    color: #0c1425;
+    /* tono oscuro consistente con tu paleta */
+}
+
+.aha-title {
+    color: #333;
+    /* gris oscuro */
+    font-weight: 600;
+    /* más marcado */
+}
+
+.banner-section {
+    background-size: cover;
+    background-position: center;
+    padding: 40px 20px;
+    text-align: center;
+
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+}
+
+
+.banner-section .section-header {
+    color: #fff;
+    font-size: clamp(1.2rem, 4vw, 2rem);
+    /* escala automática */
+    font-weight: 700;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    max-width: 100%;
+    margin: 0 auto;
+    line-height: 1.3;
+}
+
+/* Ajuste específico para móviles */
+@media (max-width: 480px) {
+    .banner-section {
+        padding: 20px 10px;
+        /* menos padding en móvil */
+    }
+
+    .banner-section .section-header {
+        font-size: 1.2rem;
+        /* fuerza tamaño más pequeño */
+    }
+}
+
+/* Altura aumentada específica para el banner de recomendaciones */
+.banner-section.banner-tall {
+    padding: 80px 20px;
+    /* Aumentamos de 40px a 80px arriba y abajo */
+    min-height: 200px;
+    /* Altura mínima garantizada */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Ajuste proporcional para móviles */
+@media (max-width: 480px) {
+    .banner-section.banner-tall {
+        padding: 40px 15px;
+        /* Un poco más alto que el estándar en móvil */
+        min-height: 140px;
+    }
+}
+
+
+
+/* Ítems individuales dentro de la sección */
+.recomendacion-item {
+    background: rgba(12, 20, 37, 0.6);
+    /* mismo fondo oscuro semitransparente */
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
+}
+
+/* Contenedor general de recomendaciones */
+.recomendaciones-section {
+    margin-top: 30px;
+    padding: 20px;
+    border-radius: 12px;
+
+    /* Degradado lineal vertical: Negro arriba, Gris oscuro abajo */
+    background: linear-gradient(to bottom,
+            #000000 0%,
+            /* Negro absoluto arriba */
+            #1e1e1e 60%,
+            /* Gris muy oscuro en el centro */
+            #282828 100%
+            /* Gris más claro abajo */
+        );
+    /* Sombra reforzada con efecto de profundidad */
+    box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.6),
+        /* sombra principal fuerte */
+        0 6px 12px rgba(0, 0, 0, 0.35),
+        /* sombra secundaria suave */
+        0 0 4px rgba(0, 0, 0, 0.6);
+    /* halo cercano para separar del fondo */
+}
+
+
+
+/* Títulos y textos dentro de recomendaciones */
+.recomendacion-titulo {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #f1f1f1;
+    /* gris muy claro para contraste sobre fondo oscuro */
+    margin-bottom: 8px;
+}
+
+.recomendacion-texto {
+    font-size: 1.2rem;
+    color: #ddd;
+    /* texto secundario claro */
+}
+
+.highlight-score {
+    font-weight: 700;
+    color: #03A678;
+    /* verde como el puntaje óptimo */
+    font-size: 1.2rem;
+}
+
+/* DASHBOARD SIDEBAR STYLES */
+.dashboard-container {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 320px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #ecf0f1;
+    padding: 24px;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.5);
+    border-radius: 0 20px 20px 0;
+}
+
+.report-content {
+    margin-left: 320px;
+    flex-grow: 1;
+    padding: 0;
+    min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+    .sidebar {
+        position: relative;
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .report-content {
+        margin-left: 0;
+    }
+
+    .dashboard-container {
+        flex-direction: column;
+    }
+}
+
+.participant-item {
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.05);
+    font-size: 0.9rem;
+}
+
+.participant-item:hover {
+    background: var(--color-primary);
+}
+
+.participant-item.active {
+    background: var(--color-accent);
+    font-weight: bold;
+}
+
+/* Estilo para campos editables cuando NO estamos imprimiendo */
+@media screen {
+    .editable-field {
+        transition: all 0.2s;
+        padding: 2px 4px;
+        border-radius: 4px;
+    }
+
+    .editable-field:hover {
+        outline: 2px dashed var(--color-accent);
+        outline-offset: 4px;
+        cursor: text;
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .editable-field:focus {
+        outline: 2px solid var(--color-accent);
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }
+}
+
+/* En el PDF no se debe notar que es editable */
+@media print {
+    .editable-field {
+        outline: none !important;
+        background: transparent !important;
+    }
+}
+
+/* Clase estándar para todos los botones de la barra lateral */
+.sidebar-btn {
+    background-color: #10131E;
+    /* El verde turquesa que usas */
+    color: #ffffff;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0.75rem;
+}
+
+.sidebar-btn:hover {
+    background-color: #F27405;
+    /* Naranja acento al pasar el mouse */
+    color: #ffffff;
+    transform: scale(1.03);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-btn:active {
+    transform: scale(0.97);
+}
+
+/* Variante para el botón de Guardar (para que destaque más) */
+.sidebar-btn-primary {
+    background-color: #10131E;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Variante para botones secundarios o de volver */
+.sidebar-btn-secondary {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-btn-secondary:hover {
+    background-color: #333;
+}
+
+/* Contenedor Principal */
+.modern-gauges-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
+    padding-left: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .modern-gauges-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Card Individual */
+.gauge-mini-card {
+    background: linear-gradient(145deg, #0a0a0a, #121212);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+/* EL GLOW: Ajustado para ser visible Triple Grafica */
+.gauge-mini-glow {
+    position: absolute;
+    top: 50%;
+    /* Bajado un poco para centrar el aura */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    /* Aumentado para que no se pierda con el blur */
+    height: 100px;
+    /* Aumentado */
+    filter: blur(25px);
+    /* Reducido un poco para que el color sea más sólido */
+    opacity: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: screen;
+    /* Usamos 'all' para asegurar que capture todos los cambios del JS */
+    transition: all 0.8s ease;
+}
+
+.gauge-mini-card {
+    position: relative;
+    overflow: hidden;
+    /* Mantiene el brillo dentro de la tarjeta */
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* SVG y Arcos */
+.gauge-mini-svg-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 140px;
+}
+
+.gauge-mini-svg {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.8));
+}
+
+.path-bg-mini {
+    stroke: rgba(255, 255, 255, 0.07);
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: butt;
+}
+
+.path-active-mini {
+    fill: none;
+    stroke-width: 8;
+    stroke-linecap: butt;
+    transition: stroke-dasharray 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), stroke 0.6s ease;
+}
+
+/* Textos */
+.mini-val-text {
+    font-size: 2.75rem;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
+
+.mini-label-badge {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin-top: 8px;
+    color: #ffffff;
+    white-space: nowrap;
+    transition: color 0.6s ease, border-color 0.6s ease;
+}
+
+.mini-footer-desc {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.3);
+    margin-top: 16px;
+    font-weight: 700;
+    z-index: 1;
+}
+
+/* Contenedor de la Sección */
+.diet-grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+@media (min-width: 1024px) {
+    .diet-grid-container {
+        grid-template-columns: 1fr 280px;
+        /* Datos izquierda, Gauge derecha */
+    }
+}
+
+/* Panel de Datos (Izquierda) */
+.diet-habits-panel {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .diet-habits-panel {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Contenedor de la Sección */
+.diet-grid-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+@media (min-width: 1024px) {
+    .diet-grid-container {
+        grid-template-columns: 1fr 280px;
+        /* Datos izquierda, Gauge derecha */
+    }
+}
+
+/* Panel de Datos (Izquierda) */
+.diet-habits-panel {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .diet-habits-panel {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Gauge Card (Derecha) */
+/* Card de Alimentación: Transparente y ampliada */
+.alim-gauge-card {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    padding: 2rem;
+    /* Más aire interno */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: visible;
+    min-height: 280px;
+    /* Aumentado */
+    justify-content: center;
+}
+
+/* EL GLOW: Estandarizado con el estilo de alimentación */
+.alim-glow {
+    position: absolute;
+    top: 50%;
+    /* Bajado un poco para centrar el aura */
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120px;
+    /* Aumentado para que no se pierda con el blur */
+    height: 100px;
+    /* Aumentado */
+    filter: blur(25px);
+    /* Reducido un poco para que el color sea más sólido */
+    opacity: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+    mix-blend-mode: screen;
+    /* Usamos 'all' para asegurar que capture todos los cambios del JS */
+    transition: all 0.8s ease;
+}
+
+/* Aseguramos que el contenedor del SVG no recorte nada */
+.alim-svg-container {
+    position: relative;
+    z-index: 1;
+    width: 220px;
+    background: transparent !important;
+    /* Forzamos transparencia */
+}
+
+/* El área del texto debe ser transparente y no bloquear el ratón */
+.alim-svg-container .absolute {
+    background: transparent !important;
+    pointer-events: none;
+    /* Evita que el cuadro de texto interfiera */
+}
+
+/* Ajuste del número para que no tenga sombras negras sólidas */
+.alim-val-text {
+    font-size: 4.5rem;
+    font-weight: 950;
+    color: #ffffff;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    background: transparent;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+    /* Sombra suave, no bloque negra */
+}
+
+/* El badge de categoría con transparencia controlada */
+.alim-category-badge {
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    padding: 4px 12px;
+    border-radius: 6px;
+    /* Bajamos la opacidad del fondo para que no se vea una mancha negra */
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin-top: 5px;
+    backdrop-filter: blur(4px);
+    /* Efecto cristalino en lugar de negro sólido */
+}
+
+.alim-meta-text {
+    font-size: 11px;
+    /* Aumentado de 9px */
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 20px;
+    font-weight: 700;
+}
+
+.alim-path-bg {
+    stroke: rgba(255, 255, 255, 0.06);
+    fill: none !important;
+    /* ELIMINA EL RELLENO NEGRO */
+    stroke-width: 10;
+}
+
+.alim-path-active {
+    fill: none !important;
+    /* ELIMINA EL RELLENO NEGRO */
+    stroke-width: 10;
+    stroke-linecap: butt;
+    transition: stroke-dasharray 1.5s cubic-bezier(0.4, 0, 0.2, 1), stroke 0.8s ease;
+}
