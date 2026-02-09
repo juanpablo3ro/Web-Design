@@ -53,15 +53,6 @@
                     </button>
                 </div>
 
-                <div class="mt-6">
-                    <label class="block text-xs uppercase tracking-widest white font-bold mb-3">Integración IA</label>
-                    <textarea id="gemini-input" placeholder="Pega el análisis de Gemini aquí..."
-                        class="w-full h-24 p-3 bg-gray-900 text-white border border-gray-800 rounded-lg text-xs mb-3 focus:border-accent outline-none transition-all placeholder:opacity-30"></textarea>
-
-                    <button onclick="guardarAnalisisGemini()" class="sidebar-btn" style="background-color: #000202;">
-                        Aplicar Análisis
-                    </button>
-                </div>
             </div>
         </aside>
         <div class="report-content" id="reporte-imprimible">
@@ -136,11 +127,12 @@
 
                 <section class="recomendaciones-section">
                     <h2 class="section-header">02 Resumen del Coach Virtual</h2>
-                    <div class="glass-card !bg-white p-4 rounded-lg shadow-inner">
-                        <div id="narrativa-ia"
-                            class="data-value text-xl italic leading-relaxed text-black editable-field"
-                            contenteditable="true" data-key="analisis_driver">
-                            Cargando análisis personalizado...
+                    <div class="glass-card !bg-white p-6 rounded-lg shadow-inner border border-gray-200">
+                        <div id="narrativa-ia" class="data-value text-lg leading-relaxed text-gray-900 editable-field"
+                            contenteditable="true" data-key="analisis_driver"
+                            style="white-space: pre-wrap; min-height: 200px; font-style: normal;">
+                            {{ datos.analisis_driver if datos.analisis_driver else 'Cargando análisis personalizado...'
+                            }}
                         </div>
                     </div>
                 </section>
@@ -155,12 +147,14 @@
                                         {% if datos.antecedentes %}
                                         {% for ant in datos.antecedentes.split(', ') %}
                                         <tr class="border-b border-white/10 last:border-0">
-                                            <td class="py-2 editable-field" contenteditable="true">{{ ant }}</td>
+                                            <td class="py-2 editable-field" contenteditable="true"
+                                                id="ant-{{ loop.index }}">{{ ant }}</td>
                                         </tr>
                                         {% endfor %}
                                         {% else %}
                                         <tr>
-                                            <td class="py-2 opacity-50 italic">No se registraron antecedentes</td>
+                                            <td class="py-2 opacity-50 italic" id="ant-none">No se registraron
+                                                antecedentes</td>
                                         </tr>
                                         {% endif %}
                                     </tbody>
@@ -175,19 +169,23 @@
                                     <tbody id="lista-medicacion" class="editable-container">
                                         <tr>
                                             <td class="py-2">Medicación Presión</td>
-                                            <td class="py-2 text-right">{{ datos.medicamento_presion or 'No' }}</td>
+                                            <td class="py-2 text-right" id="h-med-presion">{{ datos.medicamento_presion
+                                                or 'No' }}</td>
                                         </tr>
                                         <tr>
                                             <td class="py-2">Medicación Glucosa</td>
-                                            <td class="py-2 text-right">{{ datos.medicamento_glucosa or 'No' }}</td>
+                                            <td class="py-2 text-right" id="h-med-glucosa">{{ datos.medicamento_glucosa
+                                                or 'No' }}</td>
                                         </tr>
                                         <tr>
                                             <td class="py-2">Medicación Lípidos</td>
-                                            <td class="py-2 text-right">{{ datos.medicamento_lipidos or 'No' }}</td>
+                                            <td class="py-2 text-right" id="h-med-lipidos">{{ datos.medicamento_lipidos
+                                                or 'No' }}</td>
                                         </tr>
                                         <tr>
                                             <td class="py-2">Medicación Peso</td>
-                                            <td class="py-2 text-right">{{ datos.medicamento_peso or 'No' }}</td>
+                                            <td class="py-2 text-right" id="h-med-peso">{{ datos.medicamento_peso or
+                                                'No' }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1009,7 +1007,7 @@
                             <span class="text-xl font-black text-right editable-field" id="val-rec-lipidos-cardio"
                                 contenteditable="true" data-key="rec_lipidos_cardio"
                                 style="color: #ffffff; max-width: 60%;">
-                                {{ datos.rec_lipidos_cardio or 'En rango' }}
+                                Calculando...
                             </span>
                         </div>
 

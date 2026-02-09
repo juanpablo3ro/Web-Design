@@ -7,6 +7,7 @@ import threading
 from datetime import datetime
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # Permitir textos largos de Gemini
 
 load_dotenv()
 # --- CONFIGURACIÓN DE FLASK-MAIL ---
@@ -14,23 +15,23 @@ app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-# RECUERDA: Usa aquí tu "Contraseña de Aplicación" de 16 caracteres de Google
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD') 
 app.config['MAIL_DEFAULT_SENDER'] = 'proditeamweb@gmail.com'
 
 mail = Mail(app)
 
-# --- 1. CONFIGURACIÓN DE BASE DE DATOS ---
+# --- 1. CONFIGURACIÓN DE BASE DE DATOS (ACTUALIZADA) ---
 def init_db():
     conn = sqlite3.connect('prodi_salud.db')
     cursor = conn.cursor()
+    
+    # Tabla Maestra (Historia Clínica Inicial)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS historias_clinicas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             fecha_registro TEXT DEFAULT CURRENT_TIMESTAMP,
             nombre TEXT, apellidos TEXT, edad INTEGER, sexo TEXT,
-            email TEXT, 
-            telefono TEXT, ciudad TEXT, pais TEXT,
+            email TEXT, telefono TEXT, ciudad TEXT, pais TEXT,
             antecedentes TEXT, presion_sistolica INTEGER, presion_diastolica INTEGER,
             medicamento_presion TEXT, glucosa_ayunas INTEGER, medicamento_glucosa TEXT,
             hba1c REAL, colesterol_total INTEGER, trigliceridos INTEGER,
@@ -41,20 +42,113 @@ def init_db():
             minutos_actividad_semana TEXT, raciones_frutas INTEGER, raciones_vegetales INTEGER,
             raciones_grano_entero INTEGER, raciones_pescado INTEGER, vasos_bebidas_azucaradas INTEGER,
             habitos_sal TEXT, frecuencia_lacteos TEXT, frecuencia_carnes TEXT,
-            frecuencia_alcohol TEXT, cantidad_alcohol_dia TEXT, puntuacion_sueno INTEGER,
+            frecuencia_alcohol TEXT, cantidad_alcohol TEXT, puntuacion_sueno INTEGER,
             ronca TEXT, circunferencia_cuello REAL, enfermedades_presentadas TEXT,
             escala_salud_hoy INTEGER, ansiedad_nervios TEXT, control_preocupacion TEXT,
             poco_interes TEXT, sentimiento_deprimido TEXT, nivel_optimismo INTEGER,
-            nivel_pesimismo INTEGER, notas_medico TEXT, analisis_driver TEXT
+            nivel_pesimismo INTEGER, notas_medico TEXT, analisis_driver TEXT,
+            rec_actividad TEXT, rec_alcohol TEXT, rec_ansiedad TEXT, rec_apnea TEXT,
+            rec_azucar TEXT, rec_carnes TEXT, rec_depresion TEXT, rec_frutas TEXT,
+            rec_glucosa TEXT, rec_granos TEXT, rec_lacteos TEXT, rec_lipidos_cardio TEXT,
+            rec_lipidos TEXT, rec_optimismo TEXT, rec_pasivo TEXT, rec_pescado TEXT,
+            rec_pesimismo TEXT, rec_presion TEXT, rec_sodio TEXT, rec_tabaco TEXT,
+            rec_vegetales TEXT, diag_lipidos TEXT
+        )
+    ''')
+
+    # NUEVA TABLA: Seguimiento Digital Twin (Check-ins Semanales/Mensuales)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS seguimiento_twin (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            paciente_id INTEGER,
+            fecha_checkin TEXT DEFAULT CURRENT_TIMESTAMP,
+            tipo_checkin TEXT, -- 'semanal' o 'mensual'
+            peso REAL,
+            pasos_dia INTEGER,
+            frutas INTEGER, vegetales INTEGER, granos INTEGER, pescado INTEGER, 
+            azucar INTEGER, lacteos INTEGER, carnes_rojas INTEGER,
+            puntuacion_sueno INTEGER,
+            -- Campos Mensuales (opcionales en semanal)
+            presion_sistolica INTEGER, presion_diastolica INTEGER,
+            perimetro_cintura REAL, perimetro_cuello REAL,
+            ansiedad_nervios TEXT, control_preocupacion TEXT,
+            poco_interes TEXT, sentimiento_deprimido TEXT,
+            nivel_optimismo INTEGER, nivel_pesimismo INTEGER,
+            escala_salud_hoy INTEGER,
+            analisis_ia_semanal TEXT, -- Para guardar lo que Gemini diga cada semana
+            FOREIGN KEY (paciente_id) REFERENCES historias_clinicas (id)
         )
     ''')
     conn.commit()
     conn.close()
 
+# Inicializar DB al arrancar
+init_db()
+
+# --- 3. RUTAS DE NAVEGACIÓN ---
+
+# 1. LA HOME (El Launchpad)
+@app.route('/')
+def home():
+    # Esta es la página principal con las tarjetas (index.html)
+    return render_template('index.html')
+
+# 2. REGISTRO INICIAL
+@app.route('/cuestionario')
+def cuestionario():
+    # El formulario largo de la primera vez
+    return render_template('cuestionario_general.html')
+
+# 3. LISTA DE PARTICIPANTES (Gestión)
+@app.route('/lista_participantes')
+def lista_participantes():
+    # Esta es la tabla con todos los pacientes registrados
+    conn = sqlite3.connect('prodi_salud.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM historias_clinicas ORDER BY fecha_registro DESC")
+    pacientes = cursor.fetchall()
+    conn.close()
+    return render_template('lista_participantes.html', pacientes=pacientes)
+
+# 4. FORMULARIO DE SEGUIMIENTO SEMANAL (Check-in)
+@app.route('/seguimiento')
+def seguimiento_semanal():
+    # El formulario corto para que el paciente llene cada semana
+    return render_template('seguimiento_semanal.html')
+
+# 5. DASHBOARD DEL DIGITAL TWIN (Individual)
+@app.route('/digital_twin/<int:p_id>')
+def ver_gemelo(p_id):
+    # Esta ruta recibe el ID del paciente (ej: /digital_twin/1)
+    conn = sqlite3.connect('prodi_salud.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # Obtenemos datos básicos del paciente
+    cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
+    paciente = cursor.fetchone()
+    
+    # Obtenemos todos sus pesajes y pasos históricos
+    cursor.execute("SELECT * FROM seguimiento_twin WHERE paciente_id = ? ORDER BY fecha_checkin DESC", (p_id,))
+    historial = [dict(row) for row in cursor.fetchall()]
+    
+    conn.close()
+    
+    if paciente is None:
+        return "Paciente no encontrado", 404
+        
+    return render_template('digital_twin.html', paciente=paciente, historial=historial)
+
+# 6. PERFIL NUTRICIONAL (Baseline Alimentario)
+@app.route('/perfil_nutricional')
+def perfil_nutricional():
+    # Esta ruta carga el nuevo cuestionario de preferencias alimentarias
+    return render_template('cuestionario_nutricional.html')
+
 # --- 2. FUNCIONES DE CORREO ELECTRÓNICO ---
 def enviar_email_al_equipo(data, resumen_salud):
     """Envía notificación interna con datos técnicos al equipo médico"""
-    # Usamos el contexto de la app para que el hilo reconozca a Flask-Mail
     with app.app_context():
         try:
             subject = f"NUEVO REGISTRO: {data.get('nombre')} {data.get('apellidos')}"
@@ -81,7 +175,6 @@ def enviar_email_al_equipo(data, resumen_salud):
 
 def enviar_confirmacion_al_paciente(data):
     """Envía confirmación de cortesía al paciente sin datos médicos"""
-    # Usamos el contexto de la app aquí también
     with app.app_context():
         try:
             email_paciente = data.get('email')
@@ -101,7 +194,112 @@ def enviar_confirmacion_al_paciente(data):
         except Exception as e:
             print(f"Error al enviar confirmación al paciente: {e}")
 
-# --- 3. RUTAS ---
+# --- 4. Ruta para guardar el perfil nutricional ---
+@app.route('/submit_nutricion', methods=['POST'])
+def submit_nutricion():
+    if request.method == 'POST':
+        # 1. Obtener datos del formulario
+        email = request.form.get('correo')
+        
+        # 2. Conectar a la base de datos
+        conn = sqlite3.connect('prodi_salud.db')
+        cursor = conn.cursor()
+        
+        try:
+            # Buscamos el ID del paciente usando el correo
+            cursor.execute("SELECT id FROM historias_clinicas WHERE email = ?", (email,))
+            paciente = cursor.fetchone()
+            
+            if paciente:
+                p_id = paciente[0]
+                # 3. Insertar datos nutricionales
+                cursor.execute("""
+                    INSERT INTO perfil_nutricional (
+                        paciente_id, deseo_bajar_peso, porcentaje_peso, saciedad_baseline,
+                        preferencia_sabor, vegetariano, consumo_leche_huevos,
+                        frecuencia_procesados, frecuencia_frituras, frecuencia_carnes_rojas,
+                        frecuencia_frutas_veg, frecuencia_legumbres, frecuencia_alcohol,
+                        frecuencia_bebidas_azucaradas
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    p_id,
+                    request.form.get('deseo_bajar_peso'),
+                    request.form.get('porcentaje_peso'),
+                    request.form.get('saciedad'), # El slider 1-10
+                    request.form.get('sabor_preferencia'),
+                    request.form.get('vegetariano'),
+                    request.form.get('consumo_leche_huevos'),
+                    request.form.get('procesados'),
+                    request.form.get('frituras'),
+                    request.form.get('carnes_rojas'),
+                    request.form.get('frutas_verduras'),
+                    request.form.get('legumbres'),
+                    request.form.get('alcohol'),
+                    request.form.get('bebidas_azucaradas')
+                ))
+                conn.commit()
+                mensaje = "Perfil Nutricional guardado con éxito."
+            else:
+                mensaje = "Error: El correo no coincide con ningún paciente registrado."
+                
+        except Exception as e:
+            mensaje = f"Error en la base de datos: {e}"
+        finally:
+            conn.close()
+            
+        return render_template('index.html', notification=mensaje)
+
+# --- 3. NUEVAS RUTAS PARA EL DIGITAL TWIN ---
+
+@app.route('/api/save_checkin', methods=['POST'])
+def save_checkin():
+    """Guarda un nuevo registro de seguimiento semanal o mensual"""
+    data = request.get_json()
+    p_id = data.get('paciente_id')
+    
+    if not p_id:
+        return jsonify({"error": "ID de paciente requerido"}), 400
+
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        cursor = conn.cursor()
+        
+        # Construcción dinámica basada en los datos recibidos
+        columnas = data.keys()
+        placeholders = ", ".join(["?"] * len(columnas))
+        query = f"INSERT INTO seguimiento_twin ({', '.join(columnas)}) VALUES ({placeholders})"
+        
+        cursor.execute(query, list(data.values()))
+        conn.commit()
+        conn.close()
+        
+        return jsonify({"status": "success", "message": "Check-in guardado"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/digital_twin/<int:p_id>')
+def digital_twin_dashboard(p_id):
+    """Renderiza la vista del Gemelo Digital para un paciente"""
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # 1. Obtener datos iniciales
+        cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
+        paciente = cursor.fetchone()
+        
+        # 2. Obtener historial de check-ins
+        cursor.execute("SELECT * FROM seguimiento_twin WHERE paciente_id = ? ORDER BY fecha_checkin DESC", (p_id,))
+        historial = [dict(row) for row in cursor.fetchall()]
+        
+        conn.close()
+        
+        return render_template('digital_twin.html', paciente=paciente, historial=historial)
+    except Exception as e:
+        return f"Error: {e}", 500
+
+# --- 3. Otras RUTAS ---
 
 @app.route('/')
 def index():
@@ -119,32 +317,6 @@ def dashboard():
         return render_template('dashboard.html', pacientes=pacientes)
     except Exception as e:
         return f"Error al cargar el dashboard: {e}"
-    
-def guardar_en_db(datos_tupla):
-    """Guarda los datos en la base de datos en background"""
-    try:
-        conn = sqlite3.connect('prodi_salud.db')
-        cursor = conn.cursor()
-        cursor.execute('''INSERT INTO historias_clinicas (
-            nombre, apellidos, edad, sexo, email, telefono, ciudad, pais, antecedentes,
-            presion_sistolica, presion_diastolica, medicamento_presion, glucosa_ayunas,
-            medicamento_glucosa, hba1c, colesterol_total, trigliceridos, colesterol_ldl,
-            colesterol_hdl, medicamento_lipidos, peso_kg, talla_cm, perimetro_abdominal,
-            medicamento_peso, desea_bajar_peso, porcentaje_perdida, tiempo_perdida,
-            habito_tabaquico, exposicion_humo, nivel_actividad, minutos_actividad_semana,
-            raciones_frutas, raciones_vegetales, raciones_grano_entero, raciones_pescado,
-            vasos_bebidas_azucaradas, habitos_sal, frecuencia_lacteos, frecuencia_carnes,
-            frecuencia_alcohol, cantidad_alcohol_dia, puntuacion_sueno, ronca,
-            circunferencia_cuello, enfermedades_presentadas, escala_salud_hoy,
-            ansiedad_nervios, control_preocupacion, poco_interes, sentimiento_deprimido,
-            nivel_optimismo, nivel_pesimismo, notas_medico, analisis_driver
-        ) VALUES (''' + "?,"*53 + "?)", datos_tupla)
-        
-        conn.commit()
-        conn.close()
-        print("✓ Datos guardados en BD")
-    except Exception as e:
-        print(f"✗ Error guardando en BD: {e}")
 
 @app.route('/submit_form', methods=['POST'])
 def enviar():
@@ -152,7 +324,6 @@ def enviar():
     if not data:
         return jsonify({"error": "No se recibieron datos"}), 400
 
-    # Lista de campos exactos según tu tabla historias_clinicas
     columnas = [
         "nombre", "apellidos", "edad", "sexo", "email", "telefono", "ciudad", "pais", "antecedentes",
         "presion_sistolica", "presion_diastolica", "medicamento_presion", "glucosa_ayunas",
@@ -162,14 +333,12 @@ def enviar():
         "habito_tabaquico", "exposicion_humo", "nivel_actividad", "minutos_actividad_semana",
         "raciones_frutas", "raciones_vegetales", "raciones_grano_entero", "raciones_pescado",
         "vasos_bebidas_azucaradas", "habitos_sal", "frecuencia_lacteos", "frecuencia_carnes",
-        "frecuencia_alcohol", "cantidad_alcohol_dia", "puntuacion_sueno", "ronca",
+        "frecuencia_alcohol", "cantidad_alcohol", "puntuacion_sueno", "ronca",
         "circunferencia_cuello", "enfermedades_presentadas", "escala_salud_hoy",
         "ansiedad_nervios", "control_preocupacion", "poco_interes", "sentimiento_deprimido",
         "nivel_optimismo", "nivel_pesimismo", "notas_medico", "analisis_driver"
     ]
 
-    # Mapeo de datos (asegúrate de que los nombres coincidan con los 'name' de tu HTML/JS)
-    # Generar resumen de salud básico
     resumen_salud = f"Paciente: {data.get('nombre')}. Edad: {data.get('edad')}. Sexo: {data.get('sexo')}."
     
     datos_tupla = (
@@ -196,7 +365,6 @@ def enviar():
     )
 
     try:
-        # Generar la query dinámicamente para evitar errores de comas o puntos
         placeholders = ", ".join(["?"] * len(columnas))
         query = f"INSERT INTO historias_clinicas ({', '.join(columnas)}) VALUES ({placeholders})"
         
@@ -206,47 +374,38 @@ def enviar():
         id_generado = cursor.lastrowid
         conn.commit()
         conn.close()
-        print(f"✓ Guardado exitoso. ID: {id_generado}")
 
-        # Ejecutar correos en hilos
         threading.Thread(target=enviar_email_al_equipo, args=(data, resumen_salud), daemon=True).start()
         threading.Thread(target=enviar_confirmacion_al_paciente, args=(data,), daemon=True).start()
 
         return jsonify({"status": "success", "id": id_generado}), 200
 
     except Exception as e:
-        print(f"Error en proceso: {e}")
+        print(f"Error en submit_form: {e}")
         return jsonify({"error": str(e)}), 500
 
-# --- 1. VISTA PRINCIPAL DEL REPORTE ---
 @app.route('/reporte/<int:p_id>')
 def reporte_detalle(p_id):
     try:
         conn = sqlite3.connect('prodi_salud.db')
-        conn.row_factory = sqlite3.Row # Esto es vital
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        # 1. Datos del paciente actual
         cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
         paciente = cursor.fetchone()
 
-        # 2. Lista para el selector lateral
         cursor.execute("SELECT id, nombre, apellidos FROM historias_clinicas ORDER BY nombre ASC")
         filas = cursor.fetchall()
         lista_nombres = [(r['id'], f"{r['nombre']} {r['apellidos']}") for r in filas]
-        
         conn.close()
 
         if not paciente:
             return "Paciente no encontrado", 404
 
-        return render_template('reporte_paciente.html', 
-                               datos=paciente, 
-                               inscripciones_nombres=lista_nombres)
+        return render_template('reporte_paciente.html', datos=paciente, inscripciones_nombres=lista_nombres)
     except Exception as e:
         return f"Error: {e}", 500
 
-# --- 2. API PARA CARGAR DATOS (USADA POR EL JAVASCRIPT DEL REPORTE) ---
 @app.route('/get_submission/<int:p_id>')
 def get_submission(p_id):
     try:
@@ -263,9 +422,6 @@ def get_submission(p_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-# --- NUEVOS ENDPOINTS PARA INTEGRACIÓN Y BUSQUEDA ---
-
 @app.route('/api/all_participants')
 def all_participants():
     try:
@@ -281,79 +437,46 @@ def all_participants():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/download_raw_data/<int:p_id>')
-def download_raw_data(p_id):
-    try:
-        conn = sqlite3.connect('prodi_salud.db')
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
-        p = cursor.fetchone()
-        conn.close()
-        
-        if p:
-            data = dict(p)
-            response = jsonify(data)
-            response.headers.set('Content-Disposition', 'attachment', filename=f'paciente_{p_id}.json')
-            return response
-        return jsonify({"error": "No encontrado"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/save_gemini_analysis', methods=['POST'])
-def save_gemini_analysis():
-    data = request.get_json()
-    p_id = data.get('id')
-    analysis = data.get('analysis')
-    
-    try:
-        conn = sqlite3.connect('prodi_salud.db')
-        cursor = conn.cursor()
-        cursor.execute("UPDATE historias_clinicas SET analisis_driver = ? WHERE id = ?", (analysis, p_id))
-        conn.commit()
-        conn.close()
-        return jsonify({"success": True})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# --- 3. API PARA GUARDAR CAMBIOS ---
 @app.route('/update_submission', methods=['POST'])
 def update_submission():
+    """Endpoint dinámico para actualizar cualquier campo de la historia clínica"""
     data = request.get_json()
     p_id = data.get('id')
+    if not p_id:
+        return jsonify({"error": "ID de paciente requerido"}), 400
     
+    # Extraer campos a actualizar (excluyendo el id)
+    updates = {k: v for k, v in data.items() if k != 'id' and k != 'fecha_actualizacion'}
+    
+    if not updates:
+        return jsonify({"message": "No hay campos para actualizar"}), 200
+
     try:
         conn = sqlite3.connect('prodi_salud.db')
         cursor = conn.cursor()
         
-        # Aquí actualizamos todos los campos editables que definimos en el HTML
-        cursor.execute("""
-            UPDATE historias_clinicas 
-            SET nombre = ?, 
-                notas_medico = ?,
-                rec_actividad = ?,
-                rec_tabaco = ?,
-                rec_apnea = ?,
-                rec_glucosa = ?,
-                rec_lipidos = ?,
-                diag_lipidos = ?
-            WHERE id = ?
-        """, (
-            data.get('nombre'), 
-            data.get('notas_medico'),
-            data.get('rec_actividad'),
-            data.get('rec_tabaco'),
-            data.get('rec_apnea'),
-            data.get('rec_glucosa'),
-            data.get('rec_lipidos'),
-            data.get('diag_lipidos'),
-            p_id
-        ))
+        # Validar qué columnas existen realmente en la tabla para evitar errores
+        cursor.execute("PRAGMA table_info(historias_clinicas)")
+        db_columns = [row[1] for row in cursor.fetchall()]
         
+        filtered_updates = {k: v for k, v in updates.items() if k in db_columns}
+        
+        if not filtered_updates:
+            return jsonify({"error": "Ninguno de los campos proporcionados existe en la base de datos"}), 400
+
+        # Construir query dinámica
+        set_clause = ", ".join([f"{k} = ?" for k in filtered_updates.keys()])
+        values = list(filtered_updates.values())
+        values.append(p_id)
+        
+        query = f"UPDATE historias_clinicas SET {set_clause} WHERE id = ?"
+        
+        cursor.execute(query, values)
         conn.commit()
         conn.close()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "updated_fields": list(filtered_updates.keys())})
     except Exception as e:
+        print(f"Error en update_submission: {e}")
         return jsonify({"error": str(e)}), 500
 
 # --- 4. EJECUCIÓN DEL SERVIDOR (SIEMPRE AL FINAL) ---

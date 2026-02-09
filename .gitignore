@@ -2,4 +2,6 @@ instance/
 __pycache__/
 *.pyc
 .env
-prodi_salud.db
+venv/
+.venv/
+.DS_Store

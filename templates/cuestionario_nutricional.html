@@ -1,0 +1,1787 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil Nutricional | PRODI Salud</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_reporte.css') }}">
+
+    <style>
+        /* Ajustes específicos para que el cuestionario sea legible sobre el fondo glass */
+        .encuesta-container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        fieldset {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(5px);
+        }
+
+        legend {
+            color: var(--color-accent);
+            font-family: 'Playfair Display', serif;
+            font-size: 1.4rem;
+            padding: 0 10px;
+            font-weight: bold;
+        }
+
+        .question {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            color: #ffffff;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        /* Estilo para inputs y selects */
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            border-radius: 6px;
+            color: white;
+            font-family: Georgia, serif;
+        }
+
+        /* Estilo especial para los sliders de 1-10 */
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--color-accent);
+            cursor: pointer;
+        }
+
+        .slider-value {
+            color: var(--color-primary);
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-align: center;
+            margin-top: 5px;
+        }
+
+        .submit-btn {
+            background: var(--color-accent);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.1);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="encuesta-container">
+        <h1>Aplicación de Recomendaciones Nutricionales</h1>
+        <form action="/submit_nutricion" method="post">
+
+            <!-- Datos Personales -->
+            <fieldset>
+                <legend>Datos Personales</legend>
+                <div class="question">
+                    <label for="nombres">Nombres:</label>
+                    <input type="text" id="nombres" name="nombres" required><br><br>
+
+                    <label for="apellidos">Apellidos:</label>
+                    <input type="text" id="apellidos" name="apellidos" required><br><br>
+
+                    <label for="correo">Correo Electrónico:</label>
+                    <input type="email" id="correo" name="correo" required><br><br>
+
+                    <label for="pais">País:</label>
+                    <input type="text" id="pais" name="pais" required><br><br>
+                </div>
+            </fieldset>
+
+            <!-- Información Personal -->
+            <fieldset>
+                <legend>Información Personal</legend>
+                <!-- Edad -->
+                <div class="question">
+                    <label for="edad">Edad:</label>
+                    <input type="number" id="edad" name="edad" min="0" max="120" required><br><br>
+                </div>
+
+                <!-- Sexo -->
+                <div class="question">
+                    <label for="sexo">Sexo:</label>
+                    <select id="sexo" name="sexo" required>
+                        <option value="">Selecciona una opción</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                    </select><br><br>
+                </div>
+            </fieldset>
+
+            <!-- Peso y Talla -->
+            <fieldset>
+                <legend>Peso y Talla</legend>
+                <div class="question">
+                    <label for="peso">Peso (kg):</label>
+                    <input type="number" id="peso" name="peso" min="40" max="150" required><br><br>
+
+                    <label for="talla">Talla (cm):</label>
+                    <input type="number" id="talla" name="talla" min="130" max="210" required><br><br>
+                </div>
+            </fieldset>
+
+            <!-- Deseo de Bajar de Peso -->
+            <fieldset>
+                <legend>Deseo de Bajar de Peso</legend>
+                <div class="question">
+                    <label for="deseo_bajar_peso">¿Desea bajar de peso?</label>
+                    <select id="deseo_bajar_peso" name="deseo_bajar_peso" required>
+                        <option value="">Selecciona una opción</option>
+                        <option value="Sí">Sí</option>
+                        <option value="No">No</option>
+                    </select><br><br>
+                </div>
+
+                <!-- Porcentaje de Peso a Bajar -->
+                <div id="porcentaje_peso_container" class="question" style="display:none;">
+                    <label for="porcentaje_peso">¿Cuánto peso desea bajar?</label>
+                    <select id="porcentaje_peso" name="porcentaje_peso">
+                        <option value="5%">5%</option>
+                        <option value="7%">7%</option>
+                        <option value="10%">10%</option>
+                    </select><br><br>
+
+                    <label for="tiempo_perdida">¿En cuánto tiempo desea perder ese peso?</label>
+                    <select id="tiempo_perdida" name="tiempo_perdida">
+                        <option value="3 meses">3 meses</option>
+                        <option value="6 meses">6 meses</option>
+                    </select><br><br>
+                </div>
+            </fieldset>
+
+            <!-- Preferencias Alimenticias -->
+            <fieldset>
+                <legend>Preferencias Alimenticias</legend>
+                <div class="question">
+                    <label for="vegetariano">¿Es usted vegetariano?</label>
+                    <select id="vegetariano" name="vegetariano" required>
+                        <option value="">Selecciona una opción</option>
+                        <option value="Sí">Sí</option>
+                        <option value="No">No</option>
+                    </select><br><br>
+                </div>
+
+                <!-- Consumo de Leche y Huevos -->
+                <div id="consumo_leche_huevos_container" class="question" style="display:none;">
+                    <label for="consumo_leche_huevos">Sobre su consumo de leche y huevos:</label>
+                    <select id="consumo_leche_huevos" name="consumo_leche_huevos">
+                        <option value="Consumo huevos y leche">Consumo huevos y leche</option>
+                        <option value="Solo consumo leche">Solo consumo leche</option>
+                        <option value="Solo consumo huevos">Solo consumo huevos</option>
+                        <option value="No consumo ni leche ni huevos">No consumo ni leche ni huevos</option>
+                    </select><br><br>
+                </div>
+            </fieldset>
+
+            <!-- Nivel de Actividad Física -->
+            <fieldset>
+                <legend>Nivel de Actividad Física</legend>
+                <div class="question">
+                    <label for="actividad_fisica">¿Con cuál de los siguientes niveles de actividad física usted se
+                        identifica?</label>
+                    <select id="actividad_fisica" name="actividad_fisica" required>
+                        <option value="">Selecciona una opción</option>
+                        <option value="Poco o ninguno">Poco o ninguno</option>
+                        <option value="Ligero (1-3 días semanal)">Ligero (1-3 días semanal)</option>
+                        <option value="Moderado (4-5 días semanal)">Moderado (4-5 días semanal)</option>
+                        <option value="Intenso (6-7 días semanal)">Intenso (6-7 días semanal)</option>
+                        <option value="Muy intenso (2 veces al día)">Muy intenso (2 veces al día)</option>
+                    </select><br><br>
+                </div>
+            </fieldset>
+
+            <!-- Preferencias de Frutas -->
+            <fieldset>
+                <legend>Preferencias de Frutas</legend>
+                <p class="instructions">Por favor, indica cuánto te gustan las siguientes frutas usando la escala
+                    proporcionada.</p>
+
+                <div class="food-preference">
+                    <label for="banana">Banana:</label>
+                    <span id="banana-value">0</span>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="banana" name="banana" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+
+                </div>
+
+                <div class="food-preference">
+                    <label for="cereza">Cereza:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="cereza" name="cereza" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="cereza-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="fresa">Fresa:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="fresa" name="fresa" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="fresa-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="granada">Granada:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="granada" name="granada" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="granada-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="kiwi">Kiwi:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="kiwi" name="kiwi" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="kiwi-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="mandarina">Mandarina:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="mandarina" name="mandarina" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="mandarina-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="mango">Mango:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="mango" name="mango" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="mango-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="manzana">Manzana:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="manzana" name="manzana" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="manzana-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="maracuya">Maracuyá/Parchita:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="maracuya" name="maracuya" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="maracuya-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="melocoton">Melocotón:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="melocoton" name="melocoton" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="melocoton-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="melon">Melón:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="melon" name="melon" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="melon-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="mora">Mora:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="mora" name="mora" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="mora-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="naranja">Naranja:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="naranja" name="naranja" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="naranja-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="papaya">Papaya:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="papaya" name="papaya" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="papaya-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pera">Pera:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pera" name="pera" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pera-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pina">Piña:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pina" name="pina" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pina-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="sandia">Sandía/Patilla:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="sandia" name="sandia" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="sandia-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="uva">Uva:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="uva" name="uva" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="uva-value">0</span>
+                </div>
+            </fieldset>
+
+            <!-- Preferencias de Verduras -->
+            <fieldset>
+                <legend>Preferencias de Verduras</legend>
+                <p class="instructions">Por favor, indica cuánto te gustan las siguientes verduras usando la escala
+                    proporcionada.</p>
+
+                <div class="food-preference">
+                    <label for="acelga">Acelga:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="acelga" name="acelga" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="acelga-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="alcachofa">Alcachofa:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="alcachofa" name="alcachofa" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="alcachofa-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="apio">Apio:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="apio" name="apio" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="apio-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="berenjena">Berenjena:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="berenjena" name="berenjena" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="berenjena-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="berro">Berro:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="berro" name="berro" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="berro-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="betabel">Betabel/Remolacha:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="betabel" name="betabel" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="betabel-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="brocoli">Brócoli:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="brocoli" name="brocoli" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="brocoli-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="calabaza">Calabaza:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="calabaza" name="calabaza" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="calabaza-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="champiñon">Champiñón:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="champiñon" name="champiñon" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="champiñon-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="col">Col (Repollo):</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="col" name="col" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="col-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="coliflor">Coliflor:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="coliflor" name="coliflor" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="coliflor-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="esparrago">Espárrago:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="esparrago" name="esparrago" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="esparrago-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="espinacas">Espinacas:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="espinacas" name="espinacas" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="espinacas-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="guisantes">Guisantes:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="guisantes" name="guisantes" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="guisantes-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="lechuga">Lechuga:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="lechuga" name="lechuga" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="lechuga-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="nabo">Nabo:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="nabo" name="nabo" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="nabo-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pepino">Pepino:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pepino" name="pepino" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pepino-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="rabano">Rábano:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="rabano" name="rabano" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="rabano-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="rucula">Rúcula:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="rucula" name="rucula" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="rucula-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="tomate">Tomate:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="tomate" name="tomate" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="tomate-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="zanahoria">Zanahoria:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="zanahoria" name="zanahoria" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="zanahoria-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="zucchini">Zucchini/Calabacín:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="zucchini" name="zucchini" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="zucchini-value">0</span>
+                </div>
+            </fieldset>
+
+            <!-- Preferencias de Proteínas -->
+            <fieldset>
+                <legend>Preferencias de Proteínas</legend>
+                <p class="instructions">Por favor, indica cuánto te gustan las siguientes fuentes de proteínas usando la
+                    escala proporcionada.</p>
+
+                <div class="protein-category">
+                    <h4>Proteínas Animales</h4>
+                    <div class="food-preference">
+                        <label for="atun_lata">Atún en lata:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="atun_lata" name="atun_lata" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="atun_lata-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="atun_fresco">Atún fresco:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="atun_fresco" name="atun_fresco" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="atun_fresco-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="camarones">Camarones:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="camarones" name="camarones" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="camarones-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="carne_molida">Carne molida:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="carne_molida" name="carne_molida" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="carne_molida-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="filet_bacalao">Filet de bacalao:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="filet_bacalao" name="filet_bacalao" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="filet_bacalao-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="filet_res">Filet de carne de res:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="filet_res" name="filet_res" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="filet_res-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="filet_magra">Filet de carne magra:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="filet_magra" name="filet_magra" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="filet_magra-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="filet_cochino">Filet de cochino:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="filet_cochino" name="filet_cochino" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="filet_cochino-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="filet_jurel">Filet de jurel:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="filet_jurel" name="filet_jurel" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="filet_jurel-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="filet_merluza">Filet de merluza:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="filet_merluza" name="filet_merluza" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="filet_merluza-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="filet_pargo">Filet de pargo:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="filet_pargo" name="filet_pargo" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="filet_pargo-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="filet_salmon">Filet de salmón:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="filet_salmon" name="filet_salmon" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="filet_salmon-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="filet_trucha">Filet de trucha:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="filet_trucha" name="filet_trucha" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="filet_trucha-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="higado_res">Hígado de res:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="higado_res" name="higado_res" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="higado_res-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="huevos">Huevos:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="huevos" name="huevos" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="huevos-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="jamon">Jamón:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="jamon" name="jamon" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="jamon-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="mortadela">Mortadela:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="mortadela" name="mortadela" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="mortadela-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="muslo_pollo">Muslo de pollo:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="muslo_pollo" name="muslo_pollo" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="muslo_pollo-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="pechuga_pollo">Pechuga de pollo:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="pechuga_pollo" name="pechuga_pollo" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="pechuga_pollo-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="pescado_fresco">Pescado fresco:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="pescado_fresco" name="pescado_fresco" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="pescado_fresco-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="salchichas">Salchichas:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="salchichas" name="salchichas" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="salchichas-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="sardina">Sardina:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="sardina" name="sardina" min="0" max5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="sardina-value">0</span>
+                    </div>
+
+                </div>
+
+                <div class="protein-category">
+                    <h4>Proteínas Vegetales</h4>
+
+                    <div class="food-preference">
+                        <label for="alubias">Alubias/Judías:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="alubias" name="alubias" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="alubias-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="coles_bruselas">Coles de Bruselas:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="coles_bruselas" name="coles_bruselas" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="coles_bruselas-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="garbanzos">Garbanzos:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="garbanzos" name="garbanzos" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="garbanzos-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="germen_trigo">Germen de trigo:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="germen_trigo" name="germen_trigo" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="germen_trigo-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="lentejas">Lentejas:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="lentejas" name="lentejas" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="lentejas-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="quinoa">Quinoa:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="quinoa" name="quinoa" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="quinoa-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="semillas_calabaza">Semillas de calabaza:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="semillas_calabaza" name="semillas_calabaza" min="0" max="5"
+                                value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="semillas_calabaza-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="semillas_girasol">Semillas de girasol:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="semillas_girasol" name="semillas_girasol" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="semillas_girasol-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="semillas_lino">Semillas de lino:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="semillas_lino" name="semillas_lino" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="semillas_lino-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="sesamo">Sésamo:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="sesamo" name="sesamo" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="sesamo-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="soja">Soja:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="soja" name="soja" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="soja-value">0</span>
+                    </div>
+
+                    <div class="food-preference">
+                        <label for="tofu">Tofu:</label>
+                        <div class="slider-container">
+                            <span>No me gusta</span>
+                            <input type="range" id="tofu" name="tofu" min="0" max="5" value="0">
+                            <span>Me encanta</span>
+                        </div>
+                        <span id="tofu-value">0</span>
+                    </div>
+                </div>
+            </fieldset>
+
+            <!-- Preferencias de Carbohidratos Refinados -->
+            <fieldset>
+                <legend>Preferencias de Carbohidratos Refinados</legend>
+                <p class="instructions">Por favor, indica cuánto te gustan los siguientes carbohidratos refinados usando
+                    la escala proporcionada.</p>
+
+                <div class="food-preference">
+                    <label for="arepa">Arepa:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="arepa" name="arepa" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="arepa-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="arroz_blanco">Arroz blanco:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="arroz_blanco" name="arroz_blanco" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="arroz_blanco-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="hojuelas_maiz">Hojuelas de maíz:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="hojuelas_maiz" name="hojuelas_maiz" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="hojuelas_maiz-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pan_blanco">Pan blanco:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pan_blanco" name="pan_blanco" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pan_blanco-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pan_arabe">Pan árabe:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pan_arabe" name="pan_arabe" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pan_arabe-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pan_frances">Pan francés:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pan_frances" name="pan_frances" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pan_frances-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pan_hamburguesa">Pan de hamburguesa:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pan_hamburguesa" name="pan_hamburguesa" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pan_hamburguesa-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="panquecas">Panquecas:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="panquecas" name="panquecas" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="panquecas-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pasta">Pasta:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pasta" name="pasta" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pasta-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="tortillas">Tortillas:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="tortillas" name="tortillas" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="tortillas-value">0</span>
+                </div>
+            </fieldset>
+
+            <!-- Preferencias de Carbohidratos Integrales -->
+            <fieldset>
+                <legend>Preferencias de Carbohidratos Integrales</legend>
+                <p class="instructions">Por favor, indica cuánto te gustan los siguientes carbohidratos integrales
+                    usando la escala proporcionada.</p>
+
+                <div class="food-preference">
+                    <label for="arroz_integral">Arroz integral:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="arroz_integral" name="arroz_integral" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="arroz_integral-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="arvejas_amarillas">Arvejas amarillas:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="arvejas_amarillas" name="arvejas_amarillas" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="arvejas_amarillas-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="arvejas_verdes">Arvejas verdes:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="arvejas_verdes" name="arvejas_verdes" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="arvejas_verdes-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="avena">Avena:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="avena" name="avena" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="avena-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="caraotas">Caraotas o Porotos Negros:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="caraotas" name="caraotas" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="caraotas-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="cuscus">Cuscús:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="cuscus" name="cuscus" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="cuscus-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="maiz_grano">Maíz en grano:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="maiz_grano" name="maiz_grano" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="maiz_grano-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="palomitas_sin_aceite">Palomitas de maíz sin aceite:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="palomitas_sin_aceite" name="palomitas_sin_aceite" min="0" max="5"
+                            value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="palomitas_sin_aceite-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pan_integral">Pan integral:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pan_integral" name="pan_integral" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pan_integral-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="papa">Papa:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="papa" name="papa" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="papa-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pasta_integral">Pasta integral:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pasta_integral" name="pasta_integral" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pasta_integral-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="platano_amarillo">Plátano amarillo:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="platano_amarillo" name="platano_amarillo" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="platano_amarillo-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="platano_verde">Plátano verde:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="platano_verde" name="platano_verde" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="platano_verde-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="tortillas_integrales">Tortillas integrales:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="tortillas_integrales" name="tortillas_integrales" min="0" max="5"
+                            value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="tortillas_integrales-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="yuca">Yuca o tapioca:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="yuca" name="yuca" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="yuca-value">0</span>
+                </div>
+            </fieldset>
+
+            <!-- Preferencias de Grasas -->
+            <fieldset>
+                <legend>Preferencias de Grasas</legend>
+                <p class="instructions">Por favor, indica cuánto te gustan las siguientes grasas usando la escala
+                    proporcionada.</p>
+
+                <div class="food-preference">
+                    <label for="aceite_ajonjoli">Aceite de ajonjolí:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="aceite_ajonjoli" name="aceite_ajonjoli" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="aceite_ajonjoli-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="aceite_girasol">Aceite de girasol:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="aceite_girasol" name="aceite_girasol" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="aceite_girasol-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="aceite_maiz">Aceite de maíz:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="aceite_maiz" name="aceite_maiz" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="aceite_maiz-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="aceite_palma">Aceite de palma:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="aceite_palma" name="aceite_palma" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="aceite_palma-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="aceite_soja">Aceite de soja:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="aceite_soja" name="aceite_soja" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="aceite_soja-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="aceite_oliva">Aceite de oliva:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="aceite_oliva" name="aceite_oliva" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="aceite_oliva-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="aceitunas">Aceitunas:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="aceitunas" name="aceitunas" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="aceitunas-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="aguacate">Aguacate:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="aguacate" name="aguacate" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="aguacate-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="almendras">Almendras:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="almendras" name="almendras" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="almendras-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="cacahuete">Cacahuete o maní:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="cacahuete" name="cacahuete" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="cacahuete-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="crema_leche">Crema de leche:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="crema_leche" name="crema_leche" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="crema_leche-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="mantequilla">Mantequilla:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="mantequilla" name="mantequilla" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="mantequilla-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="margarina">Margarina:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="margarina" name="margarina" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="margarina-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="mayonesa">Mayonesa:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="mayonesa" name="mayonesa" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="mayonesa-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="merey">Merey o anacardos:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="merey" name="merey" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="merey-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="nueces">Nueces:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="nueces" name="nueces" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="nueces-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="pistachos">Pistachos:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="pistachos" name="pistachos" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="pistachos-value">0</span>
+                </div>
+            </fieldset>
+
+            <!-- Preferencias de Lácteos -->
+            <fieldset>
+                <legend>Preferencias de Lácteos</legend>
+                <p class="instructions">Por favor, indica cuánto te gustan los siguientes lácteos usando la escala
+                    proporcionada.</p>
+
+                <div class="food-preference">
+                    <label for="leche_completa">Leche completa:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="leche_completa" name="leche_completa" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="leche_completa-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="leche_descremada">Leche descremada:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="leche_descremada" name="leche_descremada" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="leche_descremada-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="queso_amarillo">Queso amarillo:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="queso_amarillo" name="queso_amarillo" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="queso_amarillo-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="queso_blanco">Queso blanco:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="queso_blanco" name="queso_blanco" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="queso_blanco-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="queso_mozarella">Queso mozarella:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="queso_mozarella" name="queso_mozarella" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="queso_mozarella-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="ricota">Ricota:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="ricota" name="ricota" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="ricota-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="yogurt">Yogurt:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="yogurt" name="yogurt" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="yogurt-value">0</span>
+                </div>
+
+                <div class="food-preference">
+                    <label for="yogurt_descremado">Yogurt descremado:</label>
+                    <div class="slider-container">
+                        <span>No me gusta</span>
+                        <input type="range" id="yogurt_descremado" name="yogurt_descremado" min="0" max="5" value="0">
+                        <span>Me encanta</span>
+                    </div>
+                    <span id="yogurt_descremado-value">0</span>
+                </div>
+            </fieldset>
+
+            <!-- Frecuencia de Consumo de Alimentos -->
+            <fieldset>
+                <legend>Frecuencia de Consumo de Alimentos</legend>
+                <p class="instructions">Por favor, indica con qué frecuencia consumes los siguientes alimentos.</p>
+
+                <div class="frequency-question">
+                    <label for="churros">Churros:</label>
+                    <select id="churros" name="churros">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="donas">Donas:</label>
+                    <select id="donas" name="donas">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="empanadas">Empanadas:</label>
+                    <select id="empanadas" name="empanadas">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="hallacas">Hallacas:</label>
+                    <select id="hallacas" name="hallacas">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="hamburguesa">Hamburguesa:</label>
+                    <select id="hamburguesa" name="hamburguesa">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="helado">Helado:</label>
+                    <select id="helado" name="helado">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="mondongo">Mondongo:</label>
+                    <select id="mondongo" name="mondongo">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="pabellon_criollo">Pabellón criollo:</label>
+                    <select id="pabellon_criollo" name="pabellon_criollo">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="papas_fritas">Papas fritas:</label>
+                    <select id="papas_fritas" name="papas_fritas">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="pasteles_fritos">Pasteles fritos:</label>
+                    <select id="pasteles_fritos" name="pasteles_fritos">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="patacon_relleno">Patacón relleno:</label>
+                    <select id="patacon_relleno" name="patacon_relleno">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="perro_caliente">Perro caliente (hot dog) o con todo:</label>
+                    <select id="perro_caliente" name="perro_caliente">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="pizza">Pizza:</label>
+                    <select id="pizza" name="pizza">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="pollo_frito">Pollo frito:</label>
+                    <select id="pollo_frito" name="pollo_frito">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="refrescos">Refrescos, Bebidas Azucaradas o Sodas:</label>
+                    <select id="refrescos" name="refrescos">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="shawarma">Shawarma:</label>
+                    <select id="shawarma" name="shawarma">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="sopaipilla">Sopaipilla:</label>
+                    <select id="sopaipilla" name="sopaipilla">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="tequenos">Tequeños:</label>
+                    <select id="tequenos" name="tequenos">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+                <div class="frequency-question">
+                    <label for="torta">Torta:</label>
+                    <select id="torta" name="torta">
+                        <option value="Nunca">Nunca</option>
+                        <option value="Raramente">Raramente</option>
+                        <option value="1-2_veces_al_mes">1-2 veces al mes</option>
+                        <option value="1-2_veces_a_la_semana">1-2 veces a la semana</option>
+                        <option value="3-4_veces_a_la_semana">3-4 veces a la semana</option>
+                        <option value="Diariamente">Diariamente</option>
+                    </select>
+                </div>
+
+            </fieldset>
+
+            <button type="submit" class="submit-btn">Enviar</button>
+        </form>
+    </div>
+
+    <script>
+        document.querySelectorAll('.food-preference input[type="range"]').forEach(function (slider) {
+            slider.addEventListener('input', function () {
+                const value = this.value;
+                const sliderId = this.id;
+                document.getElementById(sliderId + '-value').textContent = value;
+
+                // Actualizar el color de fondo del slider
+                const percentage = (value - this.min) / (this.max - this.min) * 100;
+                this.style.background = `linear-gradient(to right, #4CAF50 ${percentage}%, #ddd ${percentage}%)`;
+            });
+        });
+
+        document.getElementById('deseo_bajar_peso').addEventListener('change', function () {
+            var display = this.value === 'Sí' ? 'block' : 'none';
+            document.getElementById('porcentaje_peso_container').style.display = display;
+        });
+
+        document.getElementById('vegetariano').addEventListener('change', function () {
+            var display = this.value === 'Sí' ? 'block' : 'none';
+            document.getElementById('consumo_leche_huevos_container').style.display = display;
+        });
+    </script>
+</body>
+
+</html>

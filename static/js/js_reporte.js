@@ -132,7 +132,7 @@ function actualizarSeccionAntecedentes(d) {
         const has = d.antecedentes?.includes(a);
         return `<tr class="border-b border-white/10 last:border-0">
                     <td class="py-2 opacity-80">${antLabels[i]}</td>
-                    <td class="text-right font-bold ${has ? 'text-orange-500' : 'opacity-30'}">${has ? 'Presente' : 'Ausente'}</td>
+                    <td class="text-right font-bold ${has ? 'text-orange-500' : 'opacity-30'} ant-status">${has ? 'Presente' : 'Ausente'}</td>
                 </tr>`;
     }).join('');
 }
@@ -150,9 +150,15 @@ function actualizarSeccionMedicación(d) {
 
     container.innerHTML = Object.entries(medDict).map(([k, v]) => {
         const has = d[k] === 'Sí';
+        const idMap = {
+            "medicamento_presion": "h-med-presion",
+            "medicamento_glucosa": "h-med-glucosa",
+            "medicamento_lipidos": "h-med-lipidos",
+            "medicamento_peso": "h-med-peso"
+        };
         return `<tr class="border-b border-white/10 last:border-0">
                     <td class="py-2 opacity-80">${v}</td>
-                    <td class="text-right font-bold ${has ? 'text-green-500' : 'opacity-30'}">${has ? 'Sí' : 'No'}</td>
+                    <td id="${idMap[k]}" class="text-right font-bold ${has ? 'text-green-500' : 'opacity-30'}">${has ? 'Sí' : 'No'}</td>
                 </tr>`;
     }).join('');
 }
@@ -477,9 +483,17 @@ function actualizarLaboratorio(d) {
     if (container) {
         container.innerHTML = lab.map(([label, val, unit, check, key]) => {
             const esAlerta = val !== '--' && val !== null && check(parseFloat(val));
+            const idMap = {
+                "glucosa_ayunas": "p-glucosa",
+                "hba1c": "p-hba1c",
+                "colesterol_total": "p-col-total",
+                "colesterol_ldl": "p-col-ldl",
+                "colesterol_hdl": "p-col-hdl",
+                "trigliceridos": "p-trigliceridos"
+            };
             return `<tr>
                 <td class="data-label pt-2">${label}</td>
-                <td class="text-right pt-2 font-bold editable-field ${esAlerta ? 'text-orange-500 font-black' : ''}" 
+                <td id="${idMap[key] || ''}" class="text-right pt-2 font-bold editable-field ${esAlerta ? 'text-orange-500 font-black' : ''}" 
                     contenteditable="true" data-key="${key}">${val || '--'}</td>
                 <td class="text-xs opacity-50 pt-2 pl-1">${unit}</td>
             </tr>`;
@@ -721,6 +735,14 @@ function actualizarDiagnosticosYRiesgos(d, imcCalculado) {
     safeSetDiag('res-apnea', Diagnosticos.apnea(d));
     safeSetDiag('res-ansiedad', Diagnosticos.ansiedad(d));
     safeSetDiag('res-depresion', Diagnosticos.depresion(d));
+
+    // Dentro de la función de diagnósticos/riesgos
+    const dLipRiesgo = Diagnosticos.lipidos(d);
+
+    safeSetDiag('res-lipidos', {
+        label: dLipRiesgo.label,
+        alt: dLipRiesgo.alt
+    });
 
     // --- SEGMENTO 12: CARDIOMETABÓLICOS ---
     const dNut = Diagnosticos.nutricional(imc);
@@ -983,7 +1005,6 @@ function actualizarRecomendacionesVida(d, imcCalculado) {
         'val-rec-frutas': d.rec_frutas || (parseFloat(d.raciones_frutas) < 3 ? "Aumentar el consumo de frutas a 3 por día" : "Excelente consumo de frutas"),
         'val-rec-vegetales': d.rec_vegetales || (parseFloat(d.raciones_vegetales) < 4 ? "Aumenta el consumo de vegetales a 4 porciones/día" : "Mantener consumo de vegetales"),
         'val-rec-azucar': d.rec_azucar || (rAzucar >= 4 ? "Reducir el consumo de bebidas azucaradas" : "Mantener consumo bajo de bebidas azucaradas"),
-        'val-rec-glucosa': d.rec_glucosa || (dGlu.alt ? "Priorizar carbohidratos complejos y fibra" : "Mantener equilibrio de macronutrientes"),
         'val-rec-grasas': d.rec_lipidos || (dLip.alt ? "Aumentar el consumo de grasas saludables" : "Mantener alimentación baja en grasas"),
         'val-rec-granos': d.rec_granos || (parseFloat(d.raciones_grano_entero) < 2 ? "Aumentar consumo de grano entero" : "Mantener consumo de grano entero"),
         'val-rec-pescado': d.rec_pescado || (parseFloat(d.raciones_pescado) < 2 ? "Aumentar consumo de pescado a 2 porciones/semana" : "Mantener consumo de pescado"),
@@ -1081,7 +1102,66 @@ function actualizarRecomendacionesVida(d, imcCalculado) {
     }
     // Aplicar al DOM priorizando la recomendación manual del médico si existe
     safeSet("val-rec-presion", d.rec_presion || recPresionAuto);
+    // --- SALUD CARDIOVASCULAR (Segmento 18) ---
+    let recGlucosaAuto = "";
+
+    // Lógica de recomendación basada en el label del diagnóstico de glucosa
+    switch (dGlu.label) {
+        case "Pendiente diagnóstico":
+            recGlucosaAuto = "Mide tus valores de glucosa";
+            break;
+        case "Diabetes tratada no controlada":
+            recGlucosaAuto = "Debes optimizar el tratamiento de la glucosa para evitar complicaciones";
+            break;
+        case "Diabetes tratada y controlada":
+            recGlucosaAuto = "Manten tu tratamiento";
+            break;
+        case "Diabetes sin tratamiento":
+            recGlucosaAuto = "Debes iniciar/ajustar tratamiento para optimizar tu nivel de glucosa";
+            break;
+        case "Prediabetes":
+            recGlucosaAuto = "Inicia el programa de prevencion de diabetes";
+            break;
+        case "Normal":
+            recGlucosaAuto = "Manten tu cuidado de glucosa";
+            break;
+        default:
+            recGlucosaAuto = "Mantener equilibrio de macronutrientes";
+    }
+
+    // Aplicar al DOM priorizando la edición manual
+    safeSet("val-rec-glucosa", d.rec_glucosa || recGlucosaAuto);
+
+    // --- LÓGICA DE LÍPIDOS (Segmento 18) ---
+    let recLipidosAuto = "";
+
+    // Mapeo de recomendaciones según el label del diagnóstico
+    switch (dLip.label) {
+        case "Pendiente":
+            recLipidosAuto = "Realiza un perfil lipídico completo (LDL, HDL y Triglicéridos)";
+            break;
+        case "Dislipidemia":
+            recLipidosAuto = "Optimiza el consumo de grasas saludables y considera evaluación médica para tratamiento";
+            break;
+        case "Dislipidemia (Tratada)":
+            recLipidosAuto = "Mantén tu tratamiento actual y monitorea niveles para asegurar metas de control";
+            break;
+        case "Normal (Tratada)":
+            recLipidosAuto = "Excelente control bajo tratamiento; continúa con tus hábitos y medicación";
+            break;
+        case "Normal":
+            recLipidosAuto = "Mantén una dieta balanceada para conservar niveles óptimos de colesterol";
+            break;
+        default:
+            recLipidosAuto = "Mantener control anual de perfil lipídico";
+    }
+
+    // Aplicar al DOM
+    // Nota: Usamos 'val-rec-lipidos-cardio' para que coincida con el ID de tu HTML anterior
+    safeSet("val-rec-lipidos-cardio", d.rec_lipidos_cardio || recLipidosAuto);
 }
+
+
 /**
  * ============================================================
  * 13. EXPORTACIÓN, GUARDADO Y UTILIDADES DE SISTEMA
@@ -1133,98 +1213,261 @@ function getSubmissionId() {
 }
 
 /**
- * Genera un archivo .txt optimizado para análisis por IA
+ * Genera un archivo .txt con la totalidad de los datos del paciente (18 segmentos)
  */
 function descargarReporteTxtParaGemini() {
     const id = getSubmissionId();
     const ahora = new Date();
     const fechaStr = ahora.toLocaleDateString() + ' ' + ahora.toLocaleTimeString();
 
-    // Recolección de datos actuales de la UI (post-edición)
-    const getVal = (id) => document.getElementById(id)?.innerText || '--';
+    // Helper para extraer texto de la UI (post-edición o cálculo)
+    const getVal = (id) => {
+        const el = document.getElementById(id);
+        if (!el) return '--';
+        let val = el.innerText.trim() || el.value || '--';
+        return val;
+    };
+
+    // Helper para Antecedentes (Colecciona todos los que digan "Presente")
+    const getAntecedentes = () => {
+        const rows = document.querySelectorAll('#lista-antecedentes tr');
+        const present = [];
+        rows.forEach(row => {
+            const label = row.cells[0]?.innerText.trim();
+            const status = row.cells[1]?.innerText.trim();
+            if (status === 'Presente') present.push(label);
+        });
+        return present.length > 0 ? present.join(', ') : 'No se registraron antecedentes';
+    };
+
+    // Helper para Complicaciones (Detectar cuáles están marcadas como DETECTADO)
+    const getComplicaciones = () => {
+        const cards = document.querySelectorAll('#grid-complicaciones > div');
+        const detected = [];
+        cards.forEach(card => {
+            const label = card.querySelector('p:first-child')?.innerText.trim();
+            const status = card.querySelector('p:last-child')?.innerText.trim();
+            if (status === 'DETECTADO') detected.push(label);
+        });
+        return detected.length > 0 ? detected.join(', ') : 'Ninguna complicación detectada';
+    };
 
     let contenido = `==================================================\n`;
-    contenido += `   REPORTE DE SALUD PARA PROCESAMIENTO IA (GEMINI)\n`;
+    contenido += `       REPORTE MÉDICO INTEGRAL DE SALUD\n`;
     contenido += `==================================================\n\n`;
 
-    contenido += `METADATOS DE CONTROL:\n`;
+    contenido += `00. IDENTIFICACIÓN Y METADATOS:\n`;
     contenido += `- ID Seguimiento: ${id}\n`;
-    contenido += `- Fecha Exportación: ${fechaStr}\n\n`;
+    contenido += `- Fecha de Reporte: ${fechaStr}\n`;
+    contenido += `- Nombre: ${getVal('p-nombre')} ${getVal('p-apellidos')}\n`;
+
+    let edad = getVal('p-edad');
+    if (!edad.includes('años')) edad += ' años';
+    contenido += `- Edad: ${edad}\n`;
+
+    contenido += `- Género: ${getVal('p-sexo')}\n\n`;
 
     contenido += `01. ESTADO ANTROPOMÉTRICO:\n`;
+    contenido += `- Peso: ${getVal('p-peso')} kg | Talla: ${getVal('p-talla')} cm\n`;
     contenido += `- IMC: ${getVal('imc-gauge-val')} (${getVal('imc-gauge-label')})\n`;
-    contenido += `- Abdomen: ${getVal('abd-gauge-val')} cm (${getVal('abd-gauge-label')})\n\n`;
+    contenido += `- Perímetro Abdominal: ${getVal('abd-gauge-val')} cm (${getVal('abd-gauge-label')})\n\n`;
 
-    contenido += `02. SALUD CARDIOVASCULAR:\n`;
-    contenido += `- Presión Arterial: ${getVal('pas-gauge-val')} mmHg (${getVal('pas-gauge-label')})\n`;
-    contenido += `- AHA Life's Essential Score: ${getVal('val-aha-total')} / 100\n\n`;
+    contenido += `02. LABORATORIO - PERFIL GLUCÉMICO:\n`;
+    contenido += `- Diagnóstico Glucosa: ${getVal('diag-glucosa')}\n`;
+    contenido += `- Glucosa en ayunas: ${getVal('p-glucosa')} mg/dL\n`;
+    contenido += `- Hemoglobina Glicosilada (HbA1c): ${getVal('p-hba1c')}%\n`;
+    contenido += `- Toma medicación para glucosa: ${getVal('h-med-glucosa')}\n`;
+    contenido += `- Recomendación: ${getVal('val-rec-glucosa')}\n\n`;
 
-    contenido += `03. NUTRICIÓN Y HÁBITOS:\n`;
-    contenido += `- Score Dieta: ${getVal('val-puntaje-alim')} / 6\n`;
-    contenido += `- Detalles: Frutas: ${getVal('h-frutas')}, Veg: ${getVal('h-vegetales')}, Pescado: ${getVal('h-pescado')}\n`;
-    contenido += `- Sodio: ${getVal('h-sal')}, Azúcar: ${getVal('h-azucar')}\n\n`;
+    contenido += `03. LABORATORIO - PERFIL HEMODINÁMICO:\n`;
+    contenido += `- Diagnóstico Presión: ${getVal('diag-presion')}\n`;
+    contenido += `- Presión Sistólica: ${getVal('p-presion-sistolica')} mmHg\n`;
+    contenido += `- Presión Diastólica: ${getVal('p-presion-diastolica')} mmHg\n`;
+    contenido += `- Toma medicación para presión: ${getVal('h-med-presion')}\n`;
+    contenido += `- Recomendación: ${getVal('val-rec-presion')}\n\n`;
 
-    contenido += `04. BALANCE ENERGÉTICO:\n`;
-    contenido += `- TMB: ${getVal('mb-peso')}\n`;
-    contenido += `- Gasto Diario: ${getVal('val-balance-calorico')}\n`;
-    contenido += `- Meta Calórica: ${getVal('val-meta-calorica')}\n\n`;
+    contenido += `04. LABORATORIO - PERFIL LIPÍDICO:\n`;
+    contenido += `- Diagnóstico Lípidos: ${getVal('diag-lipidos')}\n`;
+    contenido += `- Colesterol Total: ${getVal('p-col-total')} mg/dL\n`;
+    contenido += `- Colesterol LDL: ${getVal('p-col-ldl')} mg/dL\n`;
+    contenido += `- Colesterol HDL: ${getVal('p-col-hdl')} mg/dL\n`;
+    contenido += `- Triglicéridos: ${getVal('p-trigliceridos')} mg/dL\n`;
+    contenido += `- Toma medicación para lípidos: ${getVal('h-med-lipidos')}\n`;
+    contenido += `- Recomendación: ${getVal('val-rec-lipidos-cardio')}\n\n`;
 
-    contenido += `==================================================\n`;
-    contenido += `INSTRUCCIONES PARA EL ANALISTA IA:\n`;
-    contenido += `Actúa como un equipo médico multidisciplinario. Basado en los datos arriba expuestos, redacta un plan de intervención que priorice la reducción de riesgos críticos.\n`;
+    contenido += `05. SALUD MENTAL Y BIENESTAR:\n`;
+    contenido += `- Ansiedad (Score): ${getVal('val-m-ans')} | Diagnóstico: ${getVal('res-ansiedad')}\n`;
+    contenido += `- Depresión (Score): ${getVal('val-m-dep')} | Diagnóstico: ${getVal('res-depresion')}\n`;
+    contenido += `- Optimismo: ${getVal('val-m-opt')} | Pesimismo: ${getVal('val-m-pes')}\n`;
+    contenido += `- Calidad de Vida: ${getVal('val-m-qol')}/100\n`;
+    contenido += `- Rec. Ansiedad: ${getVal('val-rec-ansiedad')}\n`;
+    contenido += `- Rec. Depresión: ${getVal('val-rec-depresion')}\n`;
+    contenido += `- Rec. Optimismo/Pesimismo: ${getVal('val-rec-optimismo')} / ${getVal('val-rec-pesimismo')}\n\n`;
+
+    contenido += `06. ANTECEDENTES Y RIESGO BIOLÓGICO:\n`;
+    contenido += `- Riesgo Familiar/Biológico: ${getVal('res-riesgo-bio')}\n`;
+    contenido += `- Antecedentes detallados: ${getAntecedentes()}\n\n`;
+
+    contenido += `07. HÁBITOS DE VIDA Y CONDUCTA:\n`;
+    contenido += `- Tabaquismo (Activo): ${getVal('res-tabaquismo')}\n`;
+    contenido += `- Fumador Pasivo: ${getVal('res-fumador-pasivo')}\n`;
+    contenido += `- Consumo Alcohol: ${getVal('h-alcohol')} (${getVal('h-alcohol-cant')} bebidas/día)\n`;
+    contenido += `- Nivel Actividad Física: ${getVal('h-nivel-actividad')} (${getVal('res-actividad-nivel')})\n`;
+    contenido += `- Rec. Actividad Física: ${getVal('val-rec-actividad')}\n\n`;
+
+    contenido += `08. SUEÑO Y RIESGO RESPIRATORIO:\n`;
+    contenido += `- Calidad de Sueño: ${getVal('res-sueno')}\n`;
+    contenido += `- Riesgo de Apnea (STOP-BANG): ${getVal('res-apnea')}\n`;
+    contenido += `- Recomendación Sueño/Apnea: ${getVal('val-rec-apnea')}\n\n`;
+
+    contenido += `09. NUTRICIÓN DETALLADA:\n`;
+    contenido += `- Puntaje Dieta: ${getVal('val-puntaje-alim')}/6\n`;
+    contenido += `- Consumo Frutas: ${getVal('h-frutas')} | Vegetales: ${getVal('h-vegetales')}\n`;
+    contenido += `- Pescado: ${getVal('h-pescado')} | Granos: ${getVal('h-granos')}\n`;
+    contenido += `- Sodio/Sal: ${getVal('h-sal')} | Azúcar/Bebidas: ${getVal('h-azucar')}\n`;
+    contenido += `- Recomendación General: ${getVal('val-rec-grasas')}\n\n`;
+
+    contenido += `10. RECOMENDACIONES NUTRICIONALES ESPECÍFICAS:\n`;
+    contenido += `- Grasas: ${getVal('val-rec-grasas')}\n`;
+    contenido += `- Sodio: ${getVal('val-rec-sodio')}\n`;
+    contenido += `- Frutas: ${getVal('val-rec-frutas')}\n`;
+    contenido += `- Vegetales: ${getVal('val-rec-vegetales')}\n`;
+    contenido += `- Granos Enteros: ${getVal('val-rec-granos')}\n`;
+    contenido += `- Proteínas (Pescado): ${getVal('val-rec-pescado')}\n`;
+    contenido += `- Bebidas Azucaradas: ${getVal('val-rec-azucar')}\n`;
+    contenido += `- Carnes Rojas: ${getVal('val-rec-carnes')}\n`;
+    contenido += `- Lácteos: ${getVal('val-rec-lacteos')}\n`;
+    contenido += `- Consumo de Alcohol: ${getVal('val-rec-alcohol')}\n\n`;
+
+    contenido += `11. BALANCE ENERGÉTICO:\n`;
+    contenido += `- Tasa Metabólica Basal (TMB): ${getVal('mb-peso')}\n`;
+    contenido += `- Gasto Energético Total: ${getVal('val-balance-calorico')}\n`;
+    contenido += `- Meta Calórica Recomendada: ${getVal('val-meta-calorica')}\n\n`;
+
+    contenido += `12. MANEJO DEL PESO (DETALLADO):\n`;
+    contenido += `- Recomendación General: ${getVal('val-rec-peso')}\n`;
+    contenido += `- Metabolismo Basal: ${getVal('mb-peso')}\n`;
+    contenido += `- Balance Calórico 24h: ${getVal('val-balance-calorico')}\n`;
+    contenido += `- ¿Desea bajar de peso?: ${getVal('objetivo-bajar')}\n`;
+    contenido += `- Cuanto desea perder: ${getVal('objetivo-perdida')}\n`;
+    contenido += `- En cuanto tiempo: ${getVal('objetivo-tiempo')}\n`;
+
+    // Solo incluir tabla de objetivos si desea bajar de peso
+    if (getVal('objetivo-bajar').toLowerCase() === 'sí') {
+        contenido += `   --- Metas de Peso ---\n`;
+        contenido += `   - Peso Actual: ${getVal('val-peso-actual')}\n`;
+        contenido += `   - Peso a Alcanzar: ${getVal('val-peso-meta')}\n`;
+        contenido += `   - Reducir en kg: ${getVal('val-peso-reducir')}\n`;
+        contenido += `   - Tiempo (Meses): ${getVal('val-meses')}\n`;
+        contenido += `   - Objetivo Mensual: ${getVal('val-mensual')}\n`;
+        contenido += `   - Objetivo Semanal: ${getVal('val-semanal')}\n`;
+    }
+    contenido += `- Meta Calórica Final: ${getVal('val-meta-calorica')}\n\n`;
+
+    contenido += `13. OTROS HALLAZGOS Y RECOMENDACIONES:\n`;
+    contenido += `- Tabaquismo/Ambiente: ${getVal('val-rec-tabaco')}\n`;
+    contenido += `- Entorno Familiar/Pasivo: ${getVal('val-rec-pasivo')}\n`;
+    contenido += `- AHA Life's Essential Score: ${getVal('val-aha-total')}/100\n\n`;
+
+    contenido += `14. COMPLICACIONES Y HALLAZGOS CRÍTICOS:\n`;
+    contenido += `- Complicaciones Detectadas: ${getComplicaciones()}\n`;
+
+    contenido += `\n==================================================\n`;
+    contenido += `       FIN DEL REPORTE MÉDICO\n`;
+    contenido += `==================================================`;
 
     // Disparar descarga
     const blob = new Blob([contenido], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Reporte_IA_${id}.txt`;
+    a.download = `Reporte_Salud_Completo_${getVal('p-nombre') || id}.txt`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
     a.remove();
 }
-
 /**
  * Evento para guardar cambios en la base de datos (POST)
+ * Incluye el análisis pegado de Gemini y todos los campos editables.
+ * Se ha eliminado la recarga de página para mantener el texto visible.
  */
 const btnGuardar = document.getElementById('btn-guardar-cambios');
+
 if (btnGuardar) {
     btnGuardar.addEventListener('click', async function () {
         const btn = this;
         const originalHTML = btn.innerHTML;
 
-        btn.innerHTML = `<span class="animate-spin">↻</span> Guardando...`;
+        // Estado visual de carga
+        btn.innerHTML = `<span class="animate-spin inline-block mr-2">↻</span> Guardando...`;
         btn.disabled = true;
 
-        const dataToSave = { id: getSubmissionId() };
+        const dataToSave = {
+            id: getSubmissionId(),
+            fecha_actualizacion: new Date().toISOString()
+        };
 
-        // Recolectar dinámicamente todos los campos editables con data-key
+        // RECOLECCIÓN DINÁMICA: 
+        // Captura IMC, Presión, Recomendaciones y el Análisis de Gemini (analisis_driver)
         document.querySelectorAll('[data-key]').forEach(el => {
             const key = el.getAttribute('data-key');
-            if (key) dataToSave[key] = el.innerText.trim();
+            if (key) {
+                // Si el campo tiene el texto inicial por defecto, lo enviamos vacío o tratamos el texto
+                let valor = el.innerText.trim();
+                if (valor === "Cargando análisis personalizado...") {
+                    valor = "";
+                }
+                dataToSave[key] = valor;
+            }
         });
 
         try {
             const response = await fetch('/update_submission', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(dataToSave)
             });
 
+            const result = await response.json();
+
             if (response.ok) {
-                mostrarNotificacion("✓ Cambios guardados correctamente", "success");
-                // Opcional: recargar después de un breve delay
-                setTimeout(() => location.reload(), 1500);
+                mostrarNotificacion("✓ Reporte y análisis guardados con éxito", "success");
+
+                // IMPORTANTE: Se elimina location.reload() para que el resumen pegado 
+                // permanezca visible en la pantalla sin interrupciones.
+                console.log("Cambios sincronizados con la base de datos.");
             } else {
-                throw new Error("Error en servidor");
+                throw new Error(result.message || "Error en el servidor");
             }
         } catch (error) {
-            mostrarNotificacion("❌ Error al conectar con el servidor", "error");
-            console.error(error);
+            console.error("Error al guardar:", error);
+            mostrarNotificacion("❌ Error: No se pudo conectar con el servidor", "error");
         } finally {
             btn.innerHTML = originalHTML;
             btn.disabled = false;
+        }
+    });
+}
+
+/**
+ * Gestión del área de texto del Coach Virtual
+ * Limpia el mensaje por defecto al hacer foco para facilitar el pegado.
+ */
+const narrativaDiv = document.getElementById('narrativa-ia');
+if (narrativaDiv) {
+    narrativaDiv.addEventListener('focus', function () {
+        if (this.innerText.trim() === 'Cargando análisis personalizado...') {
+            this.innerText = '';
+        }
+    });
+
+    // Opcional: Si se desenfoca y está vacío, restaurar el mensaje (ayuda visual)
+    narrativaDiv.addEventListener('blur', function () {
+        if (this.innerText.trim() === '') {
+            this.innerText = 'Cargando análisis personalizado...';
         }
     });
 }

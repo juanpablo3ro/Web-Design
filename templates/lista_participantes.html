@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Participantes | PRODI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_reporte.css') }}">
+    <style>
+        /* Ajustes específicos para que la tabla sea legible en modo oscuro/glass */
+        .list-container {
+            max-width: 1250px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .glass-table-container {
+            padding: 30px;
+            border: 1px solid var(--glass-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #f0f0f0;
+            margin-top: 20px;
+        }
+
+        th {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--color-accent);
+            /* Naranja del reporte para los encabezados */
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid var(--color-primary);
+            font-size: 0.85rem;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Botones integrados con el estilo del sidebar del reporte */
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.75rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            display: inline-block;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white !important;
+        }
+
+        .btn-report-orange {
+            background-color: var(--color-accent);
+            /* F27405 */
+        }
+
+        .btn-dt-cyan {
+            background-color: var(--color-primary);
+            /* 02735E */
+        }
+
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            filter: brightness(1.2);
+        }
+
+        .back-link {
+            color: var(--color-secondary);
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.3s;
+        }
+
+        .back-link:hover {
+            color: var(--color-accent);
+        }
+    </style>
+</head>
+
+<body class="dashboard-container" style="display: block; padding: 20px;">
+    <div class="list-container">
+
+        <header class="banner-section glass-card" style="margin-bottom: 30px; border: 1px solid var(--glass-border);">
+            <div class="logo-container" style="position: relative; left: 0; transform: none; margin-bottom: 10px;">
+                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="PRODI" class="banner-logo"
+                    style="height: 50px;">
+            </div>
+            <h1 class="section-header" style="justify-content: center; border: none; margin: 0;">Panel de Gestión</h1>
+        </header>
+
+        <div class="glass-card glass-table-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <h2 style="color: white; margin: 0; border: none; padding: 0;">Participantes Registrados</h2>
+                <a href="/" class="back-link">← Volver al Launchpad</a>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre del Participante</th>
+                            <th>Email</th>
+                            <th>Ciudad</th>
+                            <th>Fecha</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pacientes %}
+                        <tr>
+                            <td><span class="highlight-score">#{{ p.id }}</span></td>
+                            <td class="data-value">{{ p.nombre }} {{ p.apellidos }}</td>
+                            <td>{{ p.email }}</td>
+                            <td>{{ p.ciudad }}</td>
+                            <td style="opacity: 0.7;">{{ p.fecha_registro[:10] }}</td>
+                            <td>
+                                <div style="display: flex; gap: 10px; justify-content: center;">
+                                    <a href="{{ url_for('reporte_detalle', p_id=p.id) }}"
+                                        class="btn-action btn-report-orange">
+                                        Reporte
+                                    </a>
+                                    <a href="{{ url_for('ver_gemelo', p_id=p.id) }}" class="btn-action btn-dt-cyan">
+                                        Digital Twin
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

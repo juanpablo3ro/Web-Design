@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRODI - Digital Twin Check-in</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="banner-section">
+            <div class="logo-container">
+                <img src="../static/img/logo.png" alt="PRODI" class="banner-logo">
+            </div>
+            <h1 class="section-header">Seguimiento Digital Twin</h1>
+        </div>
+
+        <form id="form-twin">
+            <input type="hidden" id="paciente_id" name="paciente_id" value="{{ paciente.id }}">
+
+            <fieldset>
+                <legend>Métricas Semanales</legend>
+                <p class="note">Estos datos nos permiten ajustar tu gemelo digital en tiempo real.</p>
+
+                <div class="input-group">
+                    <label for="peso">Peso actual (kg)</label>
+                    <input type="number" step="0.1" id="peso" name="peso" class="input" placeholder=" " required>
+                    <label class="user-label">Peso en kg</label>
+                </div>
+
+                <div class="input-group">
+                    <label for="pasos_dia">Promedio de pasos al día</label>
+                    <input type="number" id="pasos_dia" name="pasos_dia" class="input" placeholder=" " required>
+                    <label class="user-label">Ej: 8000</label>
+                </div>
+
+                <div class="range-group">
+                    <label class="group-label">Calidad de sueño esta semana (0-100)</label>
+                    <input type="range" id="puntuacion_sueno" name="puntuacion_sueno" min="0" max="100" step="1"
+                        value="50" class="modern-range">
+                    <div class="range-labels">
+                        <span>Pobre</span>
+                        <span>Excelente</span>
+                    </div>
+                    <span id="sueno-value" class="range-value">50</span>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Nutrición (Frecuencia Semanal)</legend>
+                <p class="note">¿Cuántas raciones has consumido de cada grupo esta semana?</p>
+
+                {% for campo, etiqueta in [
+                ('frutas', 'Frutas'),
+                ('vegetales', 'Vegetales'),
+                ('granos', 'Grano Entero'),
+                ('pescado', 'Pescado'),
+                ('azucar', 'Bebidas Azucaradas'),
+                ('lacteos', 'Lácteos bajos en grasa'),
+                ('carnes_rojas', 'Carnes Rojas')
+                ] %}
+                <div class="radio-group radio-wrapper-18">
+                    <p class="group-label">{{ etiqueta }}</p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                        {% for i in range(4) %}
+                        <label class="round control--radio">
+                            <input type="radio" name="{{ campo }}" value="{{ i }}">
+                            <span class="radio-indicator"></span>
+                            {{ i }}{{ '+' if i == 3 else '' }} raciones
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </fieldset>
+
+            <fieldset id="section-mensual">
+                <legend>Evaluación Mensual de Salud</legend>
+
+                <div class="input-group">
+                    <label>Presión Arterial (Sistólica/Diastólica)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" name="presion_sistolica" class="input" placeholder="Sis">
+                        <input type="number" name="presion_diastolica" class="input" placeholder="Dia">
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label>Perímetros (cm)</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="number" step="0.1" name="perimetro_cintura" class="input" placeholder="Cintura">
+                        <input type="number" step="0.1" name="perimetro_cuello" class="input" placeholder="Cuello">
+                    </div>
+                </div>
+
+                <div class="radio-group radio-wrapper-18">
+                    <p class="group-label">Sentirse nervioso, ansioso o inquieto</p>
+                    {% for val in ['Para nada', 'Algunos días', 'Más de la mitad', 'Casi todos'] %}
+                    <label class="round control--radio">
+                        <input type="radio" name="ansiedad_nervios" value="{{ val }}">
+                        <span class="radio-indicator"></span> {{ val }}
+                    </label>
+                    {% endfor %}
+                </div>
+            </fieldset>
+
+            <button type="button" id="submit-button">
+                <span id="btn-text">Guardar Progreso Semanal</span>
+                <span id="loading-spinner" class="hidden">↻</span>
+            </button>
+
+            <div id="message-box" class="hidden"></div>
+        </form>
+    </div>
+
+    <script>
+        // Lógica para actualizar el valor visual del slider de sueño
+        const suenoSlider = document.getElementById('puntuacion_sueno');
+        const suenoValue = document.getElementById('sueno-value');
+        suenoSlider.oninput = function () { suenoValue.innerText = this.value; }
+
+        // Envío del formulario
+        document.getElementById('submit-button').addEventListener('click', async function () {
+            const form = document.getElementById('form-twin');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // Lógica para convertir radios de nutrición en enteros
+            const numericFields = ['peso', 'pasos_dia', 'frutas', 'vegetales', 'granos', 'pescado', 'azucar', 'lacteos', 'carnes_rojas', 'puntuacion_sueno'];
+            numericFields.forEach(f => { if (data[f]) data[f] = parseFloat(data[f]); });
+
+            try {
+                const response = await fetch('/api/save_checkin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    document.getElementById('message-box').innerText = "✓ Datos sincronizados con tu Gemelo Digital";
+                    document.getElementById('message-box').classList.remove('hidden');
+                    document.getElementById('message-box').classList.add('bg-green-100');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        });
+    </script>
+</body>
+
+</html>

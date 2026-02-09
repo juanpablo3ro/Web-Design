@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PRODI Salud | Inicio</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_reporte.css') }}">
+
+    <style>
+        /* Solo estilos de posicionamiento que son ÚNICOS del Home */
+        .home-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .nav-card {
+            text-decoration: none;
+            display: flex;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-card:hover {
+            transform: translateY(-8px);
+        }
+
+        /* Usamos la clase .glass-card del reporte para los botones */
+        .card-content {
+            width: 100%;
+            text-align: center;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-content h2 {
+            margin-bottom: 10px;
+            /* Usamos el color de acento del reporte */
+            color: var(--color-accent);
+        }
+
+        .card-content small {
+            margin-top: 15px;
+            color: var(--color-secondary);
+            opacity: 0.8;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+
+<body class="dashboard-container" style="display: block; padding: 40px;">
+    <div style="max-width: 1000px; margin: 0 auto;">
+
+        <header class="banner-section glass-card" style="margin-bottom: 40px; border: 1px solid var(--glass-border);">
+            <div class="logo-container" style="position: relative; left: 0; transform: none; margin-bottom: 15px;">
+                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="PRODI" class="banner-logo"
+                    style="height: 60px;">
+            </div>
+            <h1 class="section-header" style="justify-content: center; border: none; margin: 0; font-size: 2.5rem;">
+                Panel de Control PRODI
+            </h1>
+        </header>
+
+        <main class="home-grid">
+            <a href="/cuestionario" class="nav-card">
+                <div class="glass-card card-content">
+                    <h2>Cuestionario</h2>
+                    <p class="recomendacion-texto">Registro inicial de paciente</p>
+                    <small>Historia Clínica Nueva</small>
+                </div>
+            </a>
+
+            <a href="/lista_participantes" class="nav-card">
+                <div class="glass-card card-content">
+                    <h2>Participantes</h2>
+                    <p class="recomendacion-texto">Gestión y Digital Twins</p>
+                    <small>Base de Datos Activa</small>
+                </div>
+            </a>
+
+            <div style="grid-column: 1 / -1; margin-top: 20px;">
+                <div class="section-header">Módulos Digital Twin</div>
+            </div>
+
+            <a href="/seguimiento" class="nav-card">
+                <div class="glass-card card-content" style="border-top: 2px solid var(--color-primary);">
+                    <h2 style="color: var(--color-primary);">Seguimiento</h2>
+                    <p class="recomendacion-texto">Métricas Semanales</p>
+                    <small>Check-in de Evolución</small>
+                </div>
+            </a>
+            <a href="/perfil_nutricional" class="nav-card">
+                <div class="glass-card card-content" style="border-top: 2px solid var(--color-accent);">
+                    <h2>Nutrición</h2>
+                    <p class="recomendacion-texto">Preferencias y Hábitos</p>
+                    <small>Baseline Alimentario</small>
+                </div>
+            </a>
+        </main>
+    </div>
+</body>
+
+</html>
