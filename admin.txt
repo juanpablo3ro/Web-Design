@@ -1,0 +1,28 @@
+Para acceder como administrador y ver el panel completo (Launchpad), he implementado una lógica de roles dentro de la base de datos. Por defecto, cualquier registro nuevo es un 
+
+paciente
+.
+
+Aquí tienes los pasos para activar tu cuenta de Administrador:
+
+Paso 1: Regístrate
+Primero, ve a la página de /registro en tu navegador y crea una cuenta con tu correo electrónico habitual.
+
+Paso 2: Promoción a Admin (Vía Terminal)
+Una vez registrado, necesitas "darte permiso" de administrador. Ejecuta este comando en tu terminal para convertir tu cuenta en admin:
+
+
+sqlite3 prodi_salud.db "UPDATE usuarios SET role = 'admin' WHERE email = 'TU_CORREO@EMAIL.COM';"
+(Sustituye TU_CORREO@EMAIL.COM por el que usaste al registrarte).
+
+¿Cómo funciona el acceso Admin?
+He programado las rutas (/ y /login) para que detecten automáticamente quién entró:
+
+Si eres Admin: El sistema te redirigirá al Launchpad (
+
+index.html
+), donde verás el botón de "Participantes" para gestionar a todos los pacientes.
+Si eres Paciente: El sistema te enviará a tu Landing Personalizada (
+
+landing_usuario.html
+), donde solo verás tus propios reportes.

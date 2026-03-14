@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reporte Nutricional | {{ paciente.nombre }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_reporte.css') }}">
+    <style>
+        .nutri-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .data-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .label-text {
+            color: var(--color-secondary);
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .value-text {
+            color: var(--color-accent);
+            font-weight: bold;
+        }
+
+        .tag-frequency {
+            background: var(--color-primary);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+
+<body class="dashboard-container" style="display: block; padding: 40px;">
+    <div style="max-width: 1000px; margin: 0 auto;">
+
+        <header class="banner-section glass-card" style="margin-bottom: 30px;">
+            <h1 class="section-header" style="justify-content: center; border: none;">
+                Reporte Nutricional: {{ paciente.nombre }} {{ paciente.apellidos }}
+            </h1>
+        </header>
+        <section class="recomendaciones-section">
+            <h2 class="section-header">01 Datos Personales</h2>
+            <div class="glass-card grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
+                <div>
+                    <p class="data-label">Nombre</p>
+                    <p class="data-value text-xl" id="p-nombre" data-key="nombre">{{ paciente.nombre }}</p>
+                </div>
+                <div>
+                    <p class="data-label">Apellidos</p>
+                    <p class="data-value text-xl" id="p-apellidos" data-key="apellidos">{{ paciente.apellidos }}</p>
+                </div>
+                <div>
+                    <p class="data-label">Edad</p>
+                    <p class="data-value text-xl editable-field is-number" id="p-edad" contenteditable="true"
+                        data-key="edad">{{ paciente.edad }}</p>
+                </div>
+                <div>
+                    <p class="data-label">Sexo</p>
+                    <p class="data-value text-xl editable-field" id="p-sexo" contenteditable="true" data-key="sexo">{{
+                        paciente.sexo }}</p>
+                </div>
+                <div>
+                    <p class="data-label">Ciudad</p>
+                    <p class="data-value text-xl editable-field" id="p-ciudad" contenteditable="true" data-key="ciudad">
+                        {{ paciente.ciudad }}</p>
+                </div>
+                <div>
+                    <p class="data-label">País</p>
+                    <p class="data-value text-xl editable-field" id="p-pais" contenteditable="true" data-key="pais">{{
+                        paciente.pais }}</p>
+                </div>
+                <div>
+                    <p class="data-label">Email</p>
+                    <p class="data-value" id="p-email" data-key="email">{{ paciente.email }}</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="recomendaciones-section">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <section>
+                    <h2 class="section-header">2. Metas de Peso</h2>
+                    <div class="glass-card" style="padding: 20px;">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-3">
+                                <div class="data-row flex justify-between">
+                                    <span class="data-label">¿Desea bajar de peso?</span>
+                                    <span class="value-text font-bold">{{ nutricion.deseo_bajar_peso }}</span>
+                                </div>
+                                <div class="data-row flex justify-between">
+                                    <span class="data-label">Tiempo (meses):</span>
+                                    <span class="value-text font-bold">{{ nutricion.tiempo_meses }}</span>
+                                </div>
+                                <div class="data-row flex justify-between">
+                                    <span class="data-label">Total a perder (kg):</span>
+                                    <span class="value-text font-bold">{{ nutricion.total_perder_kg }}</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="data-row flex justify-between">
+                                    <span class="data-label">Meta en %:</span>
+                                    <span class="value-text font-bold">{{ nutricion.porcentaje_peso }}</span>
+                                </div>
+                                <div class="data-row flex justify-between">
+                                    <span class="data-label">Meta (kg):</span>
+                                    <span class="value-text font-bold">{{ nutricion.meta_kg }}</span>
+                                </div>
+                                <div class="data-row flex justify-between">
+                                    <span class="data-label">Mensual (kg):</span>
+                                    <span class="value-text font-bold">{{ nutricion.meta_mensual_kg }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h2 class="section-header">Resumen de Ingesta</h2>
+                    <div class="glass-card" style="padding: 20px;">
+                        <div class="space-y-3">
+                            <div class="data-row flex justify-between items-center">
+                                <span class="data-label">Vegetariano:</span>
+                                <span class="value-text font-bold">{{ nutricion.vegetariano }}</span>
+                            </div>
+                            <div class="data-row flex justify-between items-center border-t border-white/5 pt-3">
+                                <span class="data-label">Nivel de Saciedad Basal (1-10):</span>
+                                <span class="value-text font-bold">{{ nutricion.saciedad_baseline }}</span>
+                            </div>
+                            <div class="data-row flex justify-between items-center border-t border-white/5 pt-3">
+                                <span class="data-label">Preferencia de Sabor:</span>
+                                <span class="value-text font-bold">{{ nutricion.preferencia_sabor }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+        <section class="recomendaciones-section">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <section>
+                    <h2 class="section-header">Distribución de Macronutrientes</h2>
+                    <div class="glass-card" style="padding: 20px;">
+                        <p class="text-sm opacity-80 mb-4 border-b border-white/10 pb-2">
+                            Basado en un consumo de <span class="font-bold text-white">{{ nutricion.calorias_diarias
+                                }}</span> kcal/día:
+                        </p>
+
+                        <div class="space-y-3">
+                            <div class="data-row flex justify-between items-center">
+                                <span class="data-label">Gramos de Proteínas:</span>
+                                <span class="value-text font-bold">{{ nutricion.gramos_proteina }} g</span>
+                            </div>
+
+                            <div class="data-row flex justify-between items-center border-t border-white/5 pt-3">
+                                <span class="data-label">Gramos de Carbohidratos:</span>
+                                <span class="value-text font-bold">{{ nutricion.gramos_carbohidratos }} g</span>
+                            </div>
+
+                            <div class="data-row flex justify-between items-center border-t border-white/5 pt-3">
+                                <span class="data-label">Gramos de Grasas:</span>
+                                <span class="value-text font-bold">{{ nutricion.gramos_grasa }} g</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </section>
+        <section class="recomendaciones-section">
+            <h2 class="section-header flex justify-between items-center">
+                <span>FRUTAS:</span>
+                <span class="text-orange-500">{{ nutricion.porciones_fruta }} porciones de fruta al día</span>
+            </h2>
+
+            <div class="glass-card overflow-hidden" style="padding: 0;">
+                <div class="grid grid-cols-1 md:grid-cols-12">
+
+                    <div class="md:col-span-4 h-64 md:h-auto relative">
+                        <img src="../static/img/frutas_recomendacion.jpg" alt="Recomendación de Frutas"
+                            class="absolute inset-0 w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/10"></div>
+                    </div>
+
+                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
+
+                        <div class="data-row-block">
+                            <p class="text-sm leading-relaxed opacity-90">
+                                {{ nutricion.fruta_comentario_1 }}
+                            </p>
+                        </div>
+
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm leading-relaxed opacity-90">
+                                {{ nutricion.fruta_comentario_2 }}
+                            </p>
+                        </div>
+
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm leading-relaxed opacity-90 italic text-orange-200/80">
+                                {{ nutricion.fruta_comentario_3 }}
+                            </p>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="recomendaciones-section">
+            <h2 class="section-header flex justify-between items-center">
+                <span>VEGETALES:</span>
+                <span class="text-green-500">{{ nutricion.porciones_vegetales }} porciones al día</span>
+            </h2>
+            <div class="glass-card overflow-hidden" style="padding: 0;">
+                <div class="grid grid-cols-1 md:grid-cols-12">
+                    <div class="md:col-span-4 h-64 md:h-auto relative">
+                        <img src="../static/img/vegetales_recomendacion.jpg"
+                            class="absolute inset-0 w-full h-full object-cover">
+                    </div>
+                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
+                        <div class="data-row-block">
+                            <p class="text-sm opacity-90">{{ nutricion.veg_comentario_1 }}</p>
+                        </div>
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm opacity-90">{{ nutricion.veg_comentario_2 }}</p>
+                        </div>
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm opacity-90 italic text-green-200/80">{{ nutricion.veg_comentario_3 }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="recomendaciones-section">
+            <h2 class="section-header flex justify-between items-center">
+                <span>PROTEÍNAS:</span>
+                <span class="text-blue-400">{{ nutricion.gramos_proteina_total }}g totales al día</span>
+            </h2>
+            <div class="glass-card overflow-hidden" style="padding: 0;">
+                <div class="grid grid-cols-1 md:grid-cols-12">
+                    <div class="md:col-span-4 h-64 md:h-auto relative">
+                        <img src="../static/img/proteinas_recomendacion.jpg"
+                            class="absolute inset-0 w-full h-full object-cover">
+                    </div>
+                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
+                        <div class="data-row-block">
+                            <span class="text-xs font-bold text-blue-300 uppercase">Proteína Animal ({{
+                                nutricion.gramos_proteina_animal }}g):</span>
+                            <p class="text-sm opacity-90 mt-1">{{ nutricion.prot_animal_comentario }}</p>
+                        </div>
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <span class="text-xs font-bold text-green-300 uppercase">Proteína Vegetal ({{
+                                nutricion.gramos_proteina_vegetal }}g):</span>
+                            <p class="text-sm opacity-90 mt-1">{{ nutricion.prot_vegetal_comentario }}</p>
+                        </div>
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm opacity-90 italic">{{ nutricion.prot_comentario_general }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="recomendaciones-section">
+            <h2 class="section-header flex justify-between items-center">
+                <span>CARBOHIDRATOS:</span>
+                <span class="text-yellow-500">{{ nutricion.gramos_carbohidratos }}g totales</span>
+            </h2>
+            <div class="glass-card overflow-hidden" style="padding: 0;">
+                <div class="grid grid-cols-1 md:grid-cols-12">
+                    <div class="md:col-span-4 h-64 md:h-auto relative">
+                        <img src="../static/img/carbohidratos_recomendacion.jpg"
+                            class="absolute inset-0 w-full h-full object-cover">
+                    </div>
+                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
+                        <div class="data-row-block">
+                            <span class="text-xs font-bold text-yellow-600 uppercase">Grano Entero:</span>
+                            <p class="text-sm opacity-90 mt-1">{{ nutricion.carbo_entero_comentario }}</p>
+                        </div>
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <span class="text-xs font-bold text-gray-400 uppercase">Grano Refinado (Limite):</span>
+                            <p class="text-sm opacity-90 mt-1">{{ nutricion.carbo_refinado_comentario }}</p>
+                        </div>
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm opacity-90 italic">{{ nutricion.carbo_general_comentario }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="recomendaciones-section">
+            <h2 class="section-header flex justify-between items-center">
+                <span>LÁCTEOS:</span>
+                <span class="text-blue-300">{{ nutricion.porciones_lacteos }} porciones al día</span>
+            </h2>
+
+            <div class="glass-card overflow-hidden" style="padding: 0;">
+                <div class="grid grid-cols-1 md:grid-cols-12">
+                    <div class="md:col-span-4 h-64 md:h-auto relative">
+                        <img src="../static/img/lacteos_recomendacion.jpg" alt="Recomendación Lácteos"
+                            class="absolute inset-0 w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/10"></div>
+                    </div>
+
+                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
+                        <div class="data-row-block">
+                            <p class="text-sm leading-relaxed opacity-90">
+                                {{ nutricion.lacteos_comentario_1 }}
+                            </p>
+                        </div>
+
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm leading-relaxed opacity-90">
+                                {{ nutricion.lacteos_comentario_2 }}
+                            </p>
+                        </div>
+
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm leading-relaxed opacity-90 italic text-blue-200/80">
+                                {{ nutricion.lacteos_comentario_3 or 'Prefiera opciones descremadas o bajas en grasa
+                                para mantener el perfil lipídico saludable.' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="recomendaciones-section">
+            <h2 class="section-header flex justify-between items-center">
+                <span>GRASAS:</span>
+                <span class="text-yellow-600">{{ nutricion.gramos_grasas }} gramos al día</span>
+            </h2>
+
+            <div class="glass-card overflow-hidden" style="padding: 0;">
+                <div class="grid grid-cols-1 md:grid-cols-12">
+                    <div class="md:col-span-4 h-64 md:h-auto relative">
+                        <img src="../static/img/grasas_recomendacion.jpg" alt="Recomendación Grasas"
+                            class="absolute inset-0 w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/10"></div>
+                    </div>
+
+                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
+                        <div class="data-row-block">
+                            <p class="text-sm leading-relaxed opacity-90">
+                                {{ nutricion.grasas_comentario_1 }}
+                            </p>
+                        </div>
+
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm leading-relaxed opacity-90">
+                                {{ nutricion.grasas_comentario_2 }}
+                            </p>
+                        </div>
+
+                        <div class="data-row-block border-t border-white/5 pt-4">
+                            <p class="text-sm leading-relaxed opacity-90 italic text-yellow-200/80">
+                                {{ nutricion.grasas_comentario_3 or 'Priorice grasas insaturadas como el aceite de
+                                oliva, aguacate y frutos secos.' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="recomendaciones-section">
+            <h2 class="section-header flex justify-between items-center">
+                <span>COMIDA RÁPIDA / POCO SALUDABLE:</span>
+                <span class="text-orange-600">Frecuencia: Máximo {{ nutricion.frecuencia_comida_rapida }} al mes</span>
+            </h2>
+
+            <div class="glass-card overflow-hidden" style="padding: 0;">
+                <div class="grid grid-cols-1 md:grid-cols-12">
+                    <div class="md:col-span-4 h-64 md:h-auto relative">
+                        <img src="../static/img/comida_rapida_alerta.jpg" alt="Alerta Comida Poco Saludable"
+                            class="absolute inset-0 w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-black/20"></div>
+                    </div>
+
+                    <div class="md:col-span-8 p-6 md:p-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+
+                            <div class="data-row-block">
+                                <span class="text-xs font-bold text-orange-400 uppercase">1. Control de
+                                    Porciones:</span>
+                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_1 }}</p>
+                            </div>
+
+                            <div class="data-row-block">
+                                <span class="text-xs font-bold text-orange-400 uppercase">2. Elección de Bebidas:</span>
+                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_2 }}</p>
+                            </div>
+
+                            <div class="data-row-block border-t border-white/5 pt-4">
+                                <span class="text-xs font-bold text-orange-400 uppercase">3. Salsas y Aderezos:</span>
+                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_3 }}</p>
+                            </div>
+
+                            <div class="data-row-block border-t border-white/5 pt-4">
+                                <span class="text-xs font-bold text-orange-400 uppercase">4. Métodos de Cocción:</span>
+                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_4 }}</p>
+                            </div>
+
+                            <div class="data-row-block border-t border-white/5 pt-4">
+                                <span class="text-xs font-bold text-orange-400 uppercase">5. Acompañamientos:</span>
+                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_5 }}</p>
+                            </div>
+
+                            <div class="data-row-block border-t border-white/5 pt-4">
+                                <span class="text-xs font-bold text-orange-400 uppercase">6. Compensación:</span>
+                                <p class="text-sm opacity-90 mt-1 italic">{{ nutricion.fastfood_rec_6 }}</p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="recomendaciones-section">
+            <h2 class="section-header">Aprende a Hacer Intercambios para Mantener el Balance</h2>
+
+            <div class="glass-card" style="padding: 30px;">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+
+                    <div class="md:col-span-7 space-y-3">
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span class="data-label">Tu requerimiento calórico:</span>
+                            <span class="value-text font-bold">{{ nutricion.calorias_diarias }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span class="data-label">Porciones de frutas al día:</span>
+                            <span class="value-text font-bold">{{ nutricion.porciones_fruta }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span class="data-label">Porciones de vegetales:</span>
+                            <span class="value-text font-bold">{{ nutricion.porciones_vegetales }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span class="data-label">Gramos de grano entero:</span>
+                            <span class="value-text font-bold">{{ nutricion.gramos_grano_entero }}g</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span class="data-label">Gramos de grano refinado:</span>
+                            <span class="value-text font-bold">{{ nutricion.gramos_grano_refinado }}g</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span class="data-label">Porciones de lácteos:</span>
+                            <span class="value-text font-bold">{{ nutricion.porciones_lacteos }}</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span class="data-label">Gramos de proteína animal:</span>
+                            <span class="value-text font-bold">{{ nutricion.gramos_proteina_animal }}g</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span class="data-label">Gramos de proteína vegetal:</span>
+                            <span class="value-text font-bold">{{ nutricion.gramos_proteina_vegetal }}g</span>
+                        </div>
+                        <div class="flex justify-between border-b border-white/10 pb-1">
+                            <span class="data-label">Gramos de grasas añadidas:</span>
+                            <span class="value-text font-bold">{{ nutricion.gramos_grasas }}g</span>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-5 text-center md:border-l md:border-white/20 md:pl-8">
+                        <p class="text-xl md:text-2xl font-light italic leading-relaxed"
+                            style="color: var(--color-secondary);">
+                            Consume la cantidad que necesitas de la lista de <span
+                                class="font-bold uppercase tracking-wider">Intercambios PRODI</span>
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+        <div style="margin-top: 30px; display: flex; justify-content: center; gap: 20px;">
+            <a href="/lista_participantes" class="back-link"
+                style="padding: 10px 20px; border: 1px solid var(--color-primary); border-radius: 8px;">← Volver</a>
+            <button id="btn-guardar-nutricion" class="back-link"
+                style="padding: 10px 20px; background: var(--color-accent); color: white; border: none; border-radius: 8px; cursor: pointer;">
+                Guardar Cambios
+            </button>
+        </div>
+    </div>
+
+
+
+    <script>
+        // Función para guardar cambios (Similar a reporte_paciente)
+        document.getElementById('btn-guardar-nutricion')?.addEventListener('click', async function () {
+            const btn = this;
+            const originalText = btn.innerText;
+            btn.innerText = "Guardando...";
+            btn.disabled = true;
+
+            const dataToSave = {
+                id: "{{ paciente.id }}",
+            };
+
+            // Recolectar campos editables
+            document.querySelectorAll('[data-key]').forEach(el => {
+                const key = el.getAttribute('data-key');
+                if (key) {
+                    dataToSave[key] = el.innerText.trim();
+                }
+            });
+
+            try {
+                const response = await fetch('/update_submission', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataToSave)
+                });
+
+                if (response.ok) {
+                    alert("✓ Cambios guardados con éxito");
+                } else {
+                    alert("❌ Error al guardar");
+                }
+            } catch (error) {
+                console.error("Error:", error);
+                alert("❌ Error de conexión");
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

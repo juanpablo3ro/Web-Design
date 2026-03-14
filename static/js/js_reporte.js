@@ -170,15 +170,15 @@ function actualizarSeccionMedicación(d) {
  */
 function actualizarEstiloVida(d) {
     const nutriIds = {
-        'h-frutas': d.raciones_frutas || 'No contestó',
-        'h-vegetales': d.raciones_vegetales || 'No contestó',
-        'h-granos': d.raciones_grano_entero || 'No contestó',
-        'h-pescado': d.raciones_pescado || 'No contestó',
-        'h-azucar': d.vasos_bebidas_azucaradas || 'No contestó',
-        'h-lacteos': d['frecuencia-lacteos'] || d.frecuencia_lacteos || 'No contestó',
+        'h-frutas': d.raciones_frutas || '0',
+        'h-vegetales': d.raciones_vegetales || '0',
+        'h-granos': d.raciones_grano_entero || '0',
+        'h-pescado': d.raciones_pescado || '0',
+        'h-azucar': d.vasos_bebidas_azucaradas || '0',
+        'h-lacteos': d['frecuencia-lacteos'] || d.frecuencia_lacteos || '0',
         // Nueva captura para carnes
-        'h-carnes': d['frecuencia-carnes'] || d.frecuencia_carnes || 'No contestó',
-        'h-sal': d.habitos_sal || 'No contestó'
+        'h-carnes': d['frecuencia-carnes'] || d.frecuencia_carnes || '0',
+        'h-sal': d.habitos_sal || '0'
     };
 
     for (const [id, val] of Object.entries(nutriIds)) {
@@ -411,15 +411,15 @@ const renderizarGraficoIMC = (peso, talla) => {
 const renderizarGraficoAbdominal = (valor, sexo) => {
     const v = parseFloat(valor) || 0;
     const limite = (sexo === 'Masculino') ? 90 : 86;
-    updateMiniGauge('abd', v, 130, v >= limite ? "Riesgo" : "Normal", v >= limite ? "#ef4444" : "#10b981");
+    updateMiniGauge('abd', v, 130, v >= limite ? "Presente" : "Normal", v >= limite ? "#ef4444" : "#10b981");
 };
 
 const renderizarGraficoPAS = (pas, pad, medicado) => {
     const vPas = parseFloat(pas) || 0;
     const vPad = parseFloat(pad) || 0;
     let diag = "Normal", col = "#10b981";
-    if (vPas >= 140 || vPad >= 90) { diag = "Grado 2"; col = "#ef4444"; }
-    else if (vPas >= 130 || vPad >= 80) { diag = "Grado 1"; col = "#f59e0b"; }
+    if (vPas >= 140 || vPad >= 90) { diag = "Hipertensión"; col = "#ef4444"; }
+    else if (vPas >= 130 || vPad >= 80) { diag = "Alta"; col = "#f59e0b"; }
     else if (vPas >= 120) { diag = "Elevada"; col = "#fbbf24"; }
     if (medicado === "Sí") diag = "Tratada";
     updateMiniGauge('pas', vPas, 200, diag, col);
@@ -818,10 +818,24 @@ function actualizarAHAScore(d, imcCalculado) {
     }
 
     // Puntos Lípidos (AHA Essential 8: No-HDL)
-    const total = parseFloat(d.colesterol_total || 0);
-    const hdl = parseFloat(d.colesterol_hdl || 0);
-    const noHdl = (total - hdl) || 200;
-    ahaScores.lipidos = noHdl < 130 ? 100 : (noHdl < 160 ? 60 : 30);
+    let scoreLipidos = 0; // Por defecto 0 si no hay datos
+
+    // Verificamos si existen ambos valores antes de calcular
+    if (d.colesterol_total && d.colesterol_hdl) {
+        const total = parseFloat(d.colesterol_total);
+        const hdl = parseFloat(d.colesterol_hdl);
+        const noHdl = total - hdl;
+
+        // Lógica de puntuación basada en el valor calculado
+        if (noHdl < 130) scoreLipidos = 100;
+        else if (noHdl < 160) scoreLipidos = 60;
+        else scoreLipidos = 30;
+    } else {
+        // Si no hay laboratorios, el score es 0
+        scoreLipidos = 0;
+    }
+
+    ahaScores.lipidos = scoreLipidos;
 
     // Puntos Presión (Lógica AHA Desconectada)
     const pasVal = parseFloat(d.presion_sistolica);
@@ -885,7 +899,7 @@ function actualizarAHAScore(d, imcCalculado) {
 
             container.innerHTML = `
                 <div class="flex justify-between items-end mb-2">
-                    <span class="text-[13px] font-bold uppercase tracking-wider text-white/70">${labels[key]}</span>
+                    <span class="text-[13px] font-bold uppercase tracking-wider text-black/70">${labels[key]}</span>
                     <span class="text-[14px] font-black" style="color: ${itemColor}">${val} <span class="text-[10px] opacity-50">PTS</span></span>
                 </div>
                 <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden shadow-inner">

@@ -1,12 +1,12 @@
-        :root {
-            --color-bg: #014040;
-            --color-primary: #02735E;
-            --color-secondary: #ffffff;
-            --color-accent: #F27405;
-            --color-alert: rgba(115, 23, 2, 0.4);
-            --glass-bg: rgba(255, 255, 255, 0.1);
-            --glass-border: rgba(255, 255, 255, 0.2);
-        }
+:root {
+    --color-bg: #014040;
+    --color-primary: #02735E;
+    --color-secondary: #ffffff;
+    --color-accent: #F27405;
+    --color-alert: rgba(115, 23, 2, 0.4);
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+}
 
 body {
     font-family: Georgia, 'Times New Roman', Times, serif;
@@ -33,53 +33,105 @@ body {
 }
 
 .banner-section {
-    position: relative; /* Necesario para el overlay */
+    position: relative;
+    /* Necesario para el overlay */
     background-size: cover;
     background-position: center;
-    padding: 20px 20px; /* Un poco más de aire vertical */
+    padding: 20px 20px;
+    /* Un poco más de aire vertical */
     text-align: center;
     border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4); /* Sombra más profunda para coherencia */
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    /* Sombra más profunda para coherencia */
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 150px; /* Altura mínima consistente */
+    min-height: 150px;
+    /* Altura mínima consistente */
 }
 
 /* Capa oscura para que el texto resalte siempre */
 .banner-section::before {
     content: "";
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.0); /* Ajusta el 0.4 para más o menos oscuridad */
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.0);
+    /* Ajusta el 0.4 para más o menos oscuridad */
     z-index: 1;
 }
 
 .banner-section .section-header {
-    position: relative; 
+    position: relative;
     z-index: 2;
     color: #ffffff;
-    
+
     /* CORRECCIÓN: Minimo 2.5rem, ideal 8vw (escala con la pantalla), máximo 5rem */
-    font-size: 2rem; 
-    
+    font-size: 2rem;
+
     /* Peso extra para que se vea robusto */
-    font-weight: 800; 
-    
+    font-weight: 800;
+
     /* Sombra más profunda para separar el texto del fondo A5.jpg */
     text-shadow: 2px 4px 15px rgba(0, 0, 0, 0.9);
-    
+
     /* Ajustes de estilo */
-    text-transform: uppercase; /* Opcional: Mayúsculas le dan un toque más médico/oficial */
-    letter-spacing: -0.03em;   /* Un poco más pegadas para estilo moderno */
-    line-height: 1.1;          /* Menor espacio entre líneas para que se vea compacto */
-    
+    text-transform: uppercase;
+    /* Opcional: Mayúsculas le dan un toque más médico/oficial */
+    letter-spacing: -0.03em;
+    /* Un poco más pegadas para estilo moderno */
+    line-height: 1.1;
+    /* Menor espacio entre líneas para que se vea compacto */
+
     word-wrap: break-word;
     overflow-wrap: break-word;
-    max-width: 95%; 
+    max-width: 95%;
     margin: 0 auto;
 }
+
+
+/* Estilo para las preguntas generales (Vegetariano, etc.) */
+.question label {
+    color: #ffffff !important;
+    /* Blanco puro */
+    font-size: 1.1rem;
+    /* Más grande */
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: block;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    /* Sombra para resaltar sobre el fondo */
+}
+
+/* Estilo para los menús desplegables (Selects) */
+.question select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.question select:focus {
+    border-color: var(--color-accent);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(14, 100, 125, 0.3);
+}
+
+/* Estilo para las opciones dentro del select (en algunos navegadores) */
+.question select option {
+    background-color: #1a1a1a;
+    /* Fondo oscuro para que se lea el texto blanco */
+    color: white;
+}
+
 
 /* Ajuste específico para móviles */
 @media (max-width: 480px) {
@@ -87,30 +139,36 @@ body {
         padding: 40px 15px;
         min-height: 120px;
     }
+
     /* El clamp() ya hace su trabajo, pero podemos refinar el line-height */
     .banner-section .section-header {
         line-height: 1.1;
     }
 }
+
 .container fieldset {
     margin-top: 30px;
     padding: 20px;
     border-radius: 12px;
     position: relative;
-    border: 2px solid transparent; /* Espacio para el borde */
-    
+    border: 2px solid transparent;
+    /* Espacio para el borde */
+
     /* 1. Fondo: El primer gradient es para el fondo, el segundo para el borde */
-    background: 
-        linear-gradient(#2a2a2a, #1a1a1a) padding-box, /* Capa fondo */
-        linear-gradient(135deg, #201d12 0%, #767345 45%, #b8860b 70%, #5d4000 100%) border-box; /* Capa borde */
+    background:
+        linear-gradient(#2a2a2a, #1a1a1a) padding-box,
+        /* Capa fondo */
+        linear-gradient(135deg, #201d12 0%, #767345 45%, #b8860b 70%, #5d4000 100%) border-box;
+    /* Capa borde */
 
     /* 2. Aplicamos el borde degradado */
     border: 2px solid transparent;
-    
+
     /* 3. Sombra reforzada (mantenemos la tuya pero con un toque ámbar) */
-    box-shadow: 
-        0 12px 28px rgba(0, 0, 0, 0.55), 
-        0 0 15px rgba(212, 175, 55, 0.1); /* Brillo dorado sutil exterior */
+    box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.55),
+        0 0 15px rgba(212, 175, 55, 0.1);
+    /* Brillo dorado sutil exterior */
 }
 
 /* Efecto opcional: Brillo extra en el título del fieldset (legend) */
@@ -127,16 +185,17 @@ body {
 .container fieldset .group-label {
     font-size: 1.15rem !important;
     color: #ffffff !important;
-    padding: 0 10px; /* Un poco de aire a los lados del texto */
+    padding: 0 10px;
+    /* Un poco de aire a los lados del texto */
 }
 
 
-        h1 {
-            font-family: Georgia, 'Times New Roman', Times, serif;
-        }
+h1 {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
 
 
-        .input-group {
+.input-group {
     position: relative;
     margin-bottom: 20px;
 }
@@ -151,7 +210,7 @@ body {
     padding: 1rem;
     font-size: 1rem;
     color: #f5f5f5;
-    transition: border 150ms cubic-bezier(0.4,0,0.2,1);
+    transition: border 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .input-group .user-label {
@@ -162,7 +221,7 @@ body {
     color: #e8e8e8;
     pointer-events: none;
     font-size: 1.2rem;
-    transition: 150ms cubic-bezier(0.4,0,0.2,1);
+    transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .input-group .input:focus,
@@ -171,8 +230,8 @@ body {
     border: 1.5px solid #0e647d;
 }
 
-.input-group .input:focus ~ .user-label,
-.input-group .input:not(:placeholder-shown) ~ .user-label {
+.input-group .input:focus~.user-label,
+.input-group .input:not(:placeholder-shown)~.user-label {
     transform: translateY(-50%) scale(0.8);
     background-color: #212121;
     padding: 0 .2em;
@@ -181,7 +240,8 @@ body {
 
 .input-group select {
     all: unset;
-    box-sizing: border-box;   /* ← ESTO ES LO QUE FALTABA */
+    box-sizing: border-box;
+    /* ← ESTO ES LO QUE FALTABA */
     width: 100%;
     border: solid 1.5px #9e9e9e;
     border-radius: 1rem;
@@ -202,7 +262,7 @@ body {
     background-color: #1a1a1a;
 }
 
-.input-group > label {
+.input-group>label {
     font-size: 1.15rem;
     font-weight: 600;
     color: #ffffff;
@@ -220,7 +280,7 @@ input[type="number"] {
 .radio-group,
 .select-group,
 .input-group,
-.checkbox-group  {
+.checkbox-group {
     margin-top: 20px;
     padding-bottom: 15px;
     border-bottom: 1px solid #eee;
@@ -254,11 +314,11 @@ input[type="number"] {
     transition: all 0.2s ease;
 }
 
-.checkbox-wrapper-21 .control:hover input ~ .control__indicator {
+.checkbox-wrapper-21 .control:hover input~.control__indicator {
     background: #d5d5d5;
 }
 
-.checkbox-wrapper-21 .control input:checked ~ .control__indicator {
+.checkbox-wrapper-21 .control input:checked~.control__indicator {
     background-color: #0e647d;
     border-color: #0e647d;
 }
@@ -277,7 +337,7 @@ input[type="number"] {
     transition: opacity 0.2s ease;
 }
 
-.checkbox-wrapper-21 .control input:checked ~ .control__indicator:after {
+.checkbox-wrapper-21 .control input:checked~.control__indicator:after {
     opacity: 1;
 }
 
@@ -327,12 +387,12 @@ input[type="number"] {
     transition: opacity 0.2s ease;
 }
 
-.radio-wrapper-18 .round input[type="radio"]:checked + .radio-indicator {
+.radio-wrapper-18 .round input[type="radio"]:checked+.radio-indicator {
     background-color: #0e647d;
     border-color: #0e647d;
 }
 
-.radio-wrapper-18 .round input[type="radio"]:checked + .radio-indicator::after {
+.radio-wrapper-18 .round input[type="radio"]:checked+.radio-indicator::after {
     opacity: 1;
 }
 
@@ -341,9 +401,12 @@ input[type="number"] {
     display: flex;
     justify-content: space-between;
     margin-top: 8px;
-    font-size: 1.1rem;       /* más grande */
-    font-weight: bold;       /* más notorio */
-    color: #e0e0e0;          /* más contraste */
+    font-size: 1.1rem;
+    /* más grande */
+    font-weight: bold;
+    /* más notorio */
+    color: #e0e0e0;
+    /* más contraste */
 }
 
 /* === VALOR DINÁMICO === */
@@ -353,7 +416,8 @@ input[type="number"] {
     font-weight: bold;
     color: #cdfa06;
     text-align: center;
-    font-size: 1.5rem;       /* más grande */
+    font-size: 1.5rem;
+    /* más grande */
     text-shadow: 0 0 6px rgba(14, 100, 125, 0.5);
 }
 
@@ -389,7 +453,8 @@ input[type="number"] {
     box-shadow: 0 0 10px rgba(14, 100, 125, 0.7);
     cursor: pointer;
     transition: transform 0.2s ease, background 0.2s ease;
-    margin-top: -7px; /* centra el thumb */
+    margin-top: -7px;
+    /* centra el thumb */
 }
 
 /* HOVER */
@@ -442,7 +507,8 @@ input[type="number"] {
     cursor: pointer;
     /* Actualizado: añadimos 'transform' a la transición para suavidad */
     transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
-    display: flex; /* Cambiado a flex para que gap y justify-content funcionen */
+    display: flex;
+    /* Cambiado a flex para que gap y justify-content funcionen */
     width: 100%;
     max-width: 500px;
     margin: 30px auto 0;
@@ -510,31 +576,78 @@ input[type="number"] {
 
 .logo-container {
     position: absolute;
-    top: 15px;    /* Un poco más cerca del borde superior */
-    left: 25px;   /* Un poco más separado del borde izquierdo */
+    top: 15px;
+    /* Un poco más cerca del borde superior */
+    left: 25px;
+    /* Un poco más separado del borde izquierdo */
     z-index: 10;
 }
 
 .banner-logo {
-    height: 60px;          /* Tamaño reducido para estética minimalista */
-    width: auto;           
-    opacity: 0.9;          /* Ligera transparencia para integrar con el fondo */
+    height: 60px;
+    /* Tamaño reducido para estética minimalista */
+    width: auto;
+    opacity: 0.9;
+    /* Ligera transparencia para integrar con el fondo */
     transition: all 0.3s ease;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); /* Sombra suave */
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+    /* Sombra suave */
 }
 
 .banner-logo:hover {
-    opacity: 1;            /* Resalta al pasar el mouse */
-    transform: scale(1.05); /* Pequeño efecto de crecimiento */
+    opacity: 1;
+    /* Resalta al pasar el mouse */
+    transform: scale(1.05);
+    /* Pequeño efecto de crecimiento */
 }
 
 /* En pantallas pequeñas, el logo se reduce aún más para no estorbar */
 @media (max-width: 768px) {
     .banner-logo {
-        height: 45px; 
+        height: 45px;
     }
+
     .logo-container {
         top: 10px;
         left: 15px;
     }
+}
+
+/* Estilo para las preguntas generales (Vegetariano, etc.) */
+.question label {
+    color: #ffffff !important;
+    /* Blanco puro */
+    font-size: 1.1rem;
+    /* Más grande */
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: block;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    /* Sombra para resaltar sobre el fondo */
+}
+
+/* Estilo para los menús desplegables (Selects) */
+.question select {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.question select:focus {
+    border-color: var(--color-accent);
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 10px rgba(14, 100, 125, 0.3);
+}
+
+/* Estilo para las opciones dentro del select (en algunos navegadores) */
+.question select option {
+    background-color: #1a1a1a;
+    /* Fondo oscuro para que se lea el texto blanco */
+    color: white;
 }

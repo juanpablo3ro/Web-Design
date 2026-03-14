@@ -12,15 +12,17 @@
         /* Solo estilos de posicionamiento que son ÚNICOS del Home */
         .home-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 25px;
             margin-top: 30px;
+            width: 100%;
         }
 
         .nav-card {
             text-decoration: none;
             display: flex;
-            transition: transform 0.3s ease;
+            height: 100%;
+            transition: all 0.3s ease;
         }
 
         .nav-card:hover {
@@ -36,21 +38,29 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            min-height: 220px;
+            box-sizing: border-box;
         }
 
         .card-content h2 {
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        .card-content p {
             margin-bottom: 10px;
-            /* Usamos el color de acento del reporte */
-            color: var(--color-accent);
+            font-size: 1rem;
+            line-height: 1.4;
         }
 
         .card-content small {
-            margin-top: 15px;
-            color: var(--color-secondary);
-            opacity: 0.8;
+            margin-top: auto;
+            color: #444;
+            letter-spacing: 1px;
             font-weight: 700;
             text-transform: uppercase;
-            font-size: 0.7rem;
+            font-size: 0.75rem;
+            opacity: 0.8;
         }
     </style>
 </head>
@@ -58,7 +68,9 @@
 <body class="dashboard-container" style="display: block; padding: 40px;">
     <div style="max-width: 1000px; margin: 0 auto;">
 
-        <header class="banner-section glass-card" style="margin-bottom: 40px; border: 1px solid var(--glass-border);">
+        <header class="banner-section glass-card"
+            style="margin-bottom: 40px; border: 1px solid var(--glass-border);
+        background-image: url({{ url_for('static', filename='img/bk2.jpg') }}); background-size: cover; background-position: center; background-repeat: no-repeat;">
             <div class="logo-container" style="position: relative; left: 0; transform: none; margin-bottom: 15px;">
                 <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="PRODI" class="banner-logo"
                     style="height: 60px;">
@@ -70,39 +82,34 @@
 
         <main class="home-grid">
             <a href="/cuestionario" class="nav-card">
-                <div class="glass-card card-content">
-                    <h2>Cuestionario</h2>
-                    <p class="recomendacion-texto">Registro inicial de paciente</p>
-                    <small>Historia Clínica Nueva</small>
+                <div class="glass-card card-content" style="border-top: 3px solid #00D1D1;">
+                    <h2 style="color: #00D1D1;">Cuestionario Inicial</h2>
+                    <p style="color: #000 !important; font-weight: 600;">Registro de paciente</p>
+                </div>
+            </a>
+
+            <a href="/perfil_nutricional" class="nav-card">
+                <div class="glass-card card-content" style="border-top: 3px solid var(--color-accent);">
+                    <h2 style="color: var(--color-accent);">Cuestionario Nutricional</h2>
+                    <p style="color: #000 !important; font-weight: 600;">Preferencias y Hábitos</p>
                 </div>
             </a>
 
             <a href="/lista_participantes" class="nav-card">
-                <div class="glass-card card-content">
-                    <h2>Participantes</h2>
-                    <p class="recomendacion-texto">Gestión y Digital Twins</p>
-                    <small>Base de Datos Activa</small>
+                <div class="glass-card card-content" style="border-top: 3px solid #00D1D1;">
+                    <h2 style="color: #00D1D1;">Lista de Participantes</h2>
+                    <p style="color: #000 !important; font-weight: 600;">Base de datos</p>
                 </div>
             </a>
-
-            <div style="grid-column: 1 / -1; margin-top: 20px;">
-                <div class="section-header">Módulos Digital Twin</div>
-            </div>
 
             <a href="/seguimiento" class="nav-card">
-                <div class="glass-card card-content" style="border-top: 2px solid var(--color-primary);">
+                <div class="glass-card card-content" style="border-top: 3px solid var(--color-primary);">
                     <h2 style="color: var(--color-primary);">Seguimiento</h2>
-                    <p class="recomendacion-texto">Métricas Semanales</p>
-                    <small>Check-in de Evolución</small>
+                    <p style="color: #000 !important; font-weight: 600;">Métricas Semanales</p>
                 </div>
             </a>
-            <a href="/perfil_nutricional" class="nav-card">
-                <div class="glass-card card-content" style="border-top: 2px solid var(--color-accent);">
-                    <h2>Nutrición</h2>
-                    <p class="recomendacion-texto">Preferencias y Hábitos</p>
-                    <small>Baseline Alimentario</small>
-                </div>
-            </a>
+
+
         </main>
     </div>
 </body>

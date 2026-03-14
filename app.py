@@ -1,13 +1,17 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_mail import Mail, Message
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
+import re
 from dotenv import load_dotenv
 import threading
 from datetime import datetime
+from functools import wraps
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # Permitir textos largos de Gemini
+app.secret_key = os.getenv('SECRET_KEY', 'prodi_secret_key_2024')
 
 load_dotenv()
 # --- CONFIGURACIÓN DE FLASK-MAIL ---
@@ -79,24 +83,153 @@ def init_db():
             FOREIGN KEY (paciente_id) REFERENCES historias_clinicas (id)
         )
     ''')
+    # NUEVA TABLA: Perfil Nutricional (Baseline Alimentario)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS perfil_nutricional (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            paciente_id INTEGER,
+            deseo_bajar_peso TEXT,
+            porcentaje_peso TEXT,
+            vegetariano TEXT,
+            consumo_leche_huevos TEXT,
+            frecuencia_procesados TEXT,
+            frecuencia_frituras TEXT,
+            frecuencia_carnes_rojas TEXT,
+            frecuencia_frutas_veg TEXT,
+            frecuencia_legumbres TEXT,
+            frecuencia_alcohol TEXT,
+            frecuencia_bebidas_azucaradas TEXT,
+            fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (paciente_id) REFERENCES historias_clinicas(id)
+        )
+    ''')
+    # NUEVA TABLA: Usuarios (Login)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            paciente_id INTEGER,
+            role TEXT DEFAULT 'paciente',
+            FOREIGN KEY (paciente_id) REFERENCES historias_clinicas(id)
+        )
+    ''')
     conn.commit()
     conn.close()
 
 # Inicializar DB al arrancar
 init_db()
 
+# --- MIDDLEWARE DE AUTENTICACIÓN ---
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 # --- 3. RUTAS DE NAVEGACIÓN ---
 
 # 1. LA HOME (El Launchpad)
 @app.route('/')
 def home():
-    # Esta es la página principal con las tarjetas (index.html)
-    return render_template('index.html')
+    # Si ya está logueado, lo mandamos a su landing personalizada, si es paciente.
+    if 'user_id' in session:
+        if session.get('role') == 'admin':
+            return render_template('index.html')
+        return redirect(url_for('landing_usuario'))
+    return redirect(url_for('login'))
 
-# 2. REGISTRO INICIAL
+# --- RUTAS DE AUTENTICACION ---
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM usuarios WHERE email = ?", (email,))
+        user = cursor.fetchone()
+        conn.close()
+        
+        if user and check_password_hash(user['password'], password):
+            session['user_id'] = user['id']
+            session['email'] = user['email']
+            session['paciente_id'] = user['paciente_id']
+            session['role'] = user['role']
+            
+            if user['role'] == 'admin':
+                return redirect(url_for('home'))
+            return redirect(url_for('landing_usuario'))
+        
+        return render_template('login.html', error="Email o contraseña incorrectos")
+    
+    return render_template('login.html')
+
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if password != confirm_password:
+            return render_template('registro.html', error="Las contraseñas no coinciden")
+            
+        hashed_pw = generate_password_hash(password)
+        
+        conn = sqlite3.connect('prodi_salud.db')
+        cursor = conn.cursor()
+        
+        try:
+            # Primero ver si existe una historia clinica con ese email
+            cursor.execute("SELECT id FROM historias_clinicas WHERE email = ?", (email,))
+            paciente = cursor.fetchone()
+            p_id = paciente[0] if paciente else None
+            
+            cursor.execute("INSERT INTO usuarios (email, password, paciente_id) VALUES (?, ?, ?)", 
+                         (email, hashed_pw, p_id))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            conn.close()
+            return render_template('registro.html', error="El email ya está registrado")
+        except Exception as e:
+            conn.close()
+            return render_template('registro.html', error=str(e))
+            
+    return render_template('registro.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+@app.route('/perfil')
+@login_required
+def landing_usuario():
+    # Landing page personalizada donde el usuario ve sus opciones
+    p_id = session.get('paciente_id')
+    if not p_id:
+        # Si no tiene ID de paciente, lo redirigimos a completar su perfil
+        return render_template('landing_usuario_vacio.html')
+        
+    conn = sqlite3.connect('prodi_salud.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
+    paciente = cursor.fetchone()
+    conn.close()
+    
+    return render_template('landing_usuario.html', paciente=paciente)
+
 @app.route('/cuestionario')
 def cuestionario():
-    # El formulario largo de la primera vez
     return render_template('cuestionario_general.html')
 
 # 3. LISTA DE PARTICIPANTES (Gestión)
@@ -146,6 +279,121 @@ def perfil_nutricional():
     # Esta ruta carga el nuevo cuestionario de preferencias alimentarias
     return render_template('cuestionario_nutricional.html')
 
+# 7. Reporte Nutricional Dinámico
+@app.route('/reporte_nutricional/<int:p_id>')
+def reporte_nutricional(p_id):
+    conn = sqlite3.connect('prodi_salud.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    # 1. Obtener todos los datos del paciente
+    cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
+    paciente_row = cursor.fetchone()
+    
+    if not paciente_row:
+        conn.close()
+        return "Paciente no encontrado.", 404
+        
+    paciente = dict(paciente_row)
+    
+    # 2. Obtener sus datos nutricionales (preferencias)
+    cursor.execute("SELECT * FROM perfil_nutricional WHERE paciente_id = ?", (p_id,))
+    nutricion_row = cursor.fetchone()
+    
+    nutricion = dict(nutricion_row) if nutricion_row else {}
+    
+    # Valores por defecto para campos de preferencias
+    if 'vegetariano' not in nutricion: nutricion['vegetariano'] = "--"
+    if 'saciedad_baseline' not in nutricion: nutricion['saciedad_baseline'] = "--"
+    if 'preferencia_sabor' not in nutricion: nutricion['preferencia_sabor'] = "--"
+    
+    conn.close()
+    
+    # 3. Lógica de Cálculo de Métricas (Si no están en la DB)
+    
+    # Metas de Peso
+    deseo = nutricion.get('deseo_bajar_peso') or paciente.get('desea_bajar_peso', 'No')
+    nutricion['deseo_bajar_peso'] = deseo
+    
+    # Tiempo meses
+    tiempo_str = paciente.get('tiempo_perdida') or "0 meses"
+    match_meses = re.search(r'(\d+)', str(tiempo_str))
+    tiempo_meses = int(match_meses.group(1)) if match_meses else 0
+    nutricion['tiempo_meses'] = tiempo_meses
+    
+    # Porcentaje de peso a perder
+    pct_str = nutricion.get('porcentaje_peso') or paciente.get('porcentaje_perdida') or "0%"
+    match_pct = re.search(r'(\d+)', str(pct_str))
+    pct_val = float(match_pct.group(1)) if match_pct else 0
+    nutricion['porcentaje_peso'] = f"{pct_val}%"
+    
+    # Asegurar tipos numéricos para cálculos
+    try:
+        peso = float(paciente.get('peso_kg') or 0)
+    except (ValueError, TypeError):
+        peso = 0
+        
+    try:
+        talla = float(paciente.get('talla_cm') or 0)
+    except (ValueError, TypeError):
+        talla = 0
+        
+    try:
+        edad = int(paciente.get('edad') or 30)
+    except (ValueError, TypeError):
+        edad = 30
+        
+    sexo = str(paciente.get('sexo') or 'M').lower()
+    
+    if peso > 0:
+        total_perder = round(peso * (pct_val / 100), 1)
+        nutricion['total_perder_kg'] = total_perder
+        nutricion['meta_kg'] = round(peso - total_perder, 1)
+        if tiempo_meses > 0:
+            nutricion['meta_mensual_kg'] = round(total_perder / tiempo_meses, 1)
+        else:
+            nutricion['meta_mensual_kg'] = 0
+    else:
+        nutricion['total_perder_kg'] = "--"
+        nutricion['meta_kg'] = "--"
+        nutricion['meta_mensual_kg'] = "--"
+        
+    # Macronutrientes (Mifflin-St Jeor)
+    if peso > 0 and talla > 0:
+        if sexo.startswith('f'): # Femenino
+            bmr = (10 * peso) + (6.25 * talla) - (5 * edad) - 161
+        else: # Masculino
+            bmr = (10 * peso) + (6.25 * talla) - (5 * edad) + 5
+            
+        # Factor de actividad
+        actividad = str(paciente.get('nivel_actividad', 'Poco Activo')).lower()
+        if 'muy' in actividad: factor = 1.55
+        elif 'moderada' in actividad: factor = 1.375
+        else: factor = 1.2
+        
+        tdee = bmr * factor
+        calorias_meta = int(tdee - 500) if deseo == 'Sí' else int(tdee)
+        if calorias_meta < 1200: calorias_meta = 1200
+        
+        nutricion['calorias_diarias'] = calorias_meta
+        nutricion['gramos_proteina'] = int((calorias_meta * 0.25) / 4)
+        nutricion['gramos_carbohidratos'] = int((calorias_meta * 0.45) / 4)
+        nutricion['gramos_grasa'] = int((calorias_meta * 0.30) / 9)
+    else:
+        nutricion['calorias_diarias'] = "--"
+        nutricion['gramos_proteina'] = "--"
+        nutricion['gramos_carbohidratos'] = "--"
+        nutricion['gramos_grasa'] = "--"
+        
+    # Otros datos sugeridos
+    nutricion['porciones_fruta'] = 3 if deseo == 'Sí' else 4
+    nutricion['fruta_comentario_1'] = "Consuma la fruta entera para aprovechar la fibra."
+    nutricion['fruta_comentario_2'] = "Evite jugos procesados con azúcar añadida."
+    nutricion['fruta_comentario_3'] = "La meta ideal es variar los colores de las frutas semanalmente."
+    
+    return render_template('reporte_nutricional.html', paciente=paciente, nutricion=nutricion)
+
+    
 # --- 2. FUNCIONES DE CORREO ELECTRÓNICO ---
 def enviar_email_al_equipo(data, resumen_salud):
     """Envía notificación interna con datos técnicos al equipo médico"""
@@ -299,11 +547,6 @@ def digital_twin_dashboard(p_id):
     except Exception as e:
         return f"Error: {e}", 500
 
-# --- 3. Otras RUTAS ---
-
-@app.route('/')
-def index():
-    return render_template('cuestionario_general.html')
 
 @app.route('/dashboard')
 def dashboard():
@@ -372,6 +615,14 @@ def enviar():
         cursor = conn.cursor()
         cursor.execute(query, datos_tupla)
         id_generado = cursor.lastrowid
+        
+        # VINCULAR CON EL USUARIO (Si existe cuenta con ese email)
+        email_paciente = data.get('email')
+        if email_paciente:
+            cursor.execute("UPDATE usuarios SET paciente_id = ? WHERE email = ?", (id_generado, email_paciente))
+            if 'user_id' in session and session.get('email') == email_paciente:
+                session['paciente_id'] = id_generado
+                
         conn.commit()
         conn.close()
 
