@@ -44,14 +44,7 @@
 
         <form action="/submit_nutricion" method="post" id="nutricion-form">
 
-            <fieldset>
-                <legend>Validación de Usuario</legend>
-                <p class="note">Ingresa el correo con el que te registraste originalmente.</p>
-                <div class="input-group">
-                    <input type="email" name="correo" class="input" placeholder=" " required>
-                    <label class="user-label">Correo Electrónico</label>
-                </div>
-            </fieldset>
+
 
             <fieldset>
                 <legend>Tipo de Alimentación</legend>
@@ -76,67 +69,49 @@
                 </div>
             </fieldset>
 
-            <fieldset>
-                <legend>Metas de Peso y Saciedad</legend>
 
-                <div class="question">
-                    <label for="deseo_bajar_peso">¿Desea bajar de peso actualmente?</label>
-                    <select id="deseo_bajar_peso" name="deseo_bajar_peso" required>
-                        <option value="No">No</option>
-                        <option value="Sí">Sí</option>
-                    </select>
-                </div>
-
-                <div id="meta_peso_container" class="question" style="display: none; margin-top: 15px;">
-                    <label for="porcentaje_peso">Porcentaje de peso que desea perder:</label>
-                    <select name="porcentaje_peso">
-                        <option value="5%">5% (Salud Inicial)</option>
-                        <option value="10%">10% (RECOMENDADO)</option>
-                        <option value="15%">15% (Transformación)</option>
-                        <option value="20%">20% (Meta máxima)</option>
-                    </select>
-                </div>
-
-                <div class="food-preference" style="margin-top: 25px;">
-                    <label style="color: white; font-weight: bold;">Nivel de Saciedad Basal (1: Siempre tengo hambre,
-                        10: Me lleno muy rápido):</label>
-                    <span id="saciedad-value" class="range-value">5</span>
-                    <input type="range" id="saciedad" name="saciedad" min="1" max="10" value="5" class="modern-range">
-                </div>
-
-                <div class="question" style="margin-top: 20px;">
-                    <label for="sabor_preferencia">Preferencia de Sabor Dominante:</label>
-                    <select id="sabor_preferencia" name="sabor_preferencia" required>
-                        <option value="Salado">Salado</option>
-                        <option value="Dulce">Dulce</option>
-                        <option value="Ácido / Cítrico">Ácido / Cítrico</option>
-                        <option value="Amargo">Amargo</option>
-                    </select>
-                </div>
-            </fieldset>
 
             <fieldset>
                 <legend>Preferencias de Frutas</legend>
                 <p class="instructions">Indica cuánto te gustan estas frutas (0: No me gusta, 5: Me encanta)</p>
 
                 {% set frutas = [
+                ('albaricoque', 'Albaricoque'),
+                ('arandano', 'Arándano'),
                 ('banana', 'Banana'),
                 ('cereza', 'Cereza'),
+                ('frambuesa', 'Frambuesa'),
                 ('fresa', 'Fresa'),
                 ('granada', 'Granada'),
+                ('grosella', 'Grosella'),
+                ('guayaba', 'Guayaba'),
+                ('higo', 'Higo'),
+                ('kiwan', 'Kiwan'),
                 ('kiwi', 'Kiwi'),
+                ('lima', 'Lima'),
+                ('litchi', 'Litchi'),
+                ('mamon_chino', 'Mamón Chino'),
                 ('mandarina', 'Mandarina'),
                 ('mango', 'Mango'),
+                ('mangostan', 'Mangostán'),
                 ('manzana', 'Manzana'),
                 ('maracuya', 'Maracuyá / Parchita'),
-                ('melocoton', 'Melocotón'),
+                ('melocoton', 'Melocotón / Durazno'),
                 ('melon', 'Melón'),
+                ('membrillo', 'Membrillo'),
                 ('mora', 'Mora'),
                 ('naranja', 'Naranja'),
-                ('papaya', 'Papaya'),
+                ('kumquat', 'Kumquat / Naranja enana'),
+                ('nispero', 'Níspero'),
+                ('papaya', 'Papaya / Lechosa'),
                 ('pera', 'Pera'),
                 ('pina', 'Piña'),
+                ('pitahaya', 'Pitahaya'),
+                ('pomelo', 'Pomelo'),
                 ('sandia', 'Sandía / Patilla'),
+                ('tamarindo_chino', 'Tamarindo Chino'),
+                ('tomate_arbol', 'Tomate de Árbol'),
+                ('uchuva', 'Uchuva'),
                 ('uva', 'Uva')
                 ] %}
 
@@ -165,13 +140,15 @@
                 ('berro', 'Berro'),
                 ('betabel', 'Betabel / Remolacha'),
                 ('brocoli', 'Brócoli'),
+                ('alfalfa', 'Brotes de Alfalfa'),
                 ('calabaza', 'Calabaza'),
-                ('champiñon', 'Champiñón'),
+                ('champinon', 'Champiñón'),
                 ('col', 'Col (Repollo)'),
                 ('coliflor', 'Coliflor'),
                 ('esparrago', 'Espárrago'),
                 ('espinacas', 'Espinacas'),
                 ('guisantes', 'Guisantes'),
+                ('hinojo', 'Hinojo'),
                 ('lechuga', 'Lechuga'),
                 ('nabo', 'Nabo'),
                 ('pepino', 'Pepino'),
@@ -279,8 +256,7 @@
             <!-- Preferencias de Carbohidratos Refinados -->
             <fieldset>
                 <legend>Preferencias de Carbohidratos Refinados</legend>
-                <p class="instructions">Indica cuánto te gustan estos carbohidratos refinados (0: No me gusta, 5: Me
-                    encanta)</p>
+                <p class="instructions">Indica cuánto te gustan estos carbohidratos refinados (0: No me gusta, 5: Me encanta)</p>
 
                 {% set carbohidratos_refinados = [
                 ('arepa', 'Arepa'),
@@ -290,9 +266,9 @@
                 ('pan_arabe', 'Pan árabe'),
                 ('pan_frances', 'Pan francés'),
                 ('pan_hamburguesa', 'Pan de hamburguesa'),
-                ('panquecas', 'Panquecas'),
+                ('panqueca', 'Panqueca'),
                 ('pasta', 'Pasta'),
-                ('tortillas', 'Tortillas')
+                ('tortilla', 'Tortilla')
                 ] %}
 
                 {% for id, nombre in carbohidratos_refinados %}
@@ -315,20 +291,21 @@
 
                 {% set carbohidratos_integrales = [
                 ('arroz_integral', 'Arroz integral'),
+                ('cebada', 'Cebada no perlada'),
+                ('pan_integral', 'Pan integral'),
+                ('tortilla_integral', 'Tortilla integral'),
+                ('caraotas', 'Caraotas / Porotos'),
+                ('papa', 'Papa'),
+                ('platano_verde', 'Plátano verde'),
+                ('yuca', 'Yuca'),
+                ('pasta_integral', 'Pasta integral'),
+                ('platano_amarillo', 'Plátano amarillo'),
                 ('arvejas_amarillas', 'Arvejas amarillas'),
                 ('arvejas_verdes', 'Arvejas verdes'),
                 ('avena', 'Avena'),
-                ('caraotas', 'Caraotas o Porotos Negros'),
                 ('cuscus', 'Cuscús'),
-                ('maiz_grano', 'Maíz en grano'),
-                ('palomitas_sin_aceite', 'Palomitas de maíz sin aceite'),
-                ('pan_integral', 'Pan integral'),
-                ('papa', 'Papa'),
-                ('pasta_integral', 'Pasta integral'),
-                ('platano_amarillo', 'Plátano amarillo'),
-                ('platano_verde', 'Plátano verde'),
-                ('tortillas_integrales', 'Tortillas integrales'),
-                ('yuca', 'Yuca o tapioca')
+                ('palomitas', 'Palomitas de maíz'),
+                ('maiz_grano', 'Maíz en grano')
                 ] %}
 
                 {% for id, nombre in carbohidratos_integrales %}
@@ -343,6 +320,35 @@
                 </div>
                 {% endfor %}
             </fieldset>
+            <!-- Preferencias de Lácteos -->
+            <fieldset>
+                <legend>Preferencias de Lácteos</legend>
+                <p class="instructions">Indica cuánto te gustan estos productos lácteos (0: No me gusta, 5: Me encanta)</p>
+
+                {% set lacteos = [
+                ('leche_completa', 'Leche completa'),
+                ('leche_descremada', 'Leche descremada'),
+                ('queso_amarillo', 'Queso amarillo'),
+                ('queso_blanco', 'Queso blanco'),
+                ('queso_mozarella', 'Queso mozarella'),
+                ('ricota', 'Ricota'),
+                ('yogurt', 'Yogurt'),
+                ('yogurt_descremado', 'Yogurt descremado')
+                ] %}
+
+                {% for id, nombre in lacteos %}
+                <div class="food-preference">
+                    <label style="color: white; font-weight: bold;">{{ nombre }}:</label>
+                    <span id="{{ id }}-value" class="range-value">0</span>
+                    <input type="range" id="{{ id }}" name="{{ id }}" min="0" max="5" value="0" class="modern-range">
+                    <div class="range-labels">
+                        <span>No me gusta</span>
+                        <span>Me encanta</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </fieldset>
+
             <!-- Preferencias de Grasas -->
             <fieldset>
                 <legend>Preferencias de Grasas</legend>
@@ -439,13 +445,20 @@
                 ('empanadas', 'Empanadas'),
                 ('pollo_frito', 'Pollo frito'),
                 ('papas_fritas', 'Papas fritas'),
-                ('shawarma', 'Shawarma')
+                ('shawarma', 'Shawarma'),
+                ('hallaca', 'Hallaca'),
+                ('mondongo', 'Mondongo'),
+                ('pabellon', 'Pabellón criollo'),
+                ('pasteles_fritos', 'Pasteles fritos'),
+                ('patacon', 'Patacón relleno'),
+                ('hot_dog', 'Perro caliente')
                 ]),
                 ('Dulces y Postres', [
                 ('helado', 'Helado'),
                 ('torta', 'Torta'),
                 ('donas', 'Donas'),
-                ('churros', 'Churros')
+                ('churros', 'Churros'),
+                ('refresco', 'Refresco')
                 ])
                 ] %}
 
@@ -483,51 +496,7 @@
         </form>
     </div>
 
-    <script>
-        // SCRIPT ACTUALIZADO: Sin reducción de peso y con sliders corregidos
-        document.querySelectorAll('.food-preference input[type="range"]').forEach(function (slider) {
-            slider.addEventListener('input', function () {
-                const value = this.value;
-                const sliderId = this.id;
-                const displaySpan = document.getElementById(sliderId + '-value');
-                if (displaySpan) { displaySpan.textContent = value; }
-
-                // Color dinámico para el slider (usando tu color acento #0e647d)
-                const percentage = (value - this.min) / (this.max - this.min) * 100;
-                this.style.background = `linear-gradient(to right, #0e647d ${percentage}%, rgba(255,255,255,0.1) ${percentage}%)`;
-            });
-        });
-
-        // Lógica Vegetariano
-        const vegetarianoSelect = document.getElementById('vegetariano');
-        if (vegetarianoSelect) {
-            vegetarianoSelect.addEventListener('change', function () {
-                const container = document.getElementById('consumo_leche_huevos_container');
-                if (container) {
-                    container.style.display = this.value === 'Sí' ? 'block' : 'none';
-                }
-            });
-        }
-
-        // Lógica de Meta de Peso (Mostrar/Ocultar porcentaje)
-        const deseoBajar = document.getElementById('deseo_bajar_peso');
-        if (deseoBajar) {
-            deseoBajar.addEventListener('change', function () {
-                const container = document.getElementById('meta_peso_container');
-                if (container) {
-                    container.style.display = this.value === 'Sí' ? 'block' : 'none';
-                }
-            });
-        }
-
-        // Slider de Saciedad
-        const saciedadSlider = document.getElementById('saciedad');
-        if (saciedadSlider) {
-            saciedadSlider.addEventListener('input', function () {
-                document.getElementById('saciedad-value').textContent = this.value;
-            });
-        }
-    </script>
+    <script src="{{ url_for('static', filename='js/js_cuestionario_nutricional.js') }}"></script>
 </body>
 
 </html>

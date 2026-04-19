@@ -5,6 +5,26 @@
     <meta charset="UTF-8">
     <title>Completar Perfil | PRODI Salud</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_reporte.css') }}">
+
+    <style>
+        .btn-login {
+            display: block;
+            text-decoration: none;
+            padding: 15px;
+            background: var(--color-primary);
+            margin-bottom: 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .btn-login:hover {
+            background: #048173;
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+        }
+    </style>
 </head>
 
 <body class="dashboard-container"
@@ -12,17 +32,15 @@
     <div class="glass-card" style="max-width: 600px; padding: 40px; text-align: center;">
         <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="PRODI"
             style="height: 60px; margin-bottom: 20px;">
-        <h1 style="color: white; font-size: 1.8rem; border: none; padding: 0; margin-bottom: 20px;">¡Casi listo!</h1>
-        <p style="color: var(--color-secondary); line-height: 1.6; margin-bottom: 30px;">
-            Hemos detectado que aún no has completado tu historia clínica inicial. Para poder generar tu <strong>Digital
-                Twin</strong> y tu <strong>Reporte Nutricional</strong>, necesitamos conocer un poco más sobre ti.
-        </p>
+        <h1 style="color: rgb(0, 0, 0); font-size: 1.8rem; border: none; padding: 0; margin-bottom: 20px;">¡Bienvenidos
+            a PRODI!</h1>
+        <p style="color: rgb(0, 0, 0); line-height: 1.6; margin-bottom: 30px;">
+            Comencemos evaluando tu salud, completa el siguiente cuestionario</p>
 
-        <a href="/cuestionario" class="btn-login"
-            style="display: block; text-decoration: none; padding: 15px; background: var(--color-primary); margin-bottom: 20px;">Completar
+        <a href="/cuestionario" class="btn-login">Completar
             Historia Clínica</a>
 
-        <a href="/logout" style="color: #ef4444; text-decoration: none; font-size: 0.9rem; font-weight: bold;">Cerrar
+        <a href="/logout" style="color: #5f1f1f; text-decoration: none; font-size: 0.9rem; font-weight: bold;">Cerrar
             Sesión</a>
     </div>
 </body>

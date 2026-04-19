@@ -63,6 +63,15 @@
             margin-bottom: 20px;
             text-align: center;
         }
+
+        .success-msg {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 
@@ -74,6 +83,14 @@
                 style="height: 60px; margin-bottom: 15px;">
             <h1 style="color: rgb(2, 2, 2); font-size: 1.5rem; border: none; padding: 0;">Iniciar Sesión</h1>
         </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="{{ category }}-msg">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
 
         {% if error %}
         <div class="error-msg">{{ error }}</div>

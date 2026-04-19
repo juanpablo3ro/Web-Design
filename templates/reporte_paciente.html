@@ -12,486 +12,543 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_reporte.css') }}">
 </head>
 
-<body class="">
-    <div class="dashboard-container">
+<body class="bg-[#ECEDF8]">
+    <div class="dashboard-container {{ 'participant-layout' if role == 'paciente' }}">
+        {% if role != 'paciente' %}
         <aside class="sidebar no-print">
             <div class="flex items-center gap-3 mb-8">
-                <img src="../static/img/logo.jpg" alt="PRODI" />
+                <img src="../static/img/logo.jpg" alt="PRODI" style="height: 40px; border-radius: 8px;" />
             </div>
+
             <div class="mb-6">
-                <label class="block text-xs uppercase tracking-widest white font-bold mb-3">Participante</label>
-                <select id="participantSelect" class="sidebar-btn sidebar-btn-secondary font-serif w-full">
-                    <option value="">-- Seleccione un participante --</option>
+                <label
+                    class="block text-[13px] tracking-widest text-slate-400 font-bold mb-3 font-inter">Participante</label>
+                <select id="participantSelect" class="sidebar-btn sidebar-btn-secondary w-full">
+                    <option value="">-- Seleccione --</option>
                     {% if inscripciones_nombres %}
-                    {% for id_paciente, nombre_completo in inscripciones_nombres %}
-                    <option value="{{ id_paciente }}" {% if id_paciente|string==datos.id|string %}selected{% endif %}>
-                        {{ nombre_completo }}
+                    {% for id_pac_loop, nombre_loop in inscripciones_nombres %}
+                    <option value="{{ id_pac_loop }}" {% if id_pac_loop|string==datos.id|string %}selected{% endif %}>
+                        {{ nombre_loop }}
                     </option>
                     {% endfor %}
                     {% endif %}
                 </select>
             </div>
-            <div class="mt-auto pt-8 border-t border-gray-800">
-                <label class="block text-xs uppercase tracking-widest white font-bold mb-3">Acciones de Reporte</label>
 
+            <div class="mt-auto pt-8 border-t border-slate-100">
+                <label
+                    class="block text-[13px] tracking-widest text-slate-400 font-bold mb-3 font-inter">Acciones</label>
                 <button onclick="window.location.href='/dashboard'" class="sidebar-btn sidebar-btn-secondary">
                     Dashboard
                 </button>
-
                 <button onclick="window.print()" class="sidebar-btn">
                     Imprimir PDF
                 </button>
-
                 <button id="btn-guardar-cambios" class="sidebar-btn sidebar-btn-primary">
                     Guardar Cambios
                 </button>
-
-                <div class="export-container">
-                    <!-- Botón para descargar el reporte en formato TXT -->
-                    <button onclick="descargarReporteTxtParaGemini()" class="sidebar-btn sidebar-btn-secondary">
-                        Descargar Reporte para Gemini (.txt)
-                    </button>
-                </div>
-
+                <button onclick="descargarReporteTxtParaGemini()" class="sidebar-btn sidebar-btn-secondary">
+                    Descargar .txt
+                </button>
             </div>
         </aside>
+        {% endif %}
+
         <div class="report-content">
-            <div class="max-w-6xl mx-auto px-6 py-8">
-                <section class="banner-header" style="background-image: url('../static/img/B1.jpg');">
-                    <div class="banner-overlay"></div>
-                    <header class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 p-8">
-                        <div class="banner-logo-container">
-                            <img src="../static/img/logo.jpg" alt="PRODI Logo" class="w-40 h-auto" />
+            {% if role == 'paciente' %}
+            <nav class="participant-nav no-print">
+                <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+                    <a href="/perfil" class="text-slate-600 font-bold uppercase tracking-widest text-[11px]">
+                        ← Regresar al Panel
+                    </a>
+                    <button onclick="window.print()"
+                        class="px-6 py-2 bg-accent text-white rounded-lg font-bold text-[13px] tracking-widest shadow-lg shadow-blue-500/20">
+                        Descargar Reporte (PDF)
+                    </button>
+                </div>
+            </nav>
+            {% endif %}
+
+            <div class="max-w-6xl mx-auto px-6 py-12">
+                <!-- Banner de Encabezado -->
+                <section class="banner-section header-banner mb-12"
+                    style="background-image: url('../static/img/bn75.jpeg');">
+                    <header class="mb-0">
+                        <div class="flex items-center gap-2 text-accent font-bold mb-4">
+                            <span class="w-8 h-1 bg-accent rounded-full"></span>
+                            <span class="text-[13px] tracking-[0.3em]">Informe Clínico Confidencial</span>
                         </div>
-                        <div class="text-center md:text-right">
-                            <h1 class="section-header" style="margin-bottom: 5px; color: var(--color-secondary);">
-                                Reporte de Salud PRODI</h1>
-                            <p class="text-3xl font-bold mb-2"
-                                style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                                {{ datos.nombre }} {{ datos.apellidos }}
-                            </p>
-                            <div
-                                class="flex gap-4 opacity-90 text-[13px] uppercase font-bold tracking-widest justify-center md:justify-end">
-                                <span class="alim-category-badge">ID: {{ datos.id }}</span>
-                                <span class="alim-category-badge" style="background: var(--color-primary);">
-                                    {{ datos.fecha_registro or '---' }}
+                        <div class="flex flex-col md:flex-row justify-between items-end gap-6">
+                            <div>
+                                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight"
+                                    id="paciente-nombre-completo">
+                                    {{ datos.nombre }} {{ datos.apellidos }}
+                                </h1>
+                                <p class="text-2xl text-accent font-bold mt-2 italic">Reporte Integral de Salud</p>
+                            </div>
+                            <div class="text-right">
+                                <span
+                                    class="px-3 py-1 bg-white rounded-full text-[11px] font-bold text-slate-400 uppercase tracking-widest border border-slate-100 shadow-sm"
+                                    id="paciente-id">
+                                    ID: {{ datos.id }}
                                 </span>
+                                <p class="text-[11px] text-slate-400 uppercase tracking-widest mt-3 font-bold"
+                                    id="fecha-reporte">
+                                    {{ datos.fecha_registro or '---' }}
+                                </p>
                             </div>
                         </div>
                     </header>
                 </section>
-                <main class="space-y-8 mt-8">
-                    <section class="recomendaciones-section">
+                <main class="space-y-12">
+                    <!-- 01 DATOS PERSONALES -->
+                    <section>
                         <h2 class="section-header">01 Datos Personales</h2>
                         <div class="glass-card grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
                             <div>
-                                <p class="data-label">Nombre</p>
-                                <p class="data-value text-xl" id="p-nombre" data-key="nombre">{{ datos.nombre }}</p>
+                                <p class="data-label text-slate-400">Nombre</p>
+                                <p class="text-lg font-bold text-slate-900" id="p-nombre">{{ datos.nombre }}</p>
                             </div>
                             <div>
-                                <p class="data-label">Apellidos</p>
-                                <p class="data-value text-xl" id="p-apellidos" data-key="apellidos">{{ datos.apellidos
-                                    }}
+                                <p class="data-label text-slate-400">Apellidos</p>
+                                <p class="text-lg font-bold text-slate-900" id="p-apellidos">{{ datos.apellidos }}</p>
+                            </div>
+                            <div class="editable-field" contenteditable="true" data-key="edad">
+                                <p class="data-label text-slate-400">Edad</p>
+                                <p class="text-lg font-bold text-slate-900" id="p-edad">{{ datos.edad or '--' }}</p>
+                            </div>
+                            <div class="editable-field" contenteditable="true" data-key="sexo">
+                                <p class="data-label text-slate-400">Sexo</p>
+                                <p class="text-lg font-bold text-slate-900" id="p-sexo">{{ datos.sexo or '--' }}</p>
+                            </div>
+                            <div class="editable-field" contenteditable="true" data-key="ciudad">
+                                <p class="data-label text-slate-400">Ciudad</p>
+                                <p class="text-lg font-bold text-slate-900" id="p-ciudad">{{ datos.ciudad or '--' }}</p>
+                            </div>
+                            <div class="editable-field" contenteditable="true" data-key="pais">
+                                <p class="data-label text-slate-400">País</p>
+                                <p class="text-lg font-bold text-slate-900" id="p-pais">{{ datos.pais or '--' }}</p>
+                            </div>
+                            <div>
+                                <p class="data-label text-slate-400">Email</p>
+                                <p class="text-xs font-medium text-slate-500 truncate" id="p-email">{{ datos.email }}
                                 </p>
-                            </div>
-                            <div>
-                                <p class="data-label">Edad</p>
-                                <p class="data-value text-xl editable-field is-number" id="p-edad"
-                                    contenteditable="true" data-key="edad">
-                                    {{ datos.edad or '--' }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="data-label">Sexo</p>
-                                <p class="data-value text-xl editable-field" id="p-sexo" contenteditable="true"
-                                    data-key="sexo">
-                                    {{ datos.sexo or '--' }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="data-label">Ciudad</p>
-                                <p class="data-value text-xl editable-field" id="p-ciudad" contenteditable="true"
-                                    data-key="ciudad">
-                                    {{ datos.ciudad or '--' }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="data-label">País</p>
-                                <p class="data-value text-xl editable-field" id="p-pais" contenteditable="true"
-                                    data-key="pais">
-                                    {{ datos.pais or '--' }}
-                                </p>
-                            </div>
-                            <div>
-                                <p class="data-label">Email</p>
-                                <p class="data-value" id="p-email" data-key="email">{{ datos.email }}</p>
                             </div>
                         </div>
                     </section>
 
-                    <section class="recomendaciones-section">
+                    <!-- 02 COACH VIRTUAL -->
+                    <section>
                         <h2 class="section-header">02 Resumen del Coach Virtual</h2>
-                        <div class="glass-card p-6 rounded-lg border border-gray-200 font-normal text-justify"
-                            style="background-color: #f5f4f4;">
-                            <div id="narrativa-ia" class="narrativa-field editable-field text-justify leading-relaxed"
+                        <div class="glass-card !bg-white">
+                            <div id="narrativa-ia"
+                                class="editable-field text-justify leading-relaxed text-slate-700 font-medium text-lg p-2"
                                 contenteditable="true" data-key="analisis_driver"
-                                style="white-space: pre-wrap; min-height: 200px;">
-                                {{ datos.analisis_driver if datos.analisis_driver else 'Cargando análisis
-                                personalizado...'
-                                }}
-                            </div>
+                                style="white-space: pre-wrap; min-height: 150px;">{{ datos.analisis_driver if
+                                datos.analisis_driver else 'Generando reporte personalizado...' }}</div>
                         </div>
                     </section>
 
-                    <section class="recomendaciones-section">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <section>
-                                <h2 class="section-header">03 Antecedentes Familiares</h2>
-                                <div class="glass-card">
-                                    <table class="metric-table w-full">
-                                        <tbody id="lista-antecedentes" class="editable-container">
-                                            {% if datos.antecedentes %}
-                                            {% for ant in datos.antecedentes.split(', ') %}
-                                            <tr class="border-b border-white/10 last:border-0">
-                                                <td class="py-2 editable-field" contenteditable="true"
-                                                    id="ant-{{ loop.index }}">{{ ant }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                            {% else %}
-                                            <tr>
-                                                <td class="py-2 opacity-50 italic" id="ant-none">No se registraron
-                                                    antecedentes</td>
-                                            </tr>
-                                            {% endif %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </section>
-
-                            <section>
-                                <h2 class="section-header">04 Medicación</h2>
-                                <div class="glass-card">
-                                    <table class="metric-table w-full">
-                                        <tbody id="lista-medicacion" class="editable-container">
-                                            <tr>
-                                                <td class="py-2">Medicación Presión</td>
-                                                <td class="py-2 text-right" id="h-med-presion">{{
-                                                    datos.medicamento_presion
-                                                    or 'No' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2">Medicación Glucosa</td>
-                                                <td class="py-2 text-right" id="h-med-glucosa">{{
-                                                    datos.medicamento_glucosa
-                                                    or 'No' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2">Medicación Lípidos</td>
-                                                <td class="py-2 text-right" id="h-med-lipidos">{{
-                                                    datos.medicamento_lipidos
-                                                    or 'No' }}</td>
-                                            </tr>
-                                            <tr>
-                                                <td class="py-2">Medicación Peso</td>
-                                                <td class="py-2 text-right" id="h-med-peso">{{ datos.medicamento_peso or
-                                                    'No' }}</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </section>
-                        </div>
-                    </section>
-
-                    <section class="recomendaciones-section">
-                        <h2 class="section-header">05 Estilo de Vida: Alimentación</h2>
-                        <div class="glass-card">
-                            <p class="data-label mb-4 text-accent font-bold">Hábitos Alimenticios</p>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-4">
-                                <div class="border-l border-white/10 pl-3">
-                                    <p class="text-xl opacity-50">Frutas/día</p>
-                                    <p class="font-bold text-xl editable-field" id="h-frutas" contenteditable="true">{{
-                                        datos.raciones_frutas or '--' }}</p>
-                                </div>
-                                <div class="border-l border-white/10 pl-3">
-                                    <p class="text-xl opacity-50">Vegetales/día</p>
-                                    <p class="font-bold text-xl editable-field" id="h-vegetales" contenteditable="true">
-                                        {{
-                                        datos.raciones_vegetales or '--' }}</p>
-                                </div>
-                                <div class="border-l border-white/10 pl-3">
-                                    <p class="text-xl opacity-50">Granos Enteros</p>
-                                    <p class="font-bold text-xl editable-field" id="h-granos" contenteditable="true">{{
-                                        datos.raciones_grano_entero or '--' }}</p>
-                                </div>
-                                <div class="border-l border-white/10 pl-3">
-                                    <p class="text-xl opacity-50">Pescado/sem</p>
-                                    <p class="font-bold text-xl editable-field" id="h-pescado" contenteditable="true">{{
-                                        datos.raciones_pescado or '--' }}</p>
-                                </div>
-                                <div class="border-l border-white/10 pl-3">
-                                    <p class="text-xl opacity-50">Bebidas Azucaradas</p>
-                                    <p class="font-bold text-xl editable-field" id="h-azucar" contenteditable="true">{{
-                                        datos.vasos_bebidas_azucaradas or '--' }}</p>
-                                </div>
-                                <div class="border-l border-white/10 pl-3">
-                                    <p class="text-sm uppercase opacity-50">Lácteos Bajos en Grasa</p>
-                                    <p class="font-bold text-xl editable-field" id="h-lacteos" contenteditable="true"
-                                        data-key="frecuencia_lacteos">
-                                        {{ datos.frecuencia_lacteos or '--' }}
-                                    </p>
-                                </div>
-                                <div class="border-l border-white/10 pl-3">
-                                    <p class="text-sm uppercase opacity-50">Carnes Rojas</p>
-                                    <p class="font-bold text-xl editable-field" id="h-carnes" contenteditable="true"
-                                        data-key="frecuencia_carnes">
-                                        {{ datos.frecuencia_carnes or '--' }}
-                                    </p>
-                                </div>
-                                <div class="border-l border-white/10 pl-3">
-                                    <p class="text-xl opacity-50">Sal</p>
-                                    <p class="font-bold text-xl editable-field" id="h-sal" contenteditable="true">{{
-                                        datos.habitos_sal or '--' }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                    <section class="recomendaciones-section">
-                        <div class="alim-gauge-card" style="width: 100%; max-width: 400px; margin: 0 auto;">
-                            <div id="alim-glow" class="alim-glow"></div>
-
-                            <p class="text-secondary font-bold uppercase text-[14px] tracking-[0.25em] mb-6">
-                                Calidad de Alimentación
-                            </p>
-
-                            <div class="alim-svg-container">
-                                <svg viewBox="0 0 100 65" class="alim-svg"
-                                    style="overflow: visible; background: transparent;">
-                                    <path d="M 15 50 A 35 35 0 0 1 85 50" class="alim-path-bg" fill="none" />
-                                    <path id="alim-gauge-bar" d="M 15 50 A 35 35 0 0 1 85 50" class="alim-path-active"
-                                        stroke="#F27405" stroke-dasharray="0 110" fill="none" />
-                                </svg>
-                                <div class="absolute inset-x-0 bottom-0 flex flex-col items-center translate-y-4"
-                                    style="background: transparent;">
-                                    <span id="val-puntaje-alim" class="alim-val-text">--</span>
-                                    <span id="label-categoria-alim" class="alim-category-badge">Calculando...</span>
-                                </div>
-                            </div>
-
-                            <p class="alim-meta-text">Meta Ideal: 6 Puntos</p>
-                        </div>
-                    </section>
-                    <section class="recomendaciones-section mt-8">
-                        <h2 class="section-header">06 Estilo de Vida: Hábitos y Conductas</h2>
-                        <div class="glass-card">
-                            <p class="data-label mb-4 text-accent font-bold">Factores de Estilo de Vida</p>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
-                                <div class="flex justify-between border-b border-white/10 pb-1">
-                                    <span class="opacity-50">Nivel de Actividad:</span>
-                                    <b class="editable-field font-bold text-xl" id="h-nivel-actividad"
-                                        contenteditable="true" data-key="nivel_actividad">
-                                        {{ datos.nivel_actividad or '--' }}
-                                    </b>
-                                </div>
-                                <div class="flex justify-between border-b border-white/10 pb-1">
-                                    <span class="opacity-50">Consumo de Alcohol:</span>
-                                    <b class="editable-field" id="h-alcohol" contenteditable="true"
-                                        data-key="frecuencia_alcohol">
-                                        {{ datos.frecuencia_alcohol or '--' }}
-                                    </b>
-                                </div>
-
-                                <div class="flex justify-between border-b border-white/10 pb-1">
-                                    <span class="opacity-50">Bebidas por día de consumo:</span>
-                                    <b class="font-bold text-xl editable-field" id="h-alcohol-cant"
-                                        contenteditable="true" data-key="cantidad_alcohol">
-                                        {{ datos.cantidad_alcohol or '--' }}
-                                    </b>
-                                </div>
-
-                                <div class="flex justify-between border-b border-white/10 pb-1">
-                                    <span class="opacity-50">Actividad Física:</span>
-                                    <b class="editable-field" id="h-actividad" contenteditable="true"
-                                        data-key="nivel_actividad">
-                                        {{ datos.nivel_actividad or '--' }}
-                                    </b>
-                                </div>
-                                <div class="flex justify-between border-b border-white/10 pb-1">
-                                    <span class="opacity-50">Hábito Tabáquico:</span>
-                                    <b class="editable-field" id="h-tabaco" contenteditable="true">{{
-                                        datos.habito_tabaquico
-                                        or '--' }}</b>
-                                </div>
-                                <div class="flex justify-between border-b border-white/10 pb-1">
-                                    <span class="opacity-50">Calidad de Sueño (0-10):</span>
-                                    <b class="editable-field" id="h-sueno-pts" contenteditable="true">{{
-                                        datos.puntuacion_sueno or '--' }}</b>
-                                </div>
-                                <div class="flex justify-between border-b border-white/10 pb-1 md:border-0">
-                                    <span class="opacity-50">Presencia de Ronquidos:</span>
-                                    <b class="editable-field" id="h-ronca" contenteditable="true">{{ datos.ronca or '--'
-                                        }}</b>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="recomendaciones-section">
-                        <h2 class="section-header">07 Bienestar y Salud Mental</h2>
-                        <div class="glass-card">
-                            <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
-                                <div class="text-center">
-                                    <p class="data-label text-[14px] uppercase">Ansiedad</p>
-                                    <p class="text-2xl font-bold editable-field" id="val-m-ans" contenteditable="true">
-                                        {{
-                                        datos.ansiedad_nervios or '--' }}</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="data-label text-[14px] uppercase">Depresión</p>
-                                    <p class="text-2xl font-bold editable-field" id="val-m-dep" contenteditable="true">
-                                        {{
-                                        datos.sentimiento_deprimido or '--' }}</p>
-                                </div>
-                                <div class="text-center border-x border-white/10">
-                                    <p class="data-label text-[14px] uppercase">Calidad Vida</p>
-                                    <p class="text-3xl font-black editable-field" id="val-m-qol" contenteditable="true"
-                                        style="color: var(--color-accent)">{{ datos.escala_salud_hoy or '--' }}</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="data-label text-[14px] uppercase">Optimismo</p>
-                                    <p class="text-2xl font-bold editable-field" id="val-m-opt" contenteditable="true">
-                                        {{
-                                        datos.nivel_optimismo or '--' }}</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="data-label text-[14px] uppercase">Pesimismo</p>
-                                    <p class="text-2xl font-bold editable-field" id="val-m-pes" contenteditable="true">
-                                        {{
-                                        datos.nivel_pesimismo or '--' }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-                    <section class="recomendaciones-section">
-                        <h2 class="section-header">08 Datos Antropométricos y Signos</h2>
-                        <div class="glass-card">
-                            <div class="grid grid-cols-1 md:grid-cols-1 gap-6 items-center">
-                                <table class="metric-table w-full">
-                                    <tbody id="datos-antropo">
-                                        <tr>
-                                            <td class="data-label">Estatura / Peso</td>
-                                            <td class="text-right">
-                                                <span class="editable-field font-bold" contenteditable="true"
-                                                    id="p-talla" data-key="talla_cm">{{ datos.talla_cm }}</span><span
-                                                    class="text-xs opacity-50 px-1">cm</span>
-                                                <span class="editable-field font-bold" contenteditable="true"
-                                                    id="p-peso" data-key="peso_kg">{{ datos.peso_kg }}</span><span
-                                                    class="text-xs opacity-50">kg</span>
+                    <!-- ANTECEDENTES Y MEDICACIÓN -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <section>
+                            <h2 class="section-header">03 Antecedentes Familiares</h2>
+                            <div class="glass-card">
+                                <table class="w-full text-slate-700">
+                                    <tbody id="lista-antecedentes">
+                                        {% if datos.antecedentes %}
+                                        {% for ant in datos.antecedentes.split(', ') %}
+                                        <tr
+                                            class="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                                            <td class="py-2 text-sm italic flex items-center gap-2 editable-field"
+                                                contenteditable="true" id="ant-{{ loop.index }}">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                                                {{ ant }}
                                             </td>
                                         </tr>
-                                        <tr class="border-t border-white/10">
-                                            <td class="data-label text-accent font-bold">IMC</td>
-                                            <td class="text-right">
-                                                <span id="p-imc" class="font-black text-xl">--</span>
-                                                <span class="text-xs opacity-50">kg/m²</span>
-                                            </td>
+                                        {% endfor %}
+                                        {% else %}
+                                        <tr>
+                                            <td class="py-4 text-sm opacity-40 italic text-center" id="ant-none">No se
+                                                registraron antecedentes</td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                        <section>
+                            <h2 class="section-header">04 Medicación</h2>
+                            <div class="glass-card">
+                                <table class="w-full text-slate-700">
+                                    <tbody id="lista-medicacion">
+                                        <tr class="border-b border-slate-50">
+                                            <td class="py-2 text-sm font-medium">Presión Arterial</td>
+                                            <td class="py-2 text-right font-bold text-slate-900" id="h-med-presion">{{
+                                                datos.medicamento_presion or 'No' }}</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-50">
+                                            <td class="py-2 text-sm font-medium">Glucosa</td>
+                                            <td class="py-2 text-right font-bold text-slate-900" id="h-med-glucosa">{{
+                                                datos.medicamento_glucosa or 'No' }}</td>
+                                        </tr>
+                                        <tr class="border-b border-slate-50">
+                                            <td class="py-2 text-sm font-medium">Lípidos</td>
+                                            <td class="py-2 text-right font-bold text-slate-900" id="h-med-lipidos">{{
+                                                datos.medicamento_lipidos or 'No' }}</td>
                                         </tr>
                                         <tr>
-                                            <td class="data-label">C. Cuello / Cintura</td>
-                                            <td class="text-right">
-                                                <span class="editable-field font-bold" contenteditable="true"
-                                                    id="p-cuello" data-key="circunferencia_cuello">{{
-                                                    datos.circunferencia_cuello
-                                                    }}</span><span class="text-xs opacity-50 px-1">cm</span>
-                                                <span class="editable-field font-bold" contenteditable="true"
-                                                    id="p-cintura" data-key="perimetro_abdominal">{{
-                                                    datos.perimetro_abdominal
-                                                    }}</span><span class="text-xs opacity-50">cm</span>
-                                            </td>
-                                        </tr>
-                                        <tr class="border-t border-white/10">
-                                            <td class="data-label font-bold text-accent">Presión Arterial</td>
-                                            <td class="text-right">
-                                                <div id="val-diag-hta"
-                                                    class="text-[10px] uppercase tracking-wider text-white/70 mb-1">
-                                                    Calculando estado...
-                                                </div>
-
-                                                <div class="flex justify-end items-center gap-1">
-                                                    <span class="editable-field font-bold" contenteditable="true"
-                                                        id="p-presion-sistolica" data-key="presion_sistolica">
-                                                        {{ datos.presion_sistolica }}
-                                                    </span>
-                                                    <span class="opacity-50">/</span>
-                                                    <span class="editable-field font-bold" contenteditable="true"
-                                                        id="p-presion-diastolica" data-key="presion_diastolica">
-                                                        {{ datos.presion_diastolica }}
-                                                    </span>
-                                                    <span class="text-xs opacity-50 ml-1">mmHg</span>
-                                                </div>
-                                            </td>
+                                            <td class="py-2 text-sm font-medium">Peso</td>
+                                            <td class="py-2 text-right font-bold text-slate-900" id="h-med-peso">{{
+                                                datos.medicamento_peso or 'No' }}</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
+                        </section>
+                    </div>
+
+                    <!-- 05 ESTILO DE VIDA: ALIMENTACIÓN -->
+                    <section class="mt-8">
+                        <h2 class="section-header">05 Estilo de Vida: Alimentación</h2>
+                        <div class="glass-card">
+                            <p class="data-label mb-8 text-accent font-bold uppercase tracking-widest text-[13px]">
+                                Hábitos Alimenticios</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-x-8 gap-y-10">
+                                <div class="border-l-2 border-slate-100 pl-4">
+                                    <p class="text-[13px] text-slate-400 font-bold mb-2 tracking-wider">
+                                        Frutas/día</p>
+                                    <p class="font-black text-2xl text-slate-900 editable-field" id="h-frutas"
+                                        contenteditable="true">{{ datos.raciones_frutas or '--' }}</p>
+                                </div>
+                                <div class="border-l-2 border-slate-100 pl-4">
+                                    <p class="text-[13px] text-slate-400 font-bold mb-2 tracking-wider">
+                                        Vegetales/día</p>
+                                    <p class="font-black text-2xl text-slate-900 editable-field" id="h-vegetales"
+                                        contenteditable="true">{{ datos.raciones_vegetales or '--' }}</p>
+                                </div>
+                                <div class="border-l-2 border-slate-100 pl-4">
+                                    <p class="text-[13px] text-slate-400 font-bold mb-2 tracking-wider">Granos
+                                        Ent.</p>
+                                    <p class="font-black text-2xl text-slate-900 editable-field" id="h-granos"
+                                        contenteditable="true">{{ datos.raciones_grano_entero or '--' }}</p>
+                                </div>
+                                <div class="border-l-2 border-slate-100 pl-4">
+                                    <p class="text-[13px] text-slate-400 font-bold mb-2 tracking-wider">
+                                        Pescado/sem</p>
+                                    <p class="font-black text-2xl text-slate-900 editable-field" id="h-pescado"
+                                        contenteditable="true">{{ datos.raciones_pescado or '--' }}</p>
+                                </div>
+                                <div class="border-l-2 border-slate-100 pl-4">
+                                    <p class="text-[13px] text-slate-400 font-bold mb-2 tracking-wider">
+                                        Azucaradas</p>
+                                    <p class="font-black text-2xl text-slate-900 editable-field" id="h-azucar"
+                                        contenteditable="true">{{ datos.vasos_bebidas_azucaradas or '--' }}</p>
+                                </div>
+                                <div class="border-l-2 border-slate-100 pl-4">
+                                    <p class="text-[13px] text-slate-400 font-bold mb-2 tracking-wider">
+                                        Lácteos</p>
+                                    <p class="font-bold text-lg text-slate-900 editable-field" id="h-lacteos"
+                                        contenteditable="true">{{ datos.frecuencia_lacteos or '--' }}</p>
+                                </div>
+                                <div class="border-l-2 border-slate-100 pl-4">
+                                    <p class="text-[13px] text-slate-400 font-bold mb-2 tracking-wider">Carnes
+                                        R.</p>
+                                    <p class="font-bold text-lg text-slate-900 editable-field" id="h-carnes"
+                                        contenteditable="true">{{ datos.frecuencia_carnes or '--' }}</p>
+                                </div>
+                                <div class="border-l-2 border-slate-100 pl-4">
+                                    <p class="text-[13px] text-slate-400 font-bold mb-2 tracking-wider">
+                                        Sodio/Sal</p>
+                                    <p class="font-bold text-sm text-slate-900 editable-field leading-tight" id="h-sal"
+                                        contenteditable="true">{{ datos.habitos_sal or '--' }}</p>
+                                </div>
+                            </div>
                         </div>
                     </section>
-                    <section class="recomendaciones-section">
-                        <div class="modern-gauges-grid">
-                            <!-- GAUGE 1: IMC -->
-                            <div id="container-grafico-imc" class="gauge-mini-card">
-                                <div id="glow-imc" class="gauge-mini-glow" style="background: #ED7D30;"></div>
-                                <div class="relative w-full flex flex-col items-center">
-                                    <svg viewBox="0 0 100 65" class="gauge-mini-svg">
-                                        <path d="M 15 50 A 35 35 0 0 1 85 50" class="path-bg-mini" />
-                                        <path id="imc-gauge-bar" d="M 15 50 A 35 35 0 0 1 85 50"
-                                            class="path-active-mini" stroke="#ED7D30" stroke-dasharray="0 110" />
-                                    </svg>
-                                    <div class="absolute inset-x-0 bottom-0 flex flex-col items-center translate-y-1">
-                                        <span id="imc-gauge-val" class="mini-val-text">--</span>
-                                        <span id="imc-gauge-label" class="mini-label-badge">IMC</span>
-                                    </div>
-                                </div>
-                                <p class="mini-footer-desc">Estado Nutricional</p>
-                            </div>
 
-                            <!-- GAUGE 2: ABDOMEN -->
-                            <div id="container-grafico-abd" class="gauge-mini-card">
-                                <div id="glow-abd" class="gauge-mini-glow" style="background: #ED7D30;"></div>
-                                <div class="relative w-full flex flex-col items-center">
-                                    <svg viewBox="0 0 100 65" class="gauge-mini-svg">
-                                        <path d="M 15 50 A 35 35 0 0 1 85 50" class="path-bg-mini" />
-                                        <path id="abd-gauge-bar" d="M 15 50 A 35 35 0 0 1 85 50"
-                                            class="path-active-mini" stroke="#ED7D30" stroke-dasharray="0 110" />
-                                    </svg>
-                                    <div class="absolute inset-x-0 bottom-0 flex flex-col items-center translate-y-1">
-                                        <span id="abd-gauge-val" class="mini-val-text">--</span>
-                                        <span id="abd-gauge-label" class="mini-label-badge">ABDOMEN</span>
-                                    </div>
-                                </div>
-                                <p class="mini-footer-desc">Obs. Abdominal</p>
+                    <!-- CALIDAD DE ALIMENTACIÓN GAUGE -->
+                    <section>
+                        <div
+                            class="glass-card flex flex-col items-center justify-center p-12 relative overflow-hidden min-h-[320px]">
+                            <div id="alim-glow"
+                                class="absolute w-48 h-48 blur-[80px] opacity-0 rounded-full transition-all duration-1000">
                             </div>
-
-                            <!-- GAUGE 3: PAS -->
-                            <div id="container-grafico-pas" class="gauge-mini-card">
-                                <div id="glow-pas" class="gauge-mini-glow" style="background: #ED7D30;"></div>
-                                <div class="relative w-full flex flex-col items-center">
-                                    <svg viewBox="0 0 100 65" class="gauge-mini-svg">
-                                        <path d="M 15 50 A 35 35 0 0 1 85 50" class="path-bg-mini" />
-                                        <path id="pas-gauge-bar" d="M 15 50 A 35 35 0 0 1 85 50"
-                                            class="path-active-mini" stroke="#ED7D30" stroke-dasharray="0 110" />
+                            <div class="relative z-10 text-center w-full">
+                                <p class="text-[13px] font-bold text-slate-400 tracking-[0.3em] mb-8">Score de
+                                    Alimentación (AHA)</p>
+                                <div class="relative inline-block">
+                                    <svg viewBox="0 0 40 40" class="w-48 h-48 transform -rotate-90">
+                                        <circle cx="20" cy="20" r="18" fill="none" stroke="#f1f5f9" stroke-width="2.5">
+                                        </circle>
+                                        <circle id="alim-gauge-bar" cx="20" cy="20" r="18" fill="none" stroke="#10b981"
+                                            stroke-width="2.5" stroke-dasharray="0 113" stroke-linecap="round"
+                                            class="transition-all duration-1000"></circle>
                                     </svg>
-                                    <div class="absolute inset-x-0 bottom-0 flex flex-col items-center translate-y-1">
-                                        <span id="pas-gauge-val" class="mini-val-text">--</span>
-                                        <span id="pas-gauge-label" class="mini-label-badge">SISTÓLICA</span>
+                                    <div
+                                        class="absolute inset-0 flex flex-col items-center justify-center translate-y-2">
+                                        <span id="val-puntaje-alim"
+                                            class="text-6xl font-black text-slate-900 tracking-tighter">--</span>
+                                        <span id="label-categoria-alim"
+                                            class="text-[13px] font-black px-4 py-1.5 border-2 rounded-xl mt-2 bg-white shadow-sm transition-colors duration-500">Pendiente</span>
                                     </div>
                                 </div>
-                                <p class="mini-footer-desc">Presión Arterial</p>
+                            </div>
+                            <p class="text-[9px] uppercase font-bold text-slate-400 tracking-[0.4em] mt-10">Meta Ideal:
+                                6 Puntos</p>
+                        </div>
+                    </section>
+
+                    <!-- 06 ESTILO DE VIDA: HÁBITOS Y CONDUCTAS -->
+                    <section>
+                        <h2 class="section-header">06 Estilo de Vida: Hábitos y Conductas</h2>
+                        <div class="glass-card">
+                            <p class="data-label mb-8 text-accent font-bold uppercase tracking-widest text-[13px]">
+                                Factores de Estilo de Vida</p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                                <div class="flex flex-col gap-2 border-b border-slate-50 pb-4">
+                                    <span class="text-[13px] uppercase font-bold text-slate-400 tracking-wider">Nivel de
+                                        Actividad:</span>
+                                    <b class="text-base font-bold text-slate-900 editable-field leading-relaxed"
+                                        id="h-nivel-actividad" contenteditable="true" data-key="nivel_actividad">{{
+                                        datos.nivel_actividad or '--' }}</b>
+                                </div>
+                                <div class="flex flex-col gap-2 border-b border-slate-50 pb-4">
+                                    <span class="text-[13px] uppercase font-bold text-slate-400 tracking-wider">Consumo
+                                        de Alcohol:</span>
+                                    <b class="text-base font-bold text-slate-900 editable-field leading-relaxed"
+                                        id="h-alcohol" contenteditable="true" data-key="frecuencia_alcohol">{{
+                                        datos.frecuencia_alcohol or '--' }}</b>
+                                </div>
+                                <div class="flex flex-col gap-2 border-b border-slate-50 pb-4">
+                                    <span
+                                        class="text-[13px] uppercase font-bold text-slate-400 tracking-wider">Bebidas/día
+                                        de consumo:</span>
+                                    <b class="text-base font-bold text-slate-900 editable-field leading-relaxed"
+                                        id="h-alcohol-cant" contenteditable="true" data-key="cantidad_alcohol">{{
+                                        datos.cantidad_alcohol or '--' }}</b>
+                                </div>
+                                <div class="flex flex-col gap-2 border-b border-slate-50 pb-4">
+                                    <span
+                                        class="text-[13px] uppercase font-bold text-slate-400 tracking-wider">Actividad
+                                        Física:</span>
+                                    <b class="text-base font-bold text-slate-900 editable-field leading-relaxed"
+                                        id="h-actividad" contenteditable="true" data-key="minutos_actividad_semana">{{
+                                        datos.minutos_actividad_semana or '--' }}</b>
+                                </div>
+                                <div class="flex flex-col gap-2 border-b border-slate-50 pb-4">
+                                    <span class="text-[13px] uppercase font-bold text-slate-400 tracking-wider">Hábito
+                                        Tabáquico:</span>
+                                    <b class="text-base font-bold text-slate-900 editable-field leading-relaxed"
+                                        id="h-tabaco" contenteditable="true">{{ datos.habito_tabaquico or '--' }}</b>
+                                </div>
+                                <div class="flex flex-col gap-2 border-b border-slate-50 pb-4">
+                                    <span class="text-[13px] uppercase font-bold text-slate-400 tracking-wider">Calidad
+                                        de Sueño (0-10):</span>
+                                    <b class="text-base font-bold text-slate-900 editable-field leading-relaxed"
+                                        id="h-sueno-pts" contenteditable="true">{{ datos.puntuacion_sueno or '--' }}</b>
+                                </div>
+                                <div class="flex flex-col gap-2 border-b border-slate-50 pb-4 md:border-0 md:pb-0">
+                                    <span
+                                        class="text-[13px] uppercase font-bold text-slate-400 tracking-wider">Presencia
+                                        de Ronquidos:</span>
+                                    <b class="text-base font-bold text-slate-900 editable-field leading-relaxed"
+                                        id="h-ronca" contenteditable="true">{{ datos.ronca or '--' }}</b>
+                                </div>
                             </div>
                         </div>
                     </section>
-                    <section class="recomendaciones-section">
+
+                    <!-- 07 BIENESTAR Y SALUD MENTAL -->
+                    <section>
+                        <h2 class="section-header">07 Bienestar y Salud Mental</h2>
+                        <div class="glass-card">
+                            <div class="grid grid-cols-2 md:grid-cols-5 gap-8 text-center items-end">
+                                <div class="pb-2">
+                                    <p class="text-[13px] font-bold text-slate-400 mb-4 tracking-widest">
+                                        Ansiedad</p>
+                                    <p class="text-3xl font-black text-slate-900 editable-field" id="val-m-ans"
+                                        contenteditable="true">{{ datos.ansiedad_nervios or '--' }}</p>
+                                </div>
+                                <div class="pb-2">
+                                    <p class="text-[13px] font-bold text-slate-400 mb-4 tracking-widest">
+                                        Depresión</p>
+                                    <p class="text-3xl font-black text-slate-900 editable-field" id="val-m-dep"
+                                        contenteditable="true">{{ datos.sentimiento_deprimido or '--' }}</p>
+                                </div>
+                                <div class="border-x border-slate-50 px-6 py-4 bg-blue-50/30 rounded-2xl">
+                                    <p class="text-[13px] font-bold text-accent mb-4 tracking-widest">Calidad
+                                        Vida</p>
+                                    <p class="text-5xl font-black text-accent editable-field tracking-tighter"
+                                        id="val-m-qol" contenteditable="true">{{ datos.escala_salud_hoy or '--' }}</p>
+                                </div>
+                                <div class="pb-2">
+                                    <p class="text-[13px] font-bold text-slate-400 mb-4 tracking-widest">
+                                        Optimismo</p>
+                                    <p class="text-3xl font-black text-slate-900 editable-field" id="val-m-opt"
+                                        contenteditable="true">{{ datos.nivel_optimismo or '--' }}</p>
+                                </div>
+                                <div class="pb-2">
+                                    <p class="text-[13px] font-bold text-slate-400 mb-4 tracking-widest">
+                                        Pesimismo</p>
+                                    <p class="text-3xl font-black text-slate-900 editable-field" id="val-m-pes"
+                                        contenteditable="true">{{ datos.nivel_pesimismo or '--' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 08 DATOS ANTROPOMÉTRICOS Y SIGNOS + GAUGES -->
+                    <section>
+                        <h2 class="section-header">08 Datos Bio-Antropométricos y Signos</h2>
+                        <div class="glass-card mb-8">
+                            <table class="w-full text-slate-700">
+                                <tbody>
+                                    <tr class="border-b border-slate-50">
+                                        <td class="py-3 text-base font-medium">Estatura / Peso</td>
+                                        <td class="text-right">
+                                            <span class="editable-field font-bold text-slate-900" contenteditable="true"
+                                                id="p-talla" data-key="talla_cm">{{ datos.talla_cm }}</span><span
+                                                class="text-[12px] ml-1">cm</span>
+                                            <span class="mx-2 text-slate-200">/</span>
+                                            <span class="editable-field font-bold text-slate-900" contenteditable="true"
+                                                id="p-peso" data-key="peso_kg">{{ datos.peso_kg }}</span><span
+                                                class="text-[12px] ml-1">kg</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-slate-50">
+                                        <td class="py-3 text-base font-bold text-accent">Índice de Masa Corporal (IMC)
+                                        </td>
+                                        <td class="text-right">
+                                            <span id="p-imc" class="text-xl font-black text-accent">--</span>
+                                            <span class="text-[12px] ml-1">kg/m²</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-slate-50">
+                                        <td class="py-3 text-base font-medium">Cuello / Cintura</td>
+                                        <td class="text-right">
+                                            <span class="editable-field font-bold text-slate-900" contenteditable="true"
+                                                id="p-cuello" data-key="circunferencia_cuello">{{
+                                                datos.circunferencia_cuello }}</span><span
+                                                class="text-[12px] ml-1">cm</span>
+                                            <span class="mx-2 text-slate-200">/</span>
+                                            <span class="editable-field font-bold text-slate-900" contenteditable="true"
+                                                id="p-cintura" data-key="perimetro_abdominal">{{
+                                                datos.perimetro_abdominal }}</span><span
+                                                class="text-[12px] ml-1">cm</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="border-b border-slate-50">
+                                        <td class="py-3 text-sm font-bold text-amber-600">Presión Arterial</td>
+                                        <td class="text-right">
+                                            <div class="flex justify-end items-center gap-1">
+                                                <span class="editable-field font-bold text-slate-900"
+                                                    contenteditable="true" id="p-presion-sistolica"
+                                                    data-key="presion_sistolica">{{ datos.presion_sistolica }}</span>
+                                                <span class="text-slate-200">/</span>
+                                                <span class="editable-field font-bold text-slate-900"
+                                                    contenteditable="true" id="p-presion-diastolica"
+                                                    data-key="presion_diastolica">{{ datos.presion_diastolica }}</span>
+                                                <span class="text-[12px] ml-1">mmHg</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- IMC GAUGE -->
+                            <div
+                                class="glass-card flex flex-col items-center justify-center p-6 relative overflow-hidden min-h-[220px]">
+                                <div id="glow-imc"
+                                    class="absolute w-24 h-24 blur-3xl opacity-0 rounded-full transition-all duration-1000">
+                                </div>
+                                <div class="relative z-10 text-center w-full">
+                                    <p class="text-[9px] uppercase font-bold text-slate-400 tracking-widest mb-4">Masa
+                                        Corporal</p>
+                                    <div class="relative inline-block">
+                                        <svg viewBox="0 0 40 40" class="w-32 h-32 transform -rotate-90">
+                                            <circle cx="20" cy="20" r="18" fill="none" stroke="#f1f5f9"
+                                                stroke-width="3">
+                                            </circle>
+                                            <circle id="imc-gauge-bar" cx="20" cy="20" r="18" fill="none"
+                                                stroke="#3b82f6" stroke-width="3" stroke-dasharray="0 113"
+                                                stroke-linecap="round" class="transition-all duration-1000"></circle>
+                                        </svg>
+                                        <div
+                                            class="absolute inset-0 flex flex-col items-center justify-center translate-y-1">
+                                            <span id="imc-gauge-val"
+                                                class="text-3xl font-black text-slate-900">--</span>
+                                            <span id="imc-gauge-label"
+                                                class="text-[8px] uppercase font-bold px-2 py-0.5 border rounded mt-1 bg-white shadow-sm transition-colors duration-500">IMC</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ABDOMEN GAUGE -->
+                            <div
+                                class="glass-card flex flex-col items-center justify-center p-6 relative overflow-hidden min-h-[220px]">
+                                <div id="glow-abd"
+                                    class="absolute w-24 h-24 blur-3xl opacity-0 rounded-full transition-all duration-1000">
+                                </div>
+                                <div class="relative z-10 text-center w-full">
+                                    <p class="text-[9px] uppercase font-bold text-slate-400 tracking-widest mb-4">
+                                        Adiposidad Abd.</p>
+                                    <div class="relative inline-block">
+                                        <svg viewBox="0 0 40 40" class="w-32 h-32 transform -rotate-90">
+                                            <circle cx="20" cy="20" r="18" fill="none" stroke="#f1f5f9"
+                                                stroke-width="3">
+                                            </circle>
+                                            <circle id="abd-gauge-bar" cx="20" cy="20" r="18" fill="none"
+                                                stroke="#10b981" stroke-width="3" stroke-dasharray="0 113"
+                                                stroke-linecap="round" class="transition-all duration-1000"></circle>
+                                        </svg>
+                                        <div
+                                            class="absolute inset-0 flex flex-col items-center justify-center translate-y-1">
+                                            <span id="abd-gauge-val"
+                                                class="text-3xl font-black text-slate-900">--</span>
+                                            <span id="abd-gauge-label"
+                                                class="text-[8px] uppercase font-bold px-2 py-0.5 border rounded mt-1 bg-white shadow-sm transition-colors duration-500">CINTURA</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- PAS GAUGE -->
+                            <div
+                                class="glass-card flex flex-col items-center justify-center p-6 relative overflow-hidden min-h-[220px]">
+                                <div id="glow-pas"
+                                    class="absolute w-24 h-24 blur-3xl opacity-0 rounded-full transition-all duration-1000">
+                                </div>
+                                <div class="relative z-10 text-center w-full">
+                                    <p class="text-[9px] uppercase font-bold text-slate-400 tracking-widest mb-4">
+                                        Presión Sistólica</p>
+                                    <div class="relative inline-block">
+                                        <svg viewBox="0 0 40 40" class="w-32 h-32 transform -rotate-90">
+                                            <circle cx="20" cy="20" r="18" fill="none" stroke="#f1f5f9"
+                                                stroke-width="3">
+                                            </circle>
+                                            <circle id="pas-gauge-bar" cx="20" cy="20" r="18" fill="none"
+                                                stroke="#ef4444" stroke-width="3" stroke-dasharray="0 113"
+                                                stroke-linecap="round" class="transition-all duration-1000"></circle>
+                                        </svg>
+                                        <div
+                                            class="absolute inset-0 flex flex-col items-center justify-center translate-y-1">
+                                            <span id="pas-gauge-val"
+                                                class="text-3xl font-black text-slate-900">--</span>
+                                            <span id="pas-gauge-label"
+                                                class="text-[8px] uppercase font-bold px-2 py-0.5 border rounded mt-1 bg-white shadow-sm transition-colors duration-500">SISTÓLICA</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 09 LABORATORIO -->
+                    <section class="mt-8">
                         <h2 class="section-header">09 Laboratorio</h2>
                         <div class="glass-card">
                             <table class="metric-table w-full">
@@ -500,26 +557,24 @@
                                         <td class="data-label text-accent">Glucosa Ayunas</td>
                                         <td class="text-right">
                                             <span class="editable-field font-bold" contenteditable="true" id="p-glucosa"
-                                                data-key="glucosa_ayunas">{{ datos.glucosa_ayunas
-                                                }}</span>
+                                                data-key="glucosa_ayunas">{{ datos.glucosa_ayunas or '--' }}</span>
                                             <span class="text-xs opacity-50">mg/dL</span>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="data-label">Hemoglobina Glicosilada (HbA1c)</td>
-                                        <td class="text-right border-b border-white/10 pb-2">
+                                        <td class="text-right border-b border-slate-50 pb-2">
                                             <span class="editable-field font-bold" contenteditable="true" id="p-hba1c"
-                                                data-key="hba1c">{{ datos.hba1c }}</span>
+                                                data-key="hba1c">{{ datos.hba1c or '--' }}</span>
                                             <span class="text-xs opacity-50">%</span>
                                         </td>
                                     </tr>
-
                                     <tr>
                                         <td class="data-label pt-2">Colesterol Total</td>
                                         <td class="text-right pt-2">
                                             <span class="editable-field font-bold" contenteditable="true"
-                                                id="p-col-total" data-key="colesterol_total">{{
-                                                datos.colesterol_total }}</span>
+                                                id="p-col-total" data-key="colesterol_total">{{ datos.colesterol_total
+                                                or '--' }}</span>
                                             <span class="text-xs opacity-50">mg/dL</span>
                                         </td>
                                     </tr>
@@ -527,8 +582,7 @@
                                         <td class="data-label">Colesterol LDL (Malo)</td>
                                         <td class="text-right">
                                             <span class="editable-field font-bold" contenteditable="true" id="p-col-ldl"
-                                                data-key="colesterol_ldl">{{ datos.colesterol_ldl
-                                                }}</span>
+                                                data-key="colesterol_ldl">{{ datos.colesterol_ldl or '--' }}</span>
                                             <span class="text-xs opacity-50">mg/dL</span>
                                         </td>
                                     </tr>
@@ -536,8 +590,7 @@
                                         <td class="data-label">Colesterol HDL (Bueno)</td>
                                         <td class="text-right">
                                             <span class="editable-field font-bold" contenteditable="true" id="p-col-hdl"
-                                                data-key="colesterol_hdl">{{ datos.colesterol_hdl
-                                                }}</span>
+                                                data-key="colesterol_hdl">{{ datos.colesterol_hdl or '--' }}</span>
                                             <span class="text-xs opacity-50">mg/dL</span>
                                         </td>
                                     </tr>
@@ -545,18 +598,18 @@
                                         <td class="data-label">Triglicéridos</td>
                                         <td class="text-right">
                                             <span class="editable-field font-bold" contenteditable="true"
-                                                id="p-trigliceridos" data-key="trigliceridos">{{
-                                                datos.trigliceridos
-                                                }}</span>
+                                                id="p-trigliceridos" data-key="trigliceridos">{{ datos.trigliceridos or
+                                                '--' }}</span>
                                             <span class="text-xs opacity-50">mg/dL</span>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-
                     </section>
-                    <section class="recomendaciones-section">
+
+                    <!-- 10 AUTOREPORTE DE COMPLICACIONES -->
+                    <section class="mt-8">
                         <h2 class="section-header">10 Autoreporte de Complicaciones</h2>
                         <div class="glass-card">
                             <div class="grid grid-cols-2 lg:grid-cols-5 gap-4 editable-container"
@@ -567,19 +620,18 @@
                                 "Artrosis": "Artrosis", "Nefropatía": "Nefropatía", "Neuropatía": "Neuropatía",
                                 "visión": "Retinopatía"
                                 } %}
-                                {% set userEnf = datos.enfermedades_presentadas or "" %}
+                                {% set userEnf = (datos.enfermedades_presentadas or "") | lower %}
 
                                 {% for k, v in compDict.items() %}
-                                {% set has = k in userEnf %}
+                                {% set has = k | lower in userEnf %}
 
-                                <div class="text-center p-3 rounded-xl border border-gray-200 hover:bg-gray-50/30 transition-all cursor-pointer editable-field"
+                                <div class="text-center p-4 rounded-2xl border transition-all cursor-pointer editable-field {{ 'bg-amber-50 border-amber-200' if has else 'bg-slate-50/50 border-slate-100 opacity-60' }}"
                                     contenteditable="true" data-key="enfermedades_presentadas" data-label="{{ v }}">
-
-                                    <p class="data-label text-sm mb-1 pointer-events-none">
+                                    <p class="text-[13px] font-bold text-slate-400 mb-2 pointer-events-none">
                                         {{ v }}
                                     </p>
-
-                                    <p class="text-xl font-bold pointer-events-none">
+                                    <p
+                                        class="text-base font-black pointer-events-none {{ 'text-amber-600' if has else 'text-slate-300' }}">
                                         {{ 'Presente' if has else 'Ausente' }}
                                     </p>
                                 </div>
@@ -587,99 +639,96 @@
                             </div>
                         </div>
                     </section>
-                    <!-- 9. Riesgos y 10. Diagnósticos -->
-                    <section class="recomendaciones-section">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+                    <!-- SEGMENTOS 11 Y 12: DIAGNÓSTICOS Y RIESGOS -->
+                    <section class="mt-12">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                            <!-- 11 Diagnósticos de Factores de Riesgo -->
                             <section>
                                 <h2 class="section-header">11 Diagnósticos de Factores de Riesgo</h2>
                                 <div class="glass-card">
                                     <table class="metric-table w-full">
                                         <tbody id="diag-riesgo">
-                                            <tr class="border-b border-white/5">
-                                                <td class="p-3 text-base tracking-tighter">
-                                                    Riesgo Biológico</td>
-                                                <td id="res-riesgo-bio" class="p-3 text-right text-green-500">
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Riesgo Biológico</td>
+                                                <td id="res-riesgo-bio" class="p-3 text-right text-slate-400 font-bold">
                                                     Calculando...</td>
                                             </tr>
-                                            <tr class="border-b border-white/5">
-                                                <td class="p-3 text-base tracking-tighter">Tabaquismo</td>
-                                                <td id="res-tabaquismo" class="p-3 text-right font-bold">Calculando...
-                                                </td>
-                                            </tr>
-                                            <tr class="border-b border-white/5">
-                                                <td class="p-3 text-base tracking-tighter">Fumador Pasivo</td>
-                                                <td id="res-fumador-pasivo" class="p-3 text-right font-bold">
-                                                    Calculando...
-                                                </td>
-                                            </tr>
-                                            <tr class="border-b border-white/5">
-                                                <td class="p-3 text-base tracking-tighter">Actividad Física</td>
-                                                <td id="res-actividad-nivel" class="p-3 text-right font-bold">
-                                                    Calculando...
-                                                </td>
-                                            </tr>
-                                            <tr class="border-b border-white/5">
-                                                <td class="p-3 text-base tracking-tighter">Consumo de Alcohol</td>
-                                                <td id="res-alcohol" class="p-3 text-right font-bold">Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-white/5">
-                                                <td class="p-3 text-base tracking-tighter">
-                                                    Calidad del Sueño</td>
-                                                <td id="res-sueno" class="p-3 text-right text-green-500">
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Tabaquismo</td>
+                                                <td id="res-tabaquismo" class="p-3 text-right text-slate-400 font-bold">
                                                     Calculando...</td>
                                             </tr>
-                                            <tr class="border-b border-white/5">
-                                                <td class="p-3 text-base tracking-tighter">
-                                                    Riesgo Apnea</td>
-                                                <td id="res-apnea" class="p-3 text-right text-green-500">
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Fumador Pasivo</td>
+                                                <td id="res-fumador-pasivo"
+                                                    class="p-3 text-right text-slate-400 font-bold">Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Actividad Física</td>
+                                                <td id="res-actividad-nivel"
+                                                    class="p-3 text-right text-slate-400 font-bold">Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Consumo de Alcohol</td>
+                                                <td id="res-alcohol" class="p-3 text-right text-slate-400 font-bold">
                                                     Calculando...</td>
                                             </tr>
-                                            <tr class="border-b border-white/5">
-                                                <td class="p-3 text-base tracking-tighter">
-                                                    Ansiedad</td>
-                                                <td id="res-ansiedad" class="p-3 text-right text-green-500">
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Calidad del Sueño</td>
+                                                <td id="res-sueno" class="p-3 text-right text-slate-400 font-bold">
                                                     Calculando...</td>
                                             </tr>
-                                            <tr>
-                                                <td class="p-3 text-base tracking-tighter">
-                                                    Depresión</td>
-                                                <td id="res-depresion" class="p-3 text-right text-green-500">
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Riesgo Apnea</td>
+                                                <td id="res-apnea" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Ansiedad</td>
+                                                <td id="res-ansiedad" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-0">
+                                                <td class="p-3 text-base">Depresión</td>
+                                                <td id="res-depresion" class="p-3 text-right text-slate-400 font-bold">
                                                     Calculando...</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                 </div>
                             </section>
-                            <section class="mt-6">
+
+                            <!-- 12 Diagnósticos Cardiometabólicos -->
+                            <section>
                                 <h2 class="section-header">12 Diagnósticos Cardiometabólicos</h2>
                                 <div class="glass-card overflow-hidden">
                                     <table class="metric-table w-full">
                                         <tbody id="diag-cardiomet">
-                                            <tr class="border-b border-white/5">
+                                            <tr class="border-b border-slate-50">
                                                 <td class="p-3 text-base">Estado Nutricional (IMC)</td>
                                                 <td id="diag-nutricional" class="p-3 text-right font-bold text-accent">
                                                     Calculando...</td>
                                             </tr>
-                                            <tr class="border-b border-white/5">
+                                            <tr class="border-b border-slate-50">
                                                 <td class="p-3 text-base">Obesidad Abdominal</td>
-                                                <td id="diag-obesidad-abd" class="p-3 text-right font-bold">
-                                                    Calculando...
-                                                </td>
+                                                <td id="diag-obesidad-abd"
+                                                    class="p-3 text-right text-slate-400 font-bold">Calculando...</td>
                                             </tr>
-                                            <tr class="border-b border-white/5">
+                                            <tr class="border-b border-slate-50">
                                                 <td class="p-3 text-base">Presión Arterial</td>
-                                                <td id="diag-presion" class="p-3 text-right font-bold">Calculando...
-                                                </td>
+                                                <td id="diag-presion" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
                                             </tr>
-                                            <tr class="border-b border-white/5">
+                                            <tr class="border-b border-slate-50">
                                                 <td class="p-3 text-base">Metabolismo de Glucosa</td>
-                                                <td id="diag-glucosa" class="p-3 text-right font-bold">Calculando...
-                                                </td>
+                                                <td id="diag-glucosa" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
                                             </tr>
-                                            <tr class="border-b border-white/5">
+                                            <tr class="border-0">
                                                 <td class="p-3 text-base">Perfil de Lípidos (Dislipidemia)</td>
-                                                <td id="diag-lipidos" class="p-3 text-right font-bold">Calculando...
-                                                </td>
+                                                <td id="diag-lipidos" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -687,8 +736,9 @@
                             </section>
                         </div>
                     </section>
+
                     <!-- 13. Puntaje de Salud Cardiovascular AHA -->
-                    <section class="recomendaciones-section">
+                    <section class="mt-12">
                         <div class="glass-card p-8 md:p-12 relative overflow-hidden shadow-xl">
                             <h2 class="text-black text-xl font-bold mb-8 uppercase tracking-wider">
                                 13 Puntaje de Salud Cardiovascular
@@ -706,8 +756,8 @@
                                                     <stop offset="100%" stop-color="#10b981" />
                                                 </linearGradient>
                                             </defs>
-                                            <path d="M 12 50 A 38 38 0 0 1 88 50" fill="none"
-                                                stroke="rgba(255,255,255,0.07)" stroke-width="6" />
+                                            <path d="M 12 50 A 38 38 0 0 1 88 50" fill="none" stroke="#f1f5f9"
+                                                stroke-width="6" />
                                             <path id="gauge-progress-aha" d="M 12 50 A 38 38 0 0 1 88 50" fill="none"
                                                 stroke="url(#gaugeGradient)" stroke-width="6" stroke-dasharray="0 119.5"
                                                 style="transition: stroke-dasharray 1.2s ease-out;" />
@@ -738,335 +788,337 @@
                             </div>
                         </div>
                     </section>
+
                     <!-- RECOMENDACIONES -->
                     <section class="banner-section banner-tall" style="background-image: url('../static/img/A6.jpeg');">
-                        <h2 class=>Recomendaciones de Estilo de Vida PRODI</h2>
+                        <h2 class="text-white text-3xl font-black uppercase tracking-tighter shadow-sm">Recomendaciones
+                            de Estilo de Vida PRODI</h2>
                     </section>
 
                     <section class="recomendaciones-section">
                         <h2 class="section-header">14 Manejo del Peso</h2>
                         <div class="recomendaciones-container">
-                            <div class="glass-orange flex items-center justify-between">
-                                <span class="text-sm font-bold uppercase tracking-wide">Recomendación</span>
+                            <div class="glass-orange flex items-center justify-between mb-4">
+                                <span class="text-sm font-bold uppercase tracking-wide">Recomendación General</span>
                                 <span class="val-highlight-orange" id="val-rec-peso">---</span>
                             </div>
 
-                            <p class="recomendacion-texto" style="margin: 16px 0;">
-                                Metabolismo basal (HB): <span id="mb-peso"></span>
-                            </p>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="glass-green flex items-center justify-between">
+                                    <span class="text-sm font-bold uppercase tracking-wide">Metabolismo Basal
+                                        (TMB)</span>
+                                    <span id="mb-peso" class="font-bold">--</span>
+                                </div>
+                                <div class="glass-green flex items-center justify-between">
+                                    <span class="text-sm font-bold uppercase tracking-wide">Gasto Total 24h</span>
+                                    <span id="val-balance-calorico" class="font-bold">--</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="glass-green flex items-center justify-between">
-                            <span class="text-sm font-bold uppercase tracking-wide">Balance calórico 24h</span>
-                            <span class="val-highlight" id="val-balance-calorico">0</span>
+                        <!-- ESTADO DE OBJETIVO -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">Desea Bajar de Peso</p>
+                                <p id="objetivo-bajar" class="text-lg font-black text-slate-900">--</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">Meta de Pérdida</p>
+                                <p id="objetivo-perdida" class="text-lg font-black text-slate-900">--</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">Tiempo Estimado</p>
+                                <p id="objetivo-tiempo" class="text-lg font-black text-slate-900">--</p>
+                            </div>
                         </div>
-
-                        <!-- NUEVOS DATOS DEL OBJETIVO DE PESO -->
-                        <p class="recomendacion-texto" style="margin: 16px 0;">
-                            Desea Bajar de Peso: <span id="objetivo-bajar"></span>
-                        </p>
-                        <p class="recomendacion-texto" style="margin: 16px 0;">
-                            Cuánto desea perder: <span id="objetivo-perdida"></span>
-                        </p>
-                        <p class="recomendacion-texto" style="margin: 16px 0;">
-                            En cuánto tiempo: <span id="objetivo-tiempo"></span>
-                        </p>
 
                         <!-- TABLA DE OBJETIVO DE PESO (solo visible si desea bajar de peso) -->
-                        <div id="tabla-objetivo-peso" class="glass-card grid grid-cols-3 gap-6"
+                        <div id="tabla-objetivo-peso" class="glass-card grid grid-cols-2 md:grid-cols-3 gap-6"
                             style="display:none; margin-top:20px;">
-                            <!-- Fila 1 -->
                             <div class="text-center">
                                 <p class="data-label">Peso Actual</p>
-                                <p class="text-2xl font-bold" id="val-peso-actual">--</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-peso-actual">--</p>
                             </div>
                             <div class="text-center">
                                 <p class="data-label">Peso a alcanzar</p>
-                                <p class="text-2xl font-bold" id="val-peso-meta">--</p>
+                                <p class="text-2xl font-bold text-accent" id="val-peso-meta">--</p>
                             </div>
                             <div class="text-center">
-                                <p class="data-label">Reducir en kg</p>
-                                <p class="text-2xl font-bold" id="val-peso-reducir">--</p>
+                                <p class="data-label">Reducir (kg)</p>
+                                <p class="text-2xl font-bold text-emerald-600" id="val-peso-reducir">--</p>
                             </div>
-
-                            <!-- Fila 2 -->
                             <div class="text-center">
                                 <p class="data-label">Meses</p>
-                                <p class="text-2xl font-bold" id="val-meses">--</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-meses">--</p>
                             </div>
                             <div class="text-center">
-                                <p class="data-label">Mensual (kg)</p>
-                                <p class="text-2xl font-bold" id="val-mensual">--</p>
+                                <p class="data-label">Meta Mensual</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-mensual">--</p>
                             </div>
                             <div class="text-center">
-                                <p class="data-label">Semanal (gramos)</p>
-                                <p class="text-2xl font-bold" id="val-semanal">--</p>
+                                <p class="data-label">Meta Semanal</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-semanal">--</p>
                             </div>
                         </div>
 
-                        <!-- META CALÓRICA RECOMENDADA: SIEMPRE VISIBLE -->
-                        <div id="meta-calorica-box" class="flex items-center justify-between p-4 rounded-xl border"
-                            style="background: rgba(3, 166, 120, 0.1); border-color: rgba(3, 166, 120, 0.2); margin-top: 24px;">
-                            <span class="text-sm font-bold uppercase">Meta Calórica Recomendada</span>
-                            <span class="text-3xl font-black" id="val-meta-calorica"
-                                style="color: var(--color-secondary)">0</span>
+                        <!-- META CALÓRICA RECOMENDADA -->
+                        <div id="meta-calorica-box"
+                            class="flex items-center justify-between p-6 rounded-2xl border-2 mt-8 shadow-lg transition-all"
+                            style="background: rgba(24, 151, 136, 0.05); border-color: rgba(24, 151, 136, 0.2);">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-black uppercase text-accent tracking-widest">Meta Calórica
+                                    Diaria</span>
+                                <span class="text-sm text-slate-400">Objetivo personalizado para lograr tu meta</span>
+                            </div>
+                            <span class="text-4xl font-black text-accent" id="val-meta-calorica">0</span>
                         </div>
                     </section>
 
-                    <!-- RECOMENDACIONES Nutricionales -->
-                    <section class="recomendaciones-section" style="margin-top: 2rem;">
+                    <!-- 15 RECOMENDACIONES Nutricionales -->
+                    <section class="recomendaciones-section">
                         <h2 class="section-header">15 Recomendaciones Nutricionales</h2>
                         <section class="banner-section banner-tall mb-8"
-                            style="background-image: url('../static/img/b3.png');">
+                            style="background-image: url('../static/img/b3.png'); height: 200px;">
                         </section>
 
                         <div class="recomendaciones-container space-y-4">
-                            <div class="flex items-center justify-between p-4 rounded-xl border"
-                                style="background: rgba(242, 116, 5, 0.1); border-color: rgba(242, 116, 5, 0.2)">
-                                <div>
-                                    <span class="text-sm font-bold uppercase" style="color: #ffffff">Grasas</span>
+                            <!-- GRASAS Y SODIO (ALTA PRIORIDAD) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-amber-500/10 border-amber-500/20">
+                                    <span class="text-xs font-bold uppercase text-amber-700">Consumo de Grasas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-grasas" contenteditable="true" data-key="rec_lipidos">
+                                        {{ datos.rec_lipidos or 'Pendiente' }}
+                                    </span>
                                 </div>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-grasas"
-                                    contenteditable="true" data-key="rec_lipidos" style="color: #ffffff">
-                                    {{ datos.rec_lipidos or 'Pendiente' }}
-                                </span>
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-orange-500/10 border-orange-500/20">
+                                    <span class="text-xs font-bold uppercase text-orange-700">Consumo de Sodio</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-sodio" contenteditable="true" data-key="rec_sodio">
+                                        {{ datos.rec_sodio or 'Pendiente' }}
+                                    </span>
+                                </div>
                             </div>
 
-                            <div class="flex items-center justify-between p-4 rounded-xl border"
-                                style="background: rgba(242, 116, 5, 0.15); border-color: rgba(242, 116, 5, 0.3)">
-                                <div>
-                                    <span class="text-sm font-bold uppercase" style="color: #ffffff">Sodio</span>
-                                </div>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-sodio"
-                                    contenteditable="true" data-key="rec_sodio" style="color: #ffffff">
-                                    {{ datos.rec_sodio or 'Pendiente' }}
-                                </span>
-                            </div>
-
-                            <div class="grid grid-cols-1 gap-3">
-
-                                <div class="flex items-center justify-between p-4 rounded-xl border"
-                                    style="background: rgba(66, 193, 146, 0.1); border-color: rgba(66, 193, 146, 0.2)">
-                                    <span class="text-sm font-bold uppercase">Frutas</span>
-                                    <span class="text-xl font-black text-right editable-field" id="val-rec-frutas"
-                                        contenteditable="true" data-key="rec_frutas" style="color: #ffffff">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-emerald-500/5 border-emerald-500/20">
+                                    <span class="text-xs font-bold uppercase text-emerald-700">Frutas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-frutas" contenteditable="true" data-key="rec_frutas">
                                         {{ datos.rec_frutas or '--' }}
                                     </span>
                                 </div>
-
-                                <div class="flex items-center justify-between p-4 rounded-xl border"
-                                    style="background: rgba(66, 193, 146, 0.1); border-color: rgba(66, 193, 146, 0.2)">
-                                    <span class="text-sm font-bold uppercase">Vegetales</span>
-                                    <span class="text-xl font-black text-right editable-field" id="val-rec-vegetales"
-                                        contenteditable="true" data-key="rec_vegetales" style="color: #ffffff">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-emerald-500/5 border-emerald-500/20">
+                                    <span class="text-xs font-bold uppercase text-emerald-700">Vegetales</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-vegetales" contenteditable="true" data-key="rec_vegetales">
                                         {{ datos.rec_vegetales or '--' }}
                                     </span>
                                 </div>
+                            </div>
 
-                                <div class="flex items-center justify-between p-4 rounded-xl border"
-                                    style="background: rgba(139, 69, 19, 0.1); border-color: rgba(139, 69, 19, 0.2)">
-                                    <span class="text-sm font-bold uppercase">Granos Enteros</span>
-                                    <span class="text-xl font-black text-right editable-field" id="val-rec-granos"
-                                        contenteditable="true" data-key="rec_granos" style="color: #ffffff">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-slate-50 border-slate-200">
+                                    <span class="text-xs font-bold uppercase text-slate-500">Granos Enteros</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-granos" contenteditable="true" data-key="rec_granos">
                                         {{ datos.rec_granos or '--' }}
                                     </span>
                                 </div>
-
-                                <div class="flex items-center justify-between p-4 rounded-xl border"
-                                    style="background: rgba(139, 69, 19, 0.1); border-color: rgba(139, 69, 19, 0.2)">
-                                    <span class="text-sm font-bold uppercase">Proteínas</span>
-                                    <span class="text-xl font-black text-right editable-field" id="val-rec-pescado"
-                                        contenteditable="true" data-key="rec_pescado" style="color: #ffffff">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-slate-50 border-slate-200">
+                                    <span class="text-xs font-bold uppercase text-slate-500">Pescado y Proteínas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-pescado" contenteditable="true" data-key="rec_pescado">
                                         {{ datos.rec_pescado or '--' }}
                                     </span>
                                 </div>
+                            </div>
 
-                                <div class="flex items-center justify-between p-4 rounded-xl border"
-                                    style="background: rgba(139, 69, 19, 0.05); border-color: rgba(139, 69, 19, 0.15)">
-                                    <span class="text-sm font-bold uppercase">Bebidas azúcaradas</span>
-                                    <span class="text-xl font-black text-right editable-field" id="val-rec-azucar"
-                                        contenteditable="true" data-key="rec_azucar" style="color: #ffffff">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-red-500/5 border-red-500/10">
+                                    <span class="text-xs font-bold uppercase text-red-600">Bebidas Azucaradas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-azucar" contenteditable="true" data-key="rec_azucar">
                                         {{ datos.rec_azucar or '--' }}
                                     </span>
                                 </div>
-
-                                <div class="flex items-center justify-between p-4 rounded-xl border mb-3"
-                                    style="background: rgba(139, 69, 19, 0.05); border-color: rgba(139, 69, 19, 0.15)">
-                                    <span class="text-sm font-bold uppercase">Carnes Rojas</span>
-                                    <span class="text-xl font-black text-right editable-field" id="val-rec-carnes"
-                                        contenteditable="true" data-key="rec_carnes" style="color: #ffffff">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-red-500/5 border-red-500/10">
+                                    <span class="text-xs font-bold uppercase text-red-600">Carnes Rojas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-carnes" contenteditable="true" data-key="rec_carnes">
                                         {{ datos.rec_carnes or '--' }}
                                     </span>
                                 </div>
-                                <div class="flex items-center justify-between p-4 rounded-xl border mb-3"
-                                    style="background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.15)">
-                                    <span class="text-sm font-bold uppercase" style="color: #fbfbfb">Lácteos</span>
-                                    <span class="text-xl font-black text-right editable-field" id="val-rec-lacteos"
-                                        contenteditable="true" data-key="rec_lacteos" style="color: #ffffff">
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-blue-500/5 border-blue-500/10">
+                                    <span class="text-xs font-bold uppercase text-blue-600">Lácteos</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-lacteos" contenteditable="true" data-key="rec_lacteos">
                                         {{ datos.rec_lacteos or '--' }}
                                     </span>
                                 </div>
-                                <div class="flex items-center justify-between p-4 rounded-xl border"
-                                    style="background: rgba(25, 202, 181, 0.05); border-color: rgba(57, 134, 137, 0.15)">
-                                    <span class="text-sm font-bold uppercase" style="color: #ffffff">Consumo de
-                                        Alcohol</span>
-                                    <span class="text-xl font-black text-right editable-field" id="val-rec-alcohol"
-                                        contenteditable="true" data-key="rec_alcohol" style="color: #ffffff">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-purple-500/5 border-purple-500/10">
+                                    <span class="text-xs font-bold uppercase text-purple-600">Consumo de Alcohol</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-alcohol" contenteditable="true" data-key="rec_alcohol">
                                         {{ datos.rec_alcohol or '--' }}
                                     </span>
                                 </div>
-
                             </div>
                         </div>
                     </section>
 
-                    <section class="recomendaciones-section" style="margin-top: 2rem;">
+                    <section class="recomendaciones-section">
                         <h2 class="section-header">16 Hábitos y Conductas</h2>
-
                         <div class="recomendaciones-container">
-                            <div class="flex items-center justify-between p-4 rounded-xl border mb-4"
-                                style="background: rgba(66, 193, 146, 0.1); border-color: rgba(66, 193, 146, 0.2)">
-                                <span class="text-sm font-bold uppercase">Actividad Física</span>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-actividad"
-                                    contenteditable="true" data-key="rec_actividad" style="color: #ffffff">
-                                    Calculando...
-                                </span>
+                            <div
+                                class="flex items-center justify-between p-6 rounded-2xl border mb-6 shadow-sm transition-all bg-accent/5 border-accent/20">
+                                <div class="flex flex-col">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-accent tracking-widest mb-1">Actividad
+                                        Física</span>
+                                    <span id="val-rec-actividad" class="text-lg font-bold text-slate-900 editable-field"
+                                        contenteditable="true" data-key="rec_actividad">Calculando...</span>
+                                </div>
+                                <div
+                                    class="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
                             </div>
 
-                            <div class="flex items-center justify-between p-4 rounded-xl border mb-4"
-                                style="background: rgba(242, 116, 5, 0.1); border-color: rgba(242, 116, 5, 0.2)">
-                                <span class="text-sm font-bold uppercase">Tabaquismo</span>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-tabaco"
-                                    contenteditable="true" data-key="rec_tabaco" style="color: #ffffff">
-                                    Calculando...
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between p-4 rounded-xl border mb-4"
-                                style="background: rgba(242, 116, 5, 0.1); border-color: rgba(242, 116, 5, 0.2)">
-                                <span class="text-sm font-bold uppercase">Fumador Pasivo</span>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-pasivo"
-                                    contenteditable="true" data-key="rec_pasivo" style="color: #ffffff">
-                                    Calculando...
-                                </span>
-                            </div>
-                            <div class="flex items-center justify-between p-4 rounded-xl border"
-                                style="background: rgba(242, 116, 5, 0.1); border-color: rgba(242, 116, 5, 0.2)">
-                                <span class="text-sm font-bold uppercase">Riesgo de Apnea</span>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-apnea"
-                                    contenteditable="true" data-key="rec_apnea" style="color: #ffffff">
-                                    Calculando...
-                                </span>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="p-6 rounded-2xl border bg-slate-50 border-slate-100">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Tabaquismo</span>
+                                    <span id="val-rec-tabaco" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_tabaco">Calculando...</span>
+                                </div>
+                                <div class="p-6 rounded-2xl border bg-slate-50 border-slate-100">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Fumador
+                                        Pasivo</span>
+                                    <span id="val-rec-pasivo" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_pasivo">Calculando...</span>
+                                </div>
+                                <div class="p-6 rounded-2xl border bg-slate-50 border-slate-100">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Apnea
+                                        del Sueño</span>
+                                    <span id="val-rec-apnea" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_apnea">Calculando...</span>
+                                </div>
                             </div>
                         </div>
                     </section>
-                    <section class="recomendaciones-section" style="margin-top: 2rem;">
+
+                    <section class="recomendaciones-section">
                         <h2 class="section-header">17 Salud Mental</h2>
-                        <section class="banner-section banner-tall mb-8" style="background-image: url('../static/img/b4.png'); background-size: cover; background-position: center;
-                        height: 250px;"></section>
-                        <div class="recomendaciones-container p-2 rounded-2xl border"
-                            style="background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.05);">
+                        <section class="banner-section banner-tall mb-8"
+                            style="background-image: url('../static/img/b4.png'); height: 300px;"></section>
 
-                            <div class="flex items-center justify-between p-4 rounded-xl mb-2"
-                                style="background: rgba(242, 116, 5, 0.1); border-color: rgba(242, 116, 5, 0.1);">
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold uppercase" style="color: #ffffff">Ansiedad</span>
+                        <div class="recomendaciones-container space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-6 rounded-2xl border bg-indigo-500/5 border-indigo-500/10">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-indigo-600 tracking-widest mb-2 block">Manejo
+                                        de Ansiedad</span>
+                                    <span id="val-rec-ansiedad" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_ansiedad">Calculando...</span>
                                 </div>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-ansiedad"
-                                    contenteditable="true" data-key="rec_ansiedad"
-                                    style="color: #ffffff; max-width: 65%;">
-                                    Calculando...
-                                </span>
+                                <div class="p-6 rounded-2xl border bg-blue-500/5 border-blue-500/10">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-blue-600 tracking-widest mb-2 block">Manejo
+                                        de Depresión</span>
+                                    <span id="val-rec-depresion" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_depresion">Calculando...</span>
+                                </div>
                             </div>
 
-                            <div class="flex items-center justify-between p-4 rounded-xl mb-2"
-                                style="background: rgba(242, 116, 5, 0.1); border-color: rgba(242, 116, 5, 0.1);">
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold uppercase" style="color: #ffffff">Depresión</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-6 rounded-2xl border bg-emerald-500/5 border-emerald-500/10">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-emerald-600 tracking-widest mb-2 block">Optimismo</span>
+                                    <span id="val-rec-optimismo" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_optimismo">Calculando...</span>
                                 </div>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-depresion"
-                                    contenteditable="true" data-key="rec_depresion"
-                                    style="color: #ffffff; max-width: 65%;">
-                                    Calculando...
-                                </span>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                <div class="p-4 rounded-xl border"
-                                    style="background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.1);">
-                                    <p class="text-xs font-bold uppercase mb-1 opacity-50">Optimismo</p>
-                                    <div class="text-sm font-bold editable-field" id="val-rec-optimismo"
-                                        contenteditable="true" data-key="rec_optimismo">
-                                        Calculando...
-                                    </div>
-                                </div>
-                                <div class="p-4 rounded-xl border"
-                                    style="background: rgba(255,255,255,0.03); border-color: rgba(255,255,255,0.1);">
-                                    <p class="text-xs font-bold uppercase mb-1 opacity-50">Pesimismo</p>
-                                    <div class="text-sm font-bold editable-field" id="val-rec-pesimismo"
-                                        contenteditable="true" data-key="rec_pesimismo">
-                                        Calculando...
-                                    </div>
+                                <div class="p-6 rounded-2xl border bg-red-500/5 border-red-500/10">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-red-600 tracking-widest mb-2 block">Pesimismo</span>
+                                    <span id="val-rec-pesimismo" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_pesimismo">Calculando...</span>
                                 </div>
                             </div>
                         </div>
                     </section>
-                    <section class="recomendaciones-section" style="margin-top: 2rem;">
+
+                    <section class="recomendaciones-section">
                         <h2 class="section-header">18 Salud Cardiovascular</h2>
-
-                        <div class="recomendaciones-container p-2 rounded-2xl border"
-                            style="background: rgba(255, 255, 255, 0.03); border-color: rgba(255, 255, 255, 0.05);">
-
-                            <div class="flex items-center justify-between p-4 rounded-xl mb-2"
-                                style="background: rgba(242, 116, 5, 0.1); border-color: rgba(242, 116, 5, 0.1);">
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold uppercase" style="color: #ffffff">Presión
+                        <div class="recomendaciones-container">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="p-6 rounded-2xl border-l-4 border-l-accent bg-slate-50">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Presión
                                         Arterial</span>
+                                    <span id="val-rec-presion" class="text-sm font-bold text-slate-900 editable-field"
+                                        contenteditable="true" data-key="rec_presion">Calculando...</span>
                                 </div>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-presion"
-                                    contenteditable="true" data-key="rec_presion"
-                                    style="color: #ffffff; max-width: 60%;">
-                                    Calculando...
-                                </span>
-                            </div>
-
-                            <div class="flex items-center justify-between p-4 rounded-xl mb-2"
-                                style="background: rgba(66, 193, 146, 0.1); border-color: rgba(66, 193, 146, 0.1);">
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold uppercase" style="color: #ffffff">Glucosa</span>
+                                <div class="p-6 rounded-2xl border-l-4 border-l-amber-500 bg-slate-50">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Control
+                                        Glucosa</span>
+                                    <span id="val-rec-glucosa" class="text-sm font-bold text-slate-900 editable-field"
+                                        contenteditable="true" data-key="rec_glucosa">{{ datos.rec_glucosa or 'Estable'
+                                        }}</span>
                                 </div>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-glucosa"
-                                    contenteditable="true" data-key="rec_glucosa"
-                                    style="color: #ffffff; max-width: 60%;">
-                                    {{ datos.rec_glucosa or 'Estable' }}
-                                </span>
-                            </div>
-
-                            <div class="flex items-center justify-between p-4 rounded-xl"
-                                style="background: rgba(139, 69, 19, 0.1); border-color: rgba(139, 69, 19, 0.1);">
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold uppercase" style="color: #ffffff">Colesterol y
-                                        Triglicéridos</span>
+                                <div class="p-6 rounded-2xl border-l-4 border-l-emerald-500 bg-slate-50">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Perfil
+                                        Lípido</span>
+                                    <span id="val-rec-lipidos-cardio"
+                                        class="text-sm font-bold text-slate-900 editable-field" contenteditable="true"
+                                        data-key="rec_lipidos_cardio">Calculando...</span>
                                 </div>
-                                <span class="text-xl font-black text-right editable-field" id="val-rec-lipidos-cardio"
-                                    contenteditable="true" data-key="rec_lipidos_cardio"
-                                    style="color: #ffffff; max-width: 60%;">
-                                    Calculando...
-                                </span>
                             </div>
-
                         </div>
                     </section>
                 </main>
 
-                <footer
-                    class="max-w-6xl mx-auto px-6 py-20 text-center opacity-30 text-[14px] uppercase tracking-[0.4em]">
-                    PRODI Intelligence &bull; Evidence Based Medicine &bull; 2026
+                <footer class="mt-24 pt-12 border-t border-slate-100 text-center">
+                    <p class="text-[13px] font-bold text-slate-300 tracking-[0.4em]">PRODI Intelligence &bull;
+                        Evidence Based Medicine &bull; 2026</p>
                 </footer>
             </div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/js_reporte.js') }}"></script>
 
+    <script src="{{ url_for('static', filename='js/js_reporte.js') }}"></script>
+    <script>
+        {% if role == 'paciente' %}
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('[contenteditable="true"]').forEach(el => {
+                el.setAttribute('contenteditable', 'false');
+                el.classList.remove('editable-field');
+            });
+            const btnGuardar = document.getElementById('btn-guardar-cambios');
+            if (btnGuardar) btnGuardar.style.display = 'none';
+        });
+        {% endif %}
+    </script>
 </body>
 
 </html>

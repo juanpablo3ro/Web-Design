@@ -82,12 +82,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!res.ok) throw new Error('Error en el servidor');
 
-      alert("¡Registro Exitoso!\n\nGracias por completar el cuestionario. Tu reporte será enviado pronto.");
+      alert("¡Registro Exitoso!\n\nGracias por completar el cuestionario. Ahora podrás ver tu perfil y reporte nutricional.");
 
-      form.reset();
-
-      // Ocultar sección de peso tras reset
-      if (contenedorExtra) contenedorExtra.style.display = 'none';
+      // Redirigir al landing page (Perfil)
+      window.location.href = "/perfil";
 
       // Resetear visualmente los valores de los sliders
       sliders.forEach(s => {

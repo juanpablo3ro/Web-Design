@@ -3,543 +3,849 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Reporte Nutricional | {{ paciente.nombre }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Nutricional PRODI | {{ paciente.nombre }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:italic,wght@700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles_reporte.css') }}">
-    <style>
-        .nutri-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .data-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .label-text {
-            color: var(--color-secondary);
-            opacity: 0.8;
-            font-size: 0.9rem;
-        }
-
-        .value-text {
-            color: var(--color-accent);
-            font-weight: bold;
-        }
-
-        .tag-frequency {
-            background: var(--color-primary);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-        }
-    </style>
 </head>
 
-<body class="dashboard-container" style="display: block; padding: 40px;">
-    <div style="max-width: 1000px; margin: 0 auto;">
+<body class="">
+    <div class="dashboard-container {{ 'participant-layout' if role == 'paciente' }}">
+        {% if role != 'paciente' %}
+        <aside class="sidebar no-print">
+            <div class="flex items-center gap-3 mb-8">
+                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="PRODI" />
+            </div>
 
-        <header class="banner-section glass-card" style="margin-bottom: 30px;">
-            <h1 class="section-header" style="justify-content: center; border: none;">
-                Reporte Nutricional: {{ paciente.nombre }} {{ paciente.apellidos }}
-            </h1>
-        </header>
-        <section class="recomendaciones-section">
-            <h2 class="section-header">01 Datos Personales</h2>
-            <div class="glass-card grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
-                <div>
-                    <p class="data-label">Nombre</p>
-                    <p class="data-value text-xl" id="p-nombre" data-key="nombre">{{ paciente.nombre }}</p>
-                </div>
-                <div>
-                    <p class="data-label">Apellidos</p>
-                    <p class="data-value text-xl" id="p-apellidos" data-key="apellidos">{{ paciente.apellidos }}</p>
-                </div>
-                <div>
-                    <p class="data-label">Edad</p>
-                    <p class="data-value text-xl editable-field is-number" id="p-edad" contenteditable="true"
-                        data-key="edad">{{ paciente.edad }}</p>
-                </div>
-                <div>
-                    <p class="data-label">Sexo</p>
-                    <p class="data-value text-xl editable-field" id="p-sexo" contenteditable="true" data-key="sexo">{{
-                        paciente.sexo }}</p>
-                </div>
-                <div>
-                    <p class="data-label">Ciudad</p>
-                    <p class="data-value text-xl editable-field" id="p-ciudad" contenteditable="true" data-key="ciudad">
-                        {{ paciente.ciudad }}</p>
-                </div>
-                <div>
-                    <p class="data-label">País</p>
-                    <p class="data-value text-xl editable-field" id="p-pais" contenteditable="true" data-key="pais">{{
-                        paciente.pais }}</p>
-                </div>
-                <div>
-                    <p class="data-label">Email</p>
-                    <p class="data-value" id="p-email" data-key="email">{{ paciente.email }}</p>
+            <div class="mt-auto pt-8 border-t border-gray-800">
+                <label class="block text-xs uppercase tracking-widest white font-bold mb-3">Acciones</label>
+
+                <button onclick="window.location.href='/dashboard'" class="sidebar-btn sidebar-btn-secondary">
+                    Dashboard
+                </button>
+
+                <button onclick="window.location.href='/lista_participantes'" class="sidebar-btn sidebar-btn-secondary">
+                    Participantes
+                </button>
+
+                <button onclick="window.print()" class="sidebar-btn">
+                    Imprimir PDF
+                </button>
+
+                <button id="btn-guardar-nutricion" class="sidebar-btn sidebar-btn-primary"
+                    data-paciente-id="{{ paciente.id }}">
+                    Guardar Cambios
+                </button>
+            </div>
+        </aside>
+        {% endif %}
+
+        <div class="report-content">
+            {% if role == 'paciente' %}
+            <div class="participant-nav no-print">
+                <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+                    <a href="/perfil"
+                        class="flex items-center gap-2 text-white/80 hover:text-white transition-colors font-bold uppercase tracking-widest text-xs">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                        </svg>
+                        Volver al Dashboard
+                    </a>
+                    <div class="flex gap-4">
+                        <button onclick="window.print()"
+                            class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-all text-xs font-bold uppercase tracking-widest">
+                            Descargar PDF
+                        </button>
+                    </div>
                 </div>
             </div>
-        </section>
-
-        <section class="recomendaciones-section">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <section>
-                    <h2 class="section-header">2. Metas de Peso</h2>
-                    <div class="glass-card" style="padding: 20px;">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-3">
-                                <div class="data-row flex justify-between">
-                                    <span class="data-label">¿Desea bajar de peso?</span>
-                                    <span class="value-text font-bold">{{ nutricion.deseo_bajar_peso }}</span>
-                                </div>
-                                <div class="data-row flex justify-between">
-                                    <span class="data-label">Tiempo (meses):</span>
-                                    <span class="value-text font-bold">{{ nutricion.tiempo_meses }}</span>
-                                </div>
-                                <div class="data-row flex justify-between">
-                                    <span class="data-label">Total a perder (kg):</span>
-                                    <span class="value-text font-bold">{{ nutricion.total_perder_kg }}</span>
-                                </div>
+            {% endif %}
+            <div class="max-w-6xl mx-auto px-6 py-8">
+                <section class="banner-header" style="background-image: url('../static/img/bm.jpg'); height: 250px;">
+                    <div class="banner-overlay"></div>
+                    <header class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 p-8">
+                        <div class="banner-logo-container">
+                            <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="PRODI Logo"
+                                class="w-40 h-auto" />
+                        </div>
+                        <div class="text-center md:text-right">
+                            <h1 class="section-header" style="margin-bottom: 5px; color: var(--color-secondary);">
+                                Reporte Nutricional PRODI</h1>
+                            <p class="text-3xl font-bold mb-2"
+                                style="color: white; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                                {{ paciente.nombre }} {{ paciente.apellidos }}
+                            </p>
+                            <div
+                                class="flex gap-4 opacity-90 text-[13px] uppercase font-bold tracking-widest justify-center md:justify-end">
+                                <span class="alim-category-badge">ID: {{ paciente.id }}</span>
                             </div>
+                        </div>
+                    </header>
+                </section>
 
-                            <div class="space-y-3">
-                                <div class="data-row flex justify-between">
-                                    <span class="data-label">Meta en %:</span>
-                                    <span class="value-text font-bold">{{ nutricion.porcentaje_peso }}</span>
+                <main class="space-y-8 mt-8">
+                    <section class="recomendaciones-section">
+                        <h2 class="section-header">01 Datos Personales</h2>
+                        <div class="glass-card grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-6">
+                            <div>
+                                <p class="data-label">Nombre</p>
+                                <p class="data-value text-xl" id="p-nombre" data-key="nombre">{{ paciente.nombre }}</p>
+                            </div>
+                            <div>
+                                <p class="data-label">Apellidos</p>
+                                <p class="data-value text-xl" id="p-apellidos" data-key="apellidos">{{
+                                    paciente.apellidos }}</p>
+                            </div>
+                            <div>
+                                <p class="data-label">Edad</p>
+                                <p class="data-value text-xl editable-field is-number" id="p-edad"
+                                    contenteditable="true" data-key="edad">{{ paciente.edad }}</p>
+                            </div>
+                            <div>
+                                <p class="data-label">Sexo</p>
+                                <p class="data-value text-xl editable-field" id="p-sexo" contenteditable="true"
+                                    data-key="sexo">{{ paciente.sexo }}</p>
+                            </div>
+                            <div>
+                                <p class="data-label">Ciudad</p>
+                                <p class="data-value text-xl editable-field" id="p-ciudad" contenteditable="true"
+                                    data-key="ciudad">{{ paciente.ciudad }}</p>
+                            </div>
+                            <div>
+                                <p class="data-label">País</p>
+                                <p class="data-value text-xl editable-field" id="p-pais" contenteditable="true"
+                                    data-key="pais">{{ paciente.pais }}</p>
+                            </div>
+                            <div>
+                                <p class="data-label">Email</p>
+                                <p class="data-value" id="p-email" data-key="email">{{ paciente.email }}</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="recomendaciones-section">
+                        <div>
+                            <section>
+                                <h2 class="section-header">02 Metas de Peso</h2>
+                                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center">
+                                        <p class="text-[10px] uppercase font-bold text-white/40 mb-1">¿Bajar de peso?</p>
+                                        <p class="text-lg font-black text-accent">{{ nutricion.deseo_bajar_peso }}</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center">
+                                        <p class="text-[10px] uppercase font-bold text-white/40 mb-1">Tiempo (meses)</p>
+                                        <p class="text-lg font-black text-white">{{ nutricion.tiempo_meses }}</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center">
+                                        <p class="text-[10px] uppercase font-bold text-white/40 mb-1">Total a perder</p>
+                                        <p class="text-lg font-black text-white">{{ nutricion.total_perder_kg }} kg</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center">
+                                        <p class="text-[10px] uppercase font-bold text-white/40 mb-1">Meta en %</p>
+                                        <p class="text-lg font-black text-white">{{ nutricion.porcentaje_peso }}</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center border-accent/20">
+                                        <p class="text-[10px] uppercase font-bold text-accent mb-1">Meta Final</p>
+                                        <p class="text-lg font-black text-accent">{{ nutricion.meta_kg }} kg</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center">
+                                        <p class="text-[10px] uppercase font-bold text-white/40 mb-1">Meta Mensual</p>
+                                        <p class="text-lg font-black text-white">{{ nutricion.meta_mensual_kg }} kg</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center">
+                                        <p class="text-[10px] uppercase font-bold text-white/40 mb-1">Meta Semanal</p>
+                                        <p class="text-lg font-black text-white">{{ nutricion.meta_semanal_g }} g</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center">
+                                        <p class="text-[10px] uppercase font-bold text-white/40 mb-1">Vegetariano</p>
+                                        <p class="text-lg font-black text-accent">{{ nutricion.vegetariano }}</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center">
+                                        <p class="text-[10px] uppercase font-bold text-white/40 mb-1">Lácteos/Huevos</p>
+                                        <p class="text-lg font-black text-white">{{ nutricion.consumo_leche_huevos }}</p>
+                                    </div>
+                                    <div class="p-3 bg-white/5 rounded-lg border border-white/10 flex flex-col justify-center border-accent/40 bg-accent/5">
+                                        <p class="text-[10px] uppercase font-bold text-accent mb-1">Calorías Diarias</p>
+                                        <p class="text-lg font-black text-accent">
+                                            <span class="editable-field" contenteditable="true" data-key="calorias_diarias">{{ nutricion.calorias_diarias }}</span>
+                                        </p>
+                                    </div>
                                 </div>
-                                <div class="data-row flex justify-between">
-                                    <span class="data-label">Meta (kg):</span>
-                                    <span class="value-text font-bold">{{ nutricion.meta_kg }}</span>
+                            </section>
+                        </div>
+                    </section>
+
+                    <section class="recomendaciones-section">
+                        <h2 class="section-header">03 Distribución de Macronutrientes</h2>
+                        <div class="glass-card">
+                            <h2 class="text-center text-sm uppercase tracking-widest opacity-60 mb-8">Distribución
+                                Calórica Diaria</h2>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                                <!-- Columna de la Gráfica -->
+                                <div class="relative flex justify-center">
+                                    <div class="gauge-mini-card"
+                                        style="width: 280px; padding: 2.5rem 1.5rem; background: rgba(0,0,0,0.2);">
+                                        <div id="macro-glow" class="gauge-mini-glow"
+                                            style="background: var(--color-accent); opacity: 0.15; width: 140px; height: 140px;">
+                                        </div>
+
+                                        <div class="relative w-full flex justify-center items-center">
+                                            <svg viewBox="0 0 100 100" class="gauge-mini-svg overflow-visible"
+                                                style="transform: rotate(-90deg);">
+                                                <defs>
+                                                    <filter id="glow-heavy" x="-50%" y="-50%" width="200%"
+                                                        height="200%">
+                                                        <feGaussianBlur stdDeviation="3" result="blur" />
+                                                        <feComposite in="blur" in2="SourceGraphic" operator="over" />
+                                                    </filter>
+                                                </defs>
+
+                                                <!-- Fondo base del círculo -->
+                                                <circle cx="50" cy="50" r="25" fill="none"
+                                                    stroke="rgba(255,255,255,0.05)" stroke-width="50" />
+
+                                                <!-- Segmentos de la Torta -->
+                                                <g style="filter: drop-shadow(0 0 8px rgba(255,255,255,0.2));">
+                                                    <circle id="macro-carb-arc" cx="50" cy="50" r="25" fill="none"
+                                                        stroke="#FFC107" stroke-width="50" stroke-dasharray="0 157.1"
+                                                        style="transition: all 1s ease-out;" />
+                                                    <circle id="macro-prot-arc" cx="50" cy="50" r="25" fill="none"
+                                                        stroke="#00D1D1" stroke-width="50" stroke-dasharray="0 157.1"
+                                                        style="transition: all 1s ease-out;" />
+                                                    <circle id="macro-fat-arc" cx="50" cy="50" r="25" fill="none"
+                                                        stroke="#ED7D30" stroke-width="50" stroke-dasharray="0 157.1"
+                                                        style="transition: all 1s ease-out;" />
+                                                </g>
+
+                                                <!-- Etiquetas de texto -->
+                                                <text id="label-carb" x="50" y="50" fill="rgba(0,0,0,0.8)"
+                                                    font-weight="900" font-size="5" text-anchor="middle"
+                                                    dominant-baseline="middle"
+                                                    style="opacity: 0; transition: opacity 0.5s; pointer-events: none;"></text>
+                                                <text id="label-prot" x="50" y="50" fill="rgba(0,0,0,0.8)"
+                                                    font-weight="900" font-size="5" text-anchor="middle"
+                                                    dominant-baseline="middle"
+                                                    style="opacity: 0; transition: opacity 0.5s; pointer-events: none;"></text>
+                                                <text id="label-fat" x="50" y="50" fill="rgba(0,0,0,0.8)"
+                                                    font-weight="900" font-size="5" text-anchor="middle"
+                                                    dominant-baseline="middle"
+                                                    style="opacity: 0; transition: opacity 0.5s; pointer-events: none;"></text>
+                                            </svg>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="data-row flex justify-between">
-                                    <span class="data-label">Mensual (kg):</span>
-                                    <span class="value-text font-bold">{{ nutricion.meta_mensual_kg }}</span>
+
+                                <!-- Columna de la Leyenda y Valores -->
+                                <div class="space-y-6">
+                                    <div class="flex items-center gap-4 transition-all hover:translate-x-2">
+                                        <div class="w-1 h-12 rounded-full" style="background: #FFC107;"></div>
+                                        <div>
+                                            <p class="data-label text-xs">Carbohidratos</p>
+                                            <div class="flex items-baseline gap-2">
+                                                <span id="legend-carb-pct"
+                                                    class="text-2xl font-black text-white">--%</span>
+                                                <span class="text-sm opacity-50">(<span
+                                                        data-key="gramos_carbohidratos">{{
+                                                        nutricion.gramos_carbohidratos }}</span>g)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="flex items-center gap-4 transition-all hover:translate-x-2 border-y border-white/5 py-4">
+                                        <div class="w-1 h-12 rounded-full" style="background: #00D1D1;"></div>
+                                        <div>
+                                            <p class="data-label text-xs">Proteínas</p>
+                                            <div class="flex items-baseline gap-2">
+                                                <span id="legend-prot-pct"
+                                                    class="text-2xl font-black text-white">--%</span>
+                                                <span class="text-sm opacity-50">(<span
+                                                        data-key="gramos_proteina_total">{{
+                                                        nutricion.gramos_proteina_total }}</span>g)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex items-center gap-4 transition-all hover:translate-x-2">
+                                        <div class="w-1 h-12 rounded-full" style="background: #ED7D30;"></div>
+                                        <div>
+                                            <p class="data-label text-xs">Grasas</p>
+                                            <div class="flex items-baseline gap-2">
+                                                <span id="legend-fat-pct"
+                                                    class="text-2xl font-black text-white">--%</span>
+                                                <span class="text-sm opacity-50">(<span data-key="gramos_grasa">{{
+                                                        nutricion.gramos_grasa }}</span>g)</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </section>
+                    </section>
 
-                <section>
-                    <h2 class="section-header">Resumen de Ingesta</h2>
-                    <div class="glass-card" style="padding: 20px;">
-                        <div class="space-y-3">
-                            <div class="data-row flex justify-between items-center">
-                                <span class="data-label">Vegetariano:</span>
-                                <span class="value-text font-bold">{{ nutricion.vegetariano }}</span>
+                    <section class="recomendaciones-section">
+                        <h2 class="section-header">04 Recomendaciones Basadas en tus Preferencias</h2>
+                        <div class="space-y-6">
+                            <!-- Frutas -->
+                            <div class="glass-card">
+                                <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                    <h3 class="text-xl font-bold text-accent uppercase">Frutas</h3>
+                                    <span class="alim-category-badge"><span data-key="porciones_fruta">{{
+                                            nutricion.porciones_fruta }}</span>
+                                        porciones/día</span>
+                                </div>
+                                <div class="space-y-4 mb-6">
+                                    <h4 class="text-lg font-bold text-white">{{ nutricion.porciones_fruta }} porciones
+                                        de fruta al día</h4>
+
+                                    <p class="text-sm leading-relaxed text-white/90">
+                                        Esto representa que en un día consuma
+                                        {% for fruta in nutricion.lista_frutas_dia1 %}
+                                        {{ fruta.porcion }} {{ fruta.nombre_mostrar }}{% if not loop.last %}{% if
+                                        loop.index == nutricion.lista_frutas_dia1|length - 1 %} y {% else %}, {% endif
+                                        %}{% endif %}
+                                        {% endfor %}.
+                                    </p>
+
+                                    <p class="text-sm leading-relaxed text-white/90">
+                                        Un segundo día pudiera comer
+                                        {% for fruta in nutricion.lista_frutas_dia2 %}
+                                        {{ fruta.porcion }} {{ fruta.nombre_mostrar }}{% if not loop.last %}{% if
+                                        loop.index == nutricion.lista_frutas_dia2|length - 1 %} y {% else %}, {% endif
+                                        %}{% endif %}
+                                        {% endfor %}.
+                                    </p>
+
+                                    <div class="pt-4 border-t border-white/10">
+                                        <p class="text-[13px] leading-relaxed text-orange-200/80 italic">
+                                            <strong>Recomendación general:</strong> Consuma frutas en diferentes
+                                            preparaciones: picadas, en jugo, o ensaladas. Prefiera siempre las frutas
+                                            enteras. Evite colocar azúcar a los jugos naturales y limite el consumo de
+                                            zumos a 250 ml por día para evitar el exceso de azúcar de estos.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Recomendación Diaria Rotativa -->
+                                <div
+                                    class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 p-4 bg-black/20 rounded-xl border border-white/5">
+                                    <!-- Día 1 -->
+                                    <div class="space-y-4">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span
+                                                class="px-2 py-1 bg-accent text-black text-[10px] font-black uppercase rounded">Día
+                                                1</span>
+                                            <h4 class="text-xs font-bold text-white/60 uppercase tracking-widest">Opción
+                                                Sugerida</h4>
+                                        </div>
+                                        <div class="space-y-2">
+                                            {% for fruta in nutricion.lista_frutas_dia1 %}
+                                            <div
+                                                class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border-l-2 border-accent">
+                                                <div>
+                                                    <p class="font-bold text-white text-sm">{{ fruta.nombre_mostrar }}
+                                                    </p>
+                                                    <p class="text-[10px] opacity-50 italic">{{ fruta.porcion }}</p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <p class="text-xs font-black text-accent">{{ fruta.calorias|int }}
+                                                        kcal</p>
+                                                    <p class="text-[9px] opacity-40 font-mono">C:{{ fruta.carbohidratos
+                                                        }}g | P:{{ fruta.proteinas }}g</p>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                            {% if not nutricion.lista_frutas_dia1 %}
+                                            <p class="text-xs opacity-40 italic">Cargue sus preferencias para ver
+                                                recomendaciones específicas.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Día 2 -->
+                                    <div class="space-y-4">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span
+                                                class="px-2 py-1 bg-white/20 text-white text-[10px] font-black uppercase rounded">Día
+                                                2</span>
+                                            <h4 class="text-xs font-bold text-white/60 uppercase tracking-widest">Opción
+                                                Sugerida</h4>
+                                        </div>
+                                        <div class="space-y-2">
+                                            {% for fruta in nutricion.lista_frutas_dia2 %}
+                                            <div
+                                                class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border-l-2 border-white/20">
+                                                <div>
+                                                    <p class="font-bold text-white text-sm">{{ fruta.nombre_mostrar }}
+                                                    </p>
+                                                    <p class="text-[10px] opacity-50 italic">{{ fruta.porcion }}</p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <p class="text-xs font-black text-white/80">{{ fruta.calorias|int }}
+                                                        kcal</p>
+                                                    <p class="text-[9px] opacity-40 font-mono">C:{{ fruta.carbohidratos
+                                                        }}g | P:{{ fruta.proteinas }}g</p>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                            {% if not nutricion.lista_frutas_dia2 %}
+                                            <p class="text-xs opacity-40 italic">Cargue sus preferencias para ver
+                                                recomendaciones específicas.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="data-row flex justify-between items-center border-t border-white/5 pt-3">
-                                <span class="data-label">Nivel de Saciedad Basal (1-10):</span>
-                                <span class="value-text font-bold">{{ nutricion.saciedad_baseline }}</span>
+
+                            <!-- Vegetales -->
+                            <div class="glass-card">
+                                <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                    <h3 class="text-xl font-bold text-accent uppercase">Vegetales</h3>
+                                    <span class="alim-category-badge" style="background: var(--color-primary);"><span
+                                            data-key="porciones_vegetales">{{
+                                            nutricion.porciones_vegetales }}</span> porciones/día</span>
+                                </div>
+                                <div class="space-y-4 mb-6">
+                                    <h4 class="text-lg font-bold text-white">{{ nutricion.porciones_vegetales }}
+                                        porciones de vegetales al día</h4>
+
+                                    <p class="text-sm leading-relaxed text-white/90">
+                                        Esto representa que en un día consuma
+                                        {% for veg in nutricion.lista_veg_dia1 %}
+                                        {{ veg.porcion }} {{ veg.nombre_mostrar }}{% if not loop.last %}{% if loop.index
+                                        == nutricion.lista_veg_dia1|length - 1 %} y {% else %}, {% endif %}{% endif %}
+                                        {% endfor %}.
+                                    </p>
+
+                                    <p class="text-sm leading-relaxed text-white/90">
+                                        Un segundo día pudiera comer
+                                        {% for veg in nutricion.lista_veg_dia2 %}
+                                        {{ veg.porcion }} {{ veg.nombre_mostrar }}{% if not loop.last %}{% if loop.index
+                                        == nutricion.lista_veg_dia2|length - 1 %} y {% else %}, {% endif %}{% endif %}
+                                        {% endfor %}.
+                                    </p>
+
+                                    <div class="pt-4 border-t border-white/10">
+                                        <p class="text-[13px] leading-relaxed text-green-200/80 italic">
+                                            <strong>Recomendación general:</strong> Consuma variedad de vegetales y
+                                            mezcle colores verde oscuro, rojo y anaranjado. Esto le dará color a sus
+                                            comidas y le aportará minerales y vitaminas fundamentales para su salud.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Recomendación Diaria Rotativa (Vegetales) -->
+                                <div
+                                    class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 p-4 bg-black/20 rounded-xl border border-white/5">
+                                    <!-- Día 1 -->
+                                    <div class="space-y-4">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span
+                                                class="px-2 py-1 bg-green-600 text-white text-[10px] font-black uppercase rounded">Día
+                                                1</span>
+                                            <h4 class="text-xs font-bold text-white/60 uppercase tracking-widest">Opción
+                                                Sugerida</h4>
+                                        </div>
+                                        <div class="space-y-2">
+                                            {% for veg in nutricion.lista_veg_dia1 %}
+                                            <div
+                                                class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border-l-2 border-green-500">
+                                                <div>
+                                                    <p class="font-bold text-white text-sm">{{ veg.nombre_mostrar }}</p>
+                                                    <p class="text-[10px] opacity-50 italic">{{ veg.porcion }}</p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <p class="text-xs font-black text-green-400">{{ veg.calorias|int }}
+                                                        kcal</p>
+                                                    <p class="text-[9px] opacity-40 font-mono">C:{{ veg.carbohidratos
+                                                        }}g | P:{{ veg.proteinas }}g</p>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                            {% if not nutricion.lista_veg_dia1 %}
+                                            <p class="text-xs opacity-40 italic">Cargue sus preferencias para ver
+                                                recomendaciones específicas.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <!-- Día 2 -->
+                                    <div class="space-y-4">
+                                        <div class="flex items-center gap-2 mb-2">
+                                            <span
+                                                class="px-2 py-1 bg-white/20 text-white text-[10px] font-black uppercase rounded">Día
+                                                2</span>
+                                            <h4 class="text-xs font-bold text-white/60 uppercase tracking-widest">Opción
+                                                Sugerida</h4>
+                                        </div>
+                                        <div class="space-y-2">
+                                            {% for veg in nutricion.lista_veg_dia2 %}
+                                            <div
+                                                class="flex items-center justify-between p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors border-l-2 border-white/20">
+                                                <div>
+                                                    <p class="font-bold text-white text-sm">{{ veg.nombre_mostrar }}</p>
+                                                    <p class="text-[10px] opacity-50 italic">{{ veg.porcion }}</p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <p class="text-xs font-black text-white/80">{{ veg.calorias|int }}
+                                                        kcal</p>
+                                                    <p class="text-[9px] opacity-40 font-mono">C:{{ veg.carbohidratos
+                                                        }}g | P:{{ veg.proteinas }}g</p>
+                                                </div>
+                                            </div>
+                                            {% endfor %}
+                                            {% if not nutricion.lista_veg_dia2 %}
+                                            <p class="text-xs opacity-40 italic">Cargue sus preferencias para ver
+                                                recomendaciones específicas.</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="data-row flex justify-between items-center border-t border-white/5 pt-3">
-                                <span class="data-label">Preferencia de Sabor:</span>
-                                <span class="value-text font-bold">{{ nutricion.preferencia_sabor }}</span>
+
+                            <!-- Proteínas -->
+                            <div class="glass-card">
+                                <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                    <h3 class="text-xl font-bold text-accent uppercase">Proteínas</h3>
+                                    <span class="alim-category-badge"><span data-key="gramos_proteina_total">{{
+                                            nutricion.gramos_proteina_total }}</span>g
+                                        totales</span>
+                                </div>
+                                <div class="space-y-4 mb-6">
+                                    <h4 class="text-lg font-bold text-white">{{ nutricion.gramos_proteina_total }}
+                                        gramos de proteínas al día</h4>
+
+                                    <p class="text-sm leading-relaxed text-white/90">
+                                        De los {{ nutricion.gramos_proteina_total }} gramos de proteínas requeridos al
+                                        día, debe consumir alrededor de
+                                        <span class="text-accent font-bold">{{ nutricion.gramos_proteina_animal }}
+                                            gramos</span> de proteína de origen animal.
+                                    </p>
+
+                                    <!-- Recomendación Animal -->
+                                    <div class="p-4 bg-blue-500/10 rounded-xl border border-blue-500/20 mb-4">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span
+                                                class="px-2 py-1 bg-blue-600 text-white text-[10px] font-black uppercase rounded">Proteína
+                                                Animal</span>
+                                        </div>
+                                        <div class="space-y-3">
+                                            <div class="flex items-start gap-3">
+                                                <span class="text-xs font-bold text-accent min-w-[50px]">Día 1:</span>
+                                                <p class="text-sm">Esto representa consumir <span
+                                                        class="text-white font-bold">{{
+                                                        nutricion.rec_prot_animal_dia1.raciones }} raciones</span> de {{
+                                                    nutricion.rec_prot_animal_dia1.item.porcion }} {{
+                                                    nutricion.rec_prot_animal_dia1.item.nombre_mostrar }}.</p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="text-xs font-bold text-accent min-w-[50px]">Día 2:</span>
+                                                <p class="text-sm">Un segundo día puede consumir <span
+                                                        class="text-white font-bold">{{
+                                                        nutricion.rec_prot_animal_dia2.raciones }} raciones</span> de {{
+                                                    nutricion.rec_prot_animal_dia2.item.porcion }} {{
+                                                    nutricion.rec_prot_animal_dia2.item.nombre_mostrar }}.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Recomendación Vegetal -->
+                                    <p class="text-sm leading-relaxed text-white/90">
+                                        Para complementar, de los {{ nutricion.gramos_proteina_total }} gramos
+                                        requeridos, debe consumir alrededor de <span class="text-green-400 font-bold">{{
+                                            nutricion.gramos_proteina_vegetal }} gramos</span> de proteína de origen
+                                        vegetal.
+                                    </p>
+                                    <div class="p-4 bg-green-500/10 rounded-xl border border-green-500/20">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span
+                                                class="px-2 py-1 bg-green-600 text-white text-[10px] font-black uppercase rounded">Proteína
+                                                Vegetal</span>
+                                        </div>
+                                        <div class="space-y-3">
+                                            <div class="flex items-start gap-3">
+                                                <span class="text-xs font-bold text-green-400 min-w-[50px]">Día
+                                                    1:</span>
+                                                <p class="text-sm">Esto representa consumir
+                                                    {% for prot in nutricion.lista_prot_veg_dia1 %}
+                                                    {{ prot.porcion }} {{ prot.nombre_mostrar }}{% if not loop.last %}{%
+                                                    if loop.index == nutricion.lista_prot_veg_dia1|length - 1 %} y {%
+                                                    else %}, {% endif %}{% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="text-xs font-bold text-green-400 min-w-[50px]">Día
+                                                    2:</span>
+                                                <p class="text-sm">Un segundo día pudiera comer
+                                                    {% for prot in nutricion.lista_prot_veg_dia2 %}
+                                                    {{ prot.porcion }} {{ prot.nombre_mostrar }}{% if not loop.last %}{%
+                                                    if loop.index == nutricion.lista_prot_veg_dia2|length - 1 %} y {%
+                                                    else %}, {% endif %}{% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-4 border-t border-white/10 space-y-3">
+                                        <p class="text-[13px] leading-relaxed text-blue-200/80 italic">
+                                            <strong>Recomendación:</strong> {{ nutricion.prot_comentario_1 }}
+                                        </p>
+                                        <p class="text-[13px] leading-relaxed text-blue-200/80 italic">
+                                            {{ nutricion.prot_comentario_2 }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Carbohidratos -->
+                            <div class="glass-card">
+                                <div class="flex justify-between items-center mb-4 border-b border-white/10 pb-2">
+                                    <h3 class="text-xl font-bold text-accent uppercase">Carbohidratos</h3>
+                                    <span class="alim-category-badge"><span data-key="gramos_carbohidratos">{{
+                                            nutricion.gramos_carbohidratos }}</span>g
+                                        totales</span>
+                                </div>
+                                <div class="space-y-4 mb-6">
+                                    <h4 class="text-lg font-bold text-white">{{ nutricion.gramos_carbohidratos }} gramos
+                                        de carbohidratos al día</h4>
+
+                                    <p class="text-sm leading-relaxed text-white/90">
+                                        De los {{ nutricion.gramos_carbohidratos }} gramos de carbohidratos que debe
+                                        comer al día, alrededor de
+                                        <span class="text-accent font-bold">{{ nutricion.carbos_en_fruta_veg }}
+                                            gramos</span> ya se encuentran en las porciones de frutas y vegetales
+                                        recomendadas,
+                                        restándole consumir <span class="text-accent font-bold">{{
+                                            nutricion.carbos_granos_restantes }} gramos</span>, los cuales deberían ser
+                                        más de la mitad provenientes de grano entero (integral) y el resto refinado.
+                                    </p>
+
+                                    <!-- Grano Entero -->
+                                    <div class="p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/20 mb-4">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span
+                                                class="px-2 py-1 bg-yellow-600 text-white text-[10px] font-black uppercase rounded">Productos
+                                                de Grano Entero</span>
+                                        </div>
+                                        <div class="space-y-3">
+                                            <div class="flex items-start gap-3">
+                                                <span class="text-xs font-bold text-yellow-400 min-w-[50px]">Día
+                                                    1:</span>
+                                                <p class="text-sm">Esto representa que en un día consuma
+                                                    {% for item in nutricion.lista_carbo_int_dia1 %}
+                                                    {{ item.porcion }} {{ item.nombre_mostrar }}{% if not loop.last %}{%
+                                                    if loop.index == nutricion.lista_carbo_int_dia1|length - 1 %} y {%
+                                                    else %}, {% endif %}{% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="text-xs font-bold text-yellow-400 min-w-[50px]">Día
+                                                    2:</span>
+                                                <p class="text-sm">Un segundo día pudiera comer
+                                                    {% for item in nutricion.lista_carbo_int_dia2 %}
+                                                    {{ item.porcion }} {{ item.nombre_mostrar }}{% if not loop.last %}{%
+                                                    if loop.index == nutricion.lista_carbo_int_dia2|length - 1 %} y {%
+                                                    else %}, {% endif %}{% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Grano Refinado -->
+                                    <div class="p-4 bg-gray-500/10 rounded-xl border border-gray-500/20">
+                                        <div class="flex items-center gap-2 mb-3">
+                                            <span
+                                                class="px-2 py-1 bg-gray-600 text-white text-[10px] font-black uppercase rounded">Productos
+                                                de Grano Refinado</span>
+                                        </div>
+                                        <div class="space-y-3">
+                                            <div class="flex items-start gap-3">
+                                                <span class="text-xs font-bold text-gray-400 min-w-[50px]">Día 1:</span>
+                                                <p class="text-sm">Esto representa que en un día consuma
+                                                    {% for item in nutricion.lista_carbo_ref_dia1 %}
+                                                    {{ item.porcion }} {{ item.nombre_mostrar }}{% if not loop.last %}{%
+                                                    if loop.index == nutricion.lista_carbo_ref_dia1|length - 1 %} y {%
+                                                    else %}, {% endif %}{% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                            <div class="flex items-start gap-3">
+                                                <span class="text-xs font-bold text-gray-400 min-w-[50px]">Día 2:</span>
+                                                <p class="text-sm">Un segundo día pudiera comer
+                                                    {% for item in nutricion.lista_carbo_ref_dia2 %}
+                                                    {{ item.porcion }} {{ item.nombre_mostrar }}{% if not loop.last %}{%
+                                                    if loop.index == nutricion.lista_carbo_ref_dia2|length - 1 %} y {%
+                                                    else %}, {% endif %}{% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="pt-4 border-t border-white/10">
+                                        <p class="text-[13px] leading-relaxed text-yellow-200/80 italic">
+                                            <strong>Recomendación:</strong> {{ nutricion.carbo_comentario_1 }} {{
+                                            nutricion.carbo_comentario_2 }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Lácteos y Grasas -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="glass-card">
+                                    <h3 class="text-xl font-bold text-accent uppercase mb-4">Lácteos</h3>
+                                    <div class="space-y-4">
+                                        <div class="flex items-center justify-between mb-2">
+                                            <h4 class="text-lg font-bold text-white">{{ nutricion.porciones_lacteos }}
+                                                porciones al día</h4>
+                                        </div>
+
+                                        <div class="space-y-3">
+                                            <div class="bg-white/5 p-3 rounded-lg border-l-2 border-accent">
+                                                <p class="text-xs font-bold text-accent uppercase mb-1">Día 1:</p>
+                                                <p class="text-sm">Esto representa que en un día consuma
+                                                    {% for item in nutricion.lista_lacteos_dia1 %}
+                                                    {{ item.porcion }} {{ item.nombre_mostrar }}{% if not loop.last %} y
+                                                    {% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                            <div class="bg-white/5 p-3 rounded-lg border-l-2 border-white/20">
+                                                <p class="text-xs font-bold text-white/40 uppercase mb-1">Día 2:</p>
+                                                <p class="text-sm">Un segundo día pudiera comer
+                                                    {% for item in nutricion.lista_lacteos_dia2 %}
+                                                    {{ item.porcion }} {{ item.nombre_mostrar }}{% if not loop.last %} y
+                                                    {% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-3 border-t border-white/5">
+                                            <p class="text-[12px] italic text-blue-200/70 leading-relaxed">
+                                                <strong>Recomendación:</strong> {{ nutricion.lacteo_comentario_1 }} {{
+                                                nutricion.lacteo_comentario_2 }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="glass-card" id="nutricion-grasas-card">
+                                    <h3 class="text-xl font-bold text-accent uppercase mb-4">Grasas</h3>
+                                    <div class="space-y-4">
+                                        <h4 class="text-lg font-bold text-white">{{ nutricion.gramos_grasa_total }}
+                                            gramos de grasas al día</h4>
+
+                                        <p class="text-sm leading-relaxed text-white/90">
+                                            De los {{ nutricion.gramos_grasa_total }} gramos de grasas que debe comer al
+                                            día, alrededor de
+                                            <span class="text-accent font-bold">{{ nutricion.grasa_en_proteinas }}
+                                                gramos</span> ya se encuentran en las proteínas recomendadas,
+                                            restándole consumir <span class="text-accent font-bold">{{
+                                                nutricion.grasa_restante }} gramos</span>.
+                                        </p>
+
+                                        <div class="space-y-3">
+                                            <div class="bg-white/5 p-3 rounded-lg border-l-2 border-accent">
+                                                <p class="text-xs font-bold text-accent uppercase mb-1">Día 1:</p>
+                                                <p class="text-sm">Esto representa que en un día le agregue a las
+                                                    comidas
+                                                    {% for item in nutricion.lista_grasas_dia1 %}
+                                                    {{ item.porcion }} {{ item.nombre_mostrar }}{% if not loop.last %}{%
+                                                    if loop.index == nutricion.lista_grasas_dia1|length - 1 %} y {% else
+                                                    %}, {% endif %}{% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                            <div class="bg-white/5 p-3 rounded-lg border-l-2 border-white/20">
+                                                <p class="text-xs font-bold text-white/40 uppercase mb-1">Día 2:</p>
+                                                <p class="text-sm">Un segundo día pudiera agregar
+                                                    {% for item in nutricion.lista_grasas_dia2 %}
+                                                    {{ item.porcion }} {{ item.nombre_mostrar }}{% if not loop.last %}{%
+                                                    if loop.index == nutricion.lista_grasas_dia2|length - 1 %} y {% else
+                                                    %}, {% endif %}{% endif %}
+                                                    {% endfor %}.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="pt-3 border-t border-white/5">
+                                            <p class="text-[12px] italic text-blue-200/70 leading-relaxed">
+                                                <strong>Recomendación:</strong> {{ nutricion.grasas_comentario_1 }} {{
+                                                nutricion.grasas_comentario_2 }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </section>
             </div>
-        </section>
-        <section class="recomendaciones-section">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            </section>
 
-                <section>
-                    <h2 class="section-header">Distribución de Macronutrientes</h2>
-                    <div class="glass-card" style="padding: 20px;">
-                        <p class="text-sm opacity-80 mb-4 border-b border-white/10 pb-2">
-                            Basado en un consumo de <span class="font-bold text-white">{{ nutricion.calorias_diarias
-                                }}</span> kcal/día:
+            <section class="recomendaciones-section">
+                <h2 class="section-header">06 Tenga precaución con los alimentos poco saludables</h2>
+                <div class="glass-card border-l-4 border-red-500/50">
+                    {% if nutricion.comidas_riesgosas %}
+                    <p class="text-sm leading-relaxed mb-6">
+                        Para tener una alimentación saludable debe tener precaución con algunos alimentos poco
+                        saludables,
+                        en su caso, con el consumo de
+                        {% for item in nutricion.comidas_riesgosas %}
+                        <span class="font-bold text-accent">{{ item.nombre_mostrar }}</span>{% if not loop.last %}{% if
+                        loop.index == nutricion.comidas_riesgosas|length - 1 %} y {% else %}, {% endif %}{% endif %}
+                        {% endfor %}.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for r in nutricion.riesgo_detallado %}
+                        <div class="p-4 bg-red-500/5 rounded-xl border border-red-500/10 flex flex-col h-full">
+                            <p class="text-[13px] leading-relaxed mb-4 flex-grow">
+                                El día que consume <span class="text-red-400 font-black">{{ r.porcion }} {{ r.nombre }}</span>, 
+                                está ingiriendo <span class="font-bold">{{ r.calorias }} kcal</span> y 
+                                <span class="font-bold">{{ r.grasa }}g de grasa</span>. 
+                                Eso representa el <span class="text-red-400 font-bold">{{ r.pct_cal }}%</span> de sus calorías y 
+                                el <span class="text-red-400 font-bold">{{ r.pct_fat }}%</span> de sus grasas diarias.
+                            </p>
+                            <div class="pt-3 border-t border-red-500/10">
+                                <p class="text-[10px] uppercase tracking-wider font-bold text-gray-400 mb-1">Alternativa saludable:</p>
+                                <p class="text-[11px] italic text-white/70">{{ r.alternativa }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-8 p-4 bg-yellow-500/10 rounded-xl border-l-4 border-yellow-500/50">
+                        <p class="text-sm font-bold text-yellow-200 mb-2">Recomendación General:</p>
+                        <p class="text-sm leading-relaxed text-yellow-100/80">
+                            Es muy probable que el día que consume esos productos está consumiendo más calorías y grasas
+                            de las que el cuerpo necesita.
+                            Para evitar esto, le recomendamos reducir la frecuencia a un máximo de <span
+                                class="font-black text-white">{{ nutricion.frecuencia_comida_rapida }} veces</span> al
+                            mes
+                            y limitar la cantidad con la que consumes estos alimentos.
                         </p>
-
-                        <div class="space-y-3">
-                            <div class="data-row flex justify-between items-center">
-                                <span class="data-label">Gramos de Proteínas:</span>
-                                <span class="value-text font-bold">{{ nutricion.gramos_proteina }} g</span>
-                            </div>
-
-                            <div class="data-row flex justify-between items-center border-t border-white/5 pt-3">
-                                <span class="data-label">Gramos de Carbohidratos:</span>
-                                <span class="value-text font-bold">{{ nutricion.gramos_carbohidratos }} g</span>
-                            </div>
-
-                            <div class="data-row flex justify-between items-center border-t border-white/5 pt-3">
-                                <span class="data-label">Gramos de Grasas:</span>
-                                <span class="value-text font-bold">{{ nutricion.gramos_grasa }} g</span>
-                            </div>
-                        </div>
                     </div>
-                </section>
-            </div>
-        </section>
-        <section class="recomendaciones-section">
-            <h2 class="section-header flex justify-between items-center">
-                <span>FRUTAS:</span>
-                <span class="text-orange-500">{{ nutricion.porciones_fruta }} porciones de fruta al día</span>
-            </h2>
-
-            <div class="glass-card overflow-hidden" style="padding: 0;">
-                <div class="grid grid-cols-1 md:grid-cols-12">
-
-                    <div class="md:col-span-4 h-64 md:h-auto relative">
-                        <img src="../static/img/frutas_recomendacion.jpg" alt="Recomendación de Frutas"
-                            class="absolute inset-0 w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/10"></div>
-                    </div>
-
-                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
-
-                        <div class="data-row-block">
-                            <p class="text-sm leading-relaxed opacity-90">
-                                {{ nutricion.fruta_comentario_1 }}
-                            </p>
-                        </div>
-
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm leading-relaxed opacity-90">
-                                {{ nutricion.fruta_comentario_2 }}
-                            </p>
-                        </div>
-
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm leading-relaxed opacity-90 italic text-orange-200/80">
-                                {{ nutricion.fruta_comentario_3 }}
-                            </p>
-                        </div>
-
-                    </div>
+                    {% else %}
+                    <p class="text-sm italic text-white/60">No se reportó consumo frecuente de alimentos poco
+                        saludables. ¡Continúe con sus buenos hábitos!</p>
+                    {% endif %}
                 </div>
-            </div>
-        </section>
-
-        <section class="recomendaciones-section">
-            <h2 class="section-header flex justify-between items-center">
-                <span>VEGETALES:</span>
-                <span class="text-green-500">{{ nutricion.porciones_vegetales }} porciones al día</span>
-            </h2>
-            <div class="glass-card overflow-hidden" style="padding: 0;">
-                <div class="grid grid-cols-1 md:grid-cols-12">
-                    <div class="md:col-span-4 h-64 md:h-auto relative">
-                        <img src="../static/img/vegetales_recomendacion.jpg"
-                            class="absolute inset-0 w-full h-full object-cover">
-                    </div>
-                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
-                        <div class="data-row-block">
-                            <p class="text-sm opacity-90">{{ nutricion.veg_comentario_1 }}</p>
-                        </div>
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm opacity-90">{{ nutricion.veg_comentario_2 }}</p>
-                        </div>
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm opacity-90 italic text-green-200/80">{{ nutricion.veg_comentario_3 }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="recomendaciones-section">
-            <h2 class="section-header flex justify-between items-center">
-                <span>PROTEÍNAS:</span>
-                <span class="text-blue-400">{{ nutricion.gramos_proteina_total }}g totales al día</span>
-            </h2>
-            <div class="glass-card overflow-hidden" style="padding: 0;">
-                <div class="grid grid-cols-1 md:grid-cols-12">
-                    <div class="md:col-span-4 h-64 md:h-auto relative">
-                        <img src="../static/img/proteinas_recomendacion.jpg"
-                            class="absolute inset-0 w-full h-full object-cover">
-                    </div>
-                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
-                        <div class="data-row-block">
-                            <span class="text-xs font-bold text-blue-300 uppercase">Proteína Animal ({{
-                                nutricion.gramos_proteina_animal }}g):</span>
-                            <p class="text-sm opacity-90 mt-1">{{ nutricion.prot_animal_comentario }}</p>
-                        </div>
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <span class="text-xs font-bold text-green-300 uppercase">Proteína Vegetal ({{
-                                nutricion.gramos_proteina_vegetal }}g):</span>
-                            <p class="text-sm opacity-90 mt-1">{{ nutricion.prot_vegetal_comentario }}</p>
-                        </div>
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm opacity-90 italic">{{ nutricion.prot_comentario_general }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="recomendaciones-section">
-            <h2 class="section-header flex justify-between items-center">
-                <span>CARBOHIDRATOS:</span>
-                <span class="text-yellow-500">{{ nutricion.gramos_carbohidratos }}g totales</span>
-            </h2>
-            <div class="glass-card overflow-hidden" style="padding: 0;">
-                <div class="grid grid-cols-1 md:grid-cols-12">
-                    <div class="md:col-span-4 h-64 md:h-auto relative">
-                        <img src="../static/img/carbohidratos_recomendacion.jpg"
-                            class="absolute inset-0 w-full h-full object-cover">
-                    </div>
-                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
-                        <div class="data-row-block">
-                            <span class="text-xs font-bold text-yellow-600 uppercase">Grano Entero:</span>
-                            <p class="text-sm opacity-90 mt-1">{{ nutricion.carbo_entero_comentario }}</p>
-                        </div>
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <span class="text-xs font-bold text-gray-400 uppercase">Grano Refinado (Limite):</span>
-                            <p class="text-sm opacity-90 mt-1">{{ nutricion.carbo_refinado_comentario }}</p>
-                        </div>
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm opacity-90 italic">{{ nutricion.carbo_general_comentario }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="recomendaciones-section">
-            <h2 class="section-header flex justify-between items-center">
-                <span>LÁCTEOS:</span>
-                <span class="text-blue-300">{{ nutricion.porciones_lacteos }} porciones al día</span>
-            </h2>
-
-            <div class="glass-card overflow-hidden" style="padding: 0;">
-                <div class="grid grid-cols-1 md:grid-cols-12">
-                    <div class="md:col-span-4 h-64 md:h-auto relative">
-                        <img src="../static/img/lacteos_recomendacion.jpg" alt="Recomendación Lácteos"
-                            class="absolute inset-0 w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/10"></div>
-                    </div>
-
-                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
-                        <div class="data-row-block">
-                            <p class="text-sm leading-relaxed opacity-90">
-                                {{ nutricion.lacteos_comentario_1 }}
-                            </p>
-                        </div>
-
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm leading-relaxed opacity-90">
-                                {{ nutricion.lacteos_comentario_2 }}
-                            </p>
-                        </div>
-
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm leading-relaxed opacity-90 italic text-blue-200/80">
-                                {{ nutricion.lacteos_comentario_3 or 'Prefiera opciones descremadas o bajas en grasa
-                                para mantener el perfil lipídico saludable.' }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="recomendaciones-section">
-            <h2 class="section-header flex justify-between items-center">
-                <span>GRASAS:</span>
-                <span class="text-yellow-600">{{ nutricion.gramos_grasas }} gramos al día</span>
-            </h2>
-
-            <div class="glass-card overflow-hidden" style="padding: 0;">
-                <div class="grid grid-cols-1 md:grid-cols-12">
-                    <div class="md:col-span-4 h-64 md:h-auto relative">
-                        <img src="../static/img/grasas_recomendacion.jpg" alt="Recomendación Grasas"
-                            class="absolute inset-0 w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/10"></div>
-                    </div>
-
-                    <div class="md:col-span-8 p-6 md:p-8 space-y-6">
-                        <div class="data-row-block">
-                            <p class="text-sm leading-relaxed opacity-90">
-                                {{ nutricion.grasas_comentario_1 }}
-                            </p>
-                        </div>
-
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm leading-relaxed opacity-90">
-                                {{ nutricion.grasas_comentario_2 }}
-                            </p>
-                        </div>
-
-                        <div class="data-row-block border-t border-white/5 pt-4">
-                            <p class="text-sm leading-relaxed opacity-90 italic text-yellow-200/80">
-                                {{ nutricion.grasas_comentario_3 or 'Priorice grasas insaturadas como el aceite de
-                                oliva, aguacate y frutos secos.' }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="recomendaciones-section">
-            <h2 class="section-header flex justify-between items-center">
-                <span>COMIDA RÁPIDA / POCO SALUDABLE:</span>
-                <span class="text-orange-600">Frecuencia: Máximo {{ nutricion.frecuencia_comida_rapida }} al mes</span>
-            </h2>
-
-            <div class="glass-card overflow-hidden" style="padding: 0;">
-                <div class="grid grid-cols-1 md:grid-cols-12">
-                    <div class="md:col-span-4 h-64 md:h-auto relative">
-                        <img src="../static/img/comida_rapida_alerta.jpg" alt="Alerta Comida Poco Saludable"
-                            class="absolute inset-0 w-full h-full object-cover">
-                        <div class="absolute inset-0 bg-black/20"></div>
-                    </div>
-
-                    <div class="md:col-span-8 p-6 md:p-8">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-
-                            <div class="data-row-block">
-                                <span class="text-xs font-bold text-orange-400 uppercase">1. Control de
-                                    Porciones:</span>
-                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_1 }}</p>
-                            </div>
-
-                            <div class="data-row-block">
-                                <span class="text-xs font-bold text-orange-400 uppercase">2. Elección de Bebidas:</span>
-                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_2 }}</p>
-                            </div>
-
-                            <div class="data-row-block border-t border-white/5 pt-4">
-                                <span class="text-xs font-bold text-orange-400 uppercase">3. Salsas y Aderezos:</span>
-                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_3 }}</p>
-                            </div>
-
-                            <div class="data-row-block border-t border-white/5 pt-4">
-                                <span class="text-xs font-bold text-orange-400 uppercase">4. Métodos de Cocción:</span>
-                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_4 }}</p>
-                            </div>
-
-                            <div class="data-row-block border-t border-white/5 pt-4">
-                                <span class="text-xs font-bold text-orange-400 uppercase">5. Acompañamientos:</span>
-                                <p class="text-sm opacity-90 mt-1">{{ nutricion.fastfood_rec_5 }}</p>
-                            </div>
-
-                            <div class="data-row-block border-t border-white/5 pt-4">
-                                <span class="text-xs font-bold text-orange-400 uppercase">6. Compensación:</span>
-                                <p class="text-sm opacity-90 mt-1 italic">{{ nutricion.fastfood_rec_6 }}</p>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <section class="recomendaciones-section">
-            <h2 class="section-header">Aprende a Hacer Intercambios para Mantener el Balance</h2>
-
-            <div class="glass-card" style="padding: 30px;">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-
-                    <div class="md:col-span-7 space-y-3">
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span class="data-label">Tu requerimiento calórico:</span>
-                            <span class="value-text font-bold">{{ nutricion.calorias_diarias }}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span class="data-label">Porciones de frutas al día:</span>
-                            <span class="value-text font-bold">{{ nutricion.porciones_fruta }}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span class="data-label">Porciones de vegetales:</span>
-                            <span class="value-text font-bold">{{ nutricion.porciones_vegetales }}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span class="data-label">Gramos de grano entero:</span>
-                            <span class="value-text font-bold">{{ nutricion.gramos_grano_entero }}g</span>
-                        </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span class="data-label">Gramos de grano refinado:</span>
-                            <span class="value-text font-bold">{{ nutricion.gramos_grano_refinado }}g</span>
-                        </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span class="data-label">Porciones de lácteos:</span>
-                            <span class="value-text font-bold">{{ nutricion.porciones_lacteos }}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span class="data-label">Gramos de proteína animal:</span>
-                            <span class="value-text font-bold">{{ nutricion.gramos_proteina_animal }}g</span>
-                        </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span class="data-label">Gramos de proteína vegetal:</span>
-                            <span class="value-text font-bold">{{ nutricion.gramos_proteina_vegetal }}g</span>
-                        </div>
-                        <div class="flex justify-between border-b border-white/10 pb-1">
-                            <span class="data-label">Gramos de grasas añadidas:</span>
-                            <span class="value-text font-bold">{{ nutricion.gramos_grasas }}g</span>
-                        </div>
-                    </div>
-
-                    <div class="md:col-span-5 text-center md:border-l md:border-white/20 md:pl-8">
-                        <p class="text-xl md:text-2xl font-light italic leading-relaxed"
-                            style="color: var(--color-secondary);">
-                            Consume la cantidad que necesitas de la lista de <span
-                                class="font-bold uppercase tracking-wider">Intercambios PRODI</span>
-                        </p>
-                    </div>
-
-                </div>
-            </div>
-        </section>
-        <div style="margin-top: 30px; display: flex; justify-content: center; gap: 20px;">
-            <a href="/lista_participantes" class="back-link"
-                style="padding: 10px 20px; border: 1px solid var(--color-primary); border-radius: 8px;">← Volver</a>
-            <button id="btn-guardar-nutricion" class="back-link"
-                style="padding: 10px 20px; background: var(--color-accent); color: white; border: none; border-radius: 8px; cursor: pointer;">
-                Guardar Cambios
-            </button>
+            </section>
+            </main>
         </div>
     </div>
+    </div>
 
-
-
-    <script>
-        // Función para guardar cambios (Similar a reporte_paciente)
-        document.getElementById('btn-guardar-nutricion')?.addEventListener('click', async function () {
-            const btn = this;
-            const originalText = btn.innerText;
-            btn.innerText = "Guardando...";
-            btn.disabled = true;
-
-            const dataToSave = {
-                id: "{{ paciente.id }}",
-            };
-
-            // Recolectar campos editables
-            document.querySelectorAll('[data-key]').forEach(el => {
-                const key = el.getAttribute('data-key');
-                if (key) {
-                    dataToSave[key] = el.innerText.trim();
-                }
-            });
-
-            try {
-                const response = await fetch('/update_submission', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(dataToSave)
-                });
-
-                if (response.ok) {
-                    alert("✓ Cambios guardados con éxito");
-                } else {
-                    alert("❌ Error al guardar");
-                }
-            } catch (error) {
-                console.error("Error:", error);
-                alert("❌ Error de conexión");
-            } finally {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/js_nutricion.js') }}"></script>
 </body>
 
 </html>

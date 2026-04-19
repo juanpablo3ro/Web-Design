@@ -97,26 +97,48 @@
 
 <body class="dashboard-container" style="display: block; padding: 20px;">
     <div class="list-container">
-
-        <header class="banner-section glass-card" style="margin-bottom: 30px; border: 1px solid var(--glass-border);">
-            <div class="logo-container" style="position: relative; left: 0; transform: none; margin-bottom: 10px;">
-                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="PRODI" class="banner-logo"
-                    style="height: 50px;">
+        <header style="margin-bottom: 50px; text-align: left;">
+            <div style="margin-bottom: 15px;">
+                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="PRODI" style="height: 60px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
             </div>
-            <h1 class="section-header" style="justify-content: center; border: none; margin: 0;">Panel de Gestión</h1>
+            <h1 style="font-size: 2.2rem; font-weight: 800; color: var(--color-secondary); margin: 0; letter-spacing: -1px;">
+                Gestión de Participantes
+            </h1>
         </header>
 
-        <div class="glass-card glass-table-container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
-                <h2 style="color: white; margin: 0; border: none; padding: 0;">Participantes Registrados</h2>
-                <a href="/" class="back-link">← Volver al Launchpad</a>
+        <div class="glass-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <h2 style="color: #000; margin: 0; font-size: 1.5rem; font-weight: 800;">Base de Datos Registrada</h2>
+                <a href="/" class="back-link" style="color: var(--color-accent);">← Volver al Panel</a>
             </div>
 
             <div class="table-responsive">
+                <style>
+                    table { color: var(--color-primary); border-radius: 8px; overflow: hidden; }
+                    th { 
+                        background: transparent !important; 
+                        color: var(--color-secondary) !important; 
+                        font-weight: 700 !important; 
+                        border-bottom: 1px solid rgba(0,0,0,0.08) !important;
+                        font-size: 0.7rem !important;
+                        letter-spacing: 1px !important;
+                        padding-bottom: 10px !important;
+                    }
+                    td { 
+                        color: var(--color-primary) !important; 
+                        border-bottom: 1px solid rgba(0,0,0,0.03) !important;
+                        font-weight: 400;
+                    }
+                    .participant-name {
+                        color: var(--color-secondary) !important;
+                        font-weight: 600 !important;
+                        font-size: 0.95rem;
+                    }
+                </style>
                 <table>
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th style="width: 60px;">ID</th>
                             <th>Nombre del Participante</th>
                             <th>Email</th>
                             <th>Ciudad</th>
@@ -127,22 +149,23 @@
                     <tbody>
                         {% for p in pacientes %}
                         <tr>
-                            <td><span class="highlight-score">#{{ p.id }}</span></td>
-                            <td class="data-value">{{ p.nombre }} {{ p.apellidos }}</td>
-                            <td>{{ p.email }}</td>
-                            <td>{{ p.ciudad }}</td>
-                            <td style="opacity: 0.7;">{{ p.fecha_registro[:10] }}</td>
+                            <td><span class="highlight-score" style="opacity: 0.5;">#{{ p.id }}</span></td>
+                            <td class="participant-name">{{ p.nombre }} {{ p.apellidos }}</td>
+                            <td style="opacity: 0.7; font-size: 0.85rem;">{{ p.email }}</td>
+                            <td style="opacity: 0.7; font-size: 0.85rem;">{{ p.ciudad }}</td>
+                             <td style="opacity: 0.5; font-size: 0.75rem;">{{ p.fecha_registro[:10] }}</td>
                             <td>
-                                <div style="display: flex; gap: 10px; justify-content: center;">
+                                <div style="display: flex; gap: 8px; justify-content: center;">
                                     <a href="{{ url_for('reporte_detalle', p_id=p.id) }}"
-                                        class="btn-action btn-report-orange">
+                                        class="btn-action" style="background-color: #3B82F6; border: none; font-weight: 600; opacity: 0.9;">
                                         Reporte
                                     </a>
                                     <a href="{{ url_for('reporte_nutricional', p_id=p.id) }}" class="btn-action"
-                                        style="background-color: #7d44c2;">
+                                        style="background-color: #10B981; border: none; font-weight: 600; opacity: 0.9;">
                                         Nutrición
                                     </a>
-                                    <a href="{{ url_for('ver_gemelo', p_id=p.id) }}" class="btn-action btn-dt-cyan">
+                                    <a href="{{ url_for('ver_gemelo', p_id=p.id) }}" class="btn-action"
+                                        style="background-color: #6366F1; border: none; font-weight: 600; opacity: 0.9;">
                                         Digital Twin
                                     </a>
                                 </div>

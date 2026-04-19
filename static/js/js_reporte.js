@@ -4,13 +4,14 @@
  * ============================================================
  */
 function rToS(val) {
-    const m = {
-        'Para nada': 0,
-        'Algunos días': 1,
-        'Más de la mitad de los días': 2,
-        'Casi todos los días': 3
-    };
-    return m[val] || 0;
+    if (!val) return 0;
+    const s = String(val).toLowerCase();
+    if (s.includes("nunca")) return 1;
+    if (s.includes("varios días") || s.includes("algunos días")) return 2;
+    if (s.includes("más de la mitad")) return 3;
+    if (s.includes("casi todos")) return 4;
+    const n = parseInt(val);
+    return isNaN(n) ? 0 : n;
 }
 
 /**
@@ -130,9 +131,11 @@ function actualizarSeccionAntecedentes(d) {
 
     container.innerHTML = antArr.map((a, i) => {
         const has = d.antecedentes?.includes(a);
-        return `<tr class="border-b border-white/10 last:border-0">
-                    <td class="py-2 opacity-80">${antLabels[i]}</td>
-                    <td class="text-right font-bold ${has ? 'text-orange-500' : 'opacity-30'} ant-status">${has ? 'Presente' : 'Ausente'}</td>
+        return `<tr class="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                    <td class="py-2 text-sm text-slate-600">${antLabels[i]}</td>
+                    <td class="text-right text-sm font-bold ${has ? 'text-amber-600' : 'opacity-20 text-slate-400'} ant-status">
+                        ${has ? 'Presente' : 'Ausente'}
+                    </td>
                 </tr>`;
     }).join('');
 }
@@ -148,17 +151,22 @@ function actualizarSeccionMedicación(d) {
     const container = document.getElementById('lista-medicacion');
     if (!container) return;
 
-    container.innerHTML = Object.entries(medDict).map(([k, v]) => {
+    container.innerHTML = Object.entries(medDict).map(([k, v], i) => {
         const has = d[k] === 'Sí';
+        const borderClass = (i < 3) ? "border-b border-slate-50" : "";
         const idMap = {
             "medicamento_presion": "h-med-presion",
             "medicamento_glucosa": "h-med-glucosa",
             "medicamento_lipidos": "h-med-lipidos",
             "medicamento_peso": "h-med-peso"
         };
-        return `<tr class="border-b border-white/10 last:border-0">
-                    <td class="py-2 opacity-80">${v}</td>
-                    <td id="${idMap[k]}" class="text-right font-bold ${has ? 'text-green-500' : 'opacity-30'}">${has ? 'Sí' : 'No'}</td>
+        
+        let colorClass = has ? "text-emerald-600" : "opacity-30 text-slate-400";
+        if (k === "medicamento_peso" && has) colorClass = "text-accent";
+
+        return `<tr class="${borderClass} hover:bg-slate-50/50 transition-colors">
+                    <td class="py-2 text-sm text-slate-600 font-medium">${v}</td>
+                    <td id="${idMap[k]}" class="text-right text-sm font-bold ${colorClass}">${has ? 'Sí' : 'No'}</td>
                 </tr>`;
     }).join('');
 }
@@ -186,7 +194,9 @@ function actualizarEstiloVida(d) {
     }
 
     // Nivel de Actividad (Segmento 6)
-    safeSet('h-nivel-actividad', d['nivel-actividad'] || d.nivel_actividad || '--');
+    // Limpiamos posibles duplicados previos si ya estaban en la BD
+    let nivelActVal = (d['nivel-actividad'] || d.nivel_actividad || '--').split(' (')[0];
+    safeSet('h-nivel-actividad', nivelActVal);
 
     // 2. Lógica de Sal (Criterio AHA simplificado)
     const salHabitos = d.habitos_sal || "";
@@ -210,9 +220,7 @@ function actualizarEstiloVida(d) {
         // Capturamos la cantidad buscando ambas variantes de nombre
         'h-alcohol-cant': d['cantidad-alcohol'] || d.cantidad_alcohol || 'No contestó',
 
-        'h-actividad': d.nivel_actividad
-            ? `${d.nivel_actividad} (${d.minutos_actividad_semana || '0'} min/sem)`
-            : 'No contestó',
+        'h-actividad': d['minutos-actividad'] || d.minutos_actividad_semana || d.minutos_actividad || 'No contestó',
 
         'h-tabaco': d.habito_tabaquico || 'No contestó',
 
@@ -356,7 +364,7 @@ function actualizarReporteAntropometrico(d, imc) {
  * Lógica Maestra para Gauges (Versión Optimizada para Glow y Neón)
  * Sustituye completamente la función anterior para activar los efectos visuales.
  */
-const updateMiniGauge = (idPrefix, value, max, label, color = "#ED7D30") => {
+const updateMiniGauge = (idPrefix, value, max, label, color = "#189788") => {
     // 1. Selección de elementos
     const bar = document.getElementById(`${idPrefix}-gauge-bar`);
     const valText = document.getElementById(`${idPrefix}-gauge-val`) || document.getElementById(`${idPrefix}-val`);
@@ -384,27 +392,23 @@ const updateMiniGauge = (idPrefix, value, max, label, color = "#ED7D30") => {
         bar.style.strokeDasharray = `${dashValue} ${fullLength}`;
     }
 
-    // 4. Efecto de Brillo de Fondo (Glow) dinámico
     if (glow) {
         glow.style.backgroundColor = color;
-        glow.style.opacity = "0.35"; // Aumentamos un poco la intensidad
-        // Creamos una sombra difusa que expande el color
-        glow.style.boxShadow = `0 0 40px 10px ${color}33`;
+        glow.style.opacity = "0.15";
+        glow.style.boxShadow = `0 0 40px 10px ${color}11`;
     }
 };
 
-// Renderizadores Específicos
 const renderizarGraficoIMC = (peso, talla) => {
     const p = parseFloat(peso) || 0;
     const t = parseFloat(talla) || 0;
     if (p > 5 && t > 50) {
         const imc = parseFloat((p / ((t / 100) ** 2)).toFixed(1));
         let cat = "Normal", col = "#10b981";
-        if (imc < 18.5) { cat = "Bajo Peso"; col = "#60a5fa"; }
+        if (imc < 18.5) { cat = "Bajo Peso"; col = "#189788"; }
         else if (imc < 30) { cat = imc < 25 ? "Normal" : "Sobrepeso"; col = imc < 25 ? "#10b981" : "#f59e0b"; }
         else { cat = "Obesidad"; col = "#ef4444"; }
         updateMiniGauge('imc', imc, 45, cat, col);
-        if (document.getElementById('p-imc')) document.getElementById('p-imc').innerText = imc;
     }
 };
 
@@ -501,12 +505,12 @@ function actualizarLaboratorio(d) {
     }
 
     // Sincronizar diagnóstico de lípidos si existe la función
-    if (typeof Diagnosticos !== 'undefined' && typeof actualizarDiagnosticosYRiesgos === 'function') {
+    if (typeof Diagnosticos !== 'undefined') {
         const dLip = Diagnosticos.lipidos(d);
-        const resLip = document.getElementById('diag-lipidos'); // ID correcto según el HTML
+        const resLip = document.getElementById('diag-lipidos-lab'); 
         if (resLip) {
             resLip.innerText = dLip.label;
-            resLip.className = `p-2 text-right font-bold ${dLip.color}`;
+            resLip.className = `text-sm font-bold ${dLip.color}`;
         }
     }
 }
@@ -536,10 +540,11 @@ function actualizarComplicaciones(d) {
     container.innerHTML = Object.entries(compDict).map(([k, v]) => {
         const has = userEnf.includes(k.toLowerCase());
         return `
-            <div class="glass-card text-center p-3 border transition-all ${has ? 'bg-orange-500/10 border-orange-500/50' : 'border-white/5 opacity-60'}">
-                <p class="data-label text-xs uppercase tracking-wider mb-1">${v}</p>
-                <p class="text-sm font-bold ${has ? 'text-orange-500' : 'text-white/20'}">
-                    ${has ? 'DETECTADO' : 'AUSENTE'}
+            <div class="text-center p-4 rounded-2xl border transition-all cursor-pointer editable-field ${has ? 'bg-amber-50 border-amber-200' : 'bg-slate-50/50 border-slate-100 opacity-60'}"
+                 contenteditable="true" data-key="enfermedades_presentadas" data-label="${v}">
+                <p class="text-[10px] uppercase font-bold text-slate-400 mb-2 pointer-events-none">${v}</p>
+                <p class="text-base font-black pointer-events-none ${has ? 'text-amber-600' : 'text-slate-300'}">
+                    ${has ? 'PRESENTE' : 'AUSENTE'}
                 </p>
             </div>`;
     }).join('');
@@ -553,7 +558,7 @@ function actualizarComplicaciones(d) {
 const Diagnosticos = {
     nutricional: (imc) => {
         if (!imc || imc === 0) return { label: "Sin datos", alt: false, color: 'text-gray-400' };
-        if (imc < 18.5) return { label: "Bajo peso", alt: true, color: 'text-blue-400' };
+        if (imc < 18.5) return { label: "Bajo peso", alt: true, color: 'text-accent' };
         if (imc < 25) return { label: "Normal", alt: false, color: 'text-green-500' };
         if (imc < 30) return { label: "Sobrepeso", alt: true, color: 'text-orange-500' };
         return { label: "Obesidad", alt: true, color: 'text-red-500' };
@@ -600,53 +605,42 @@ const Diagnosticos = {
         const pas = parseFloat(d.presion_sistolica), pad = parseFloat(d.presion_diastolica);
         const tomaMed = (d.medicamento_presion === "Sí");
 
-        // Determinamos si el paciente tiene Diabetes (por tratamiento o valores previos)
         const tieneDiabetes = (d.medicamento_glucosa === "Sí" ||
             parseFloat(d.glucosa_ayunas) >= 126 ||
             parseFloat(d.hba1c) >= 6.5);
 
         if (isNaN(pas)) return { label: "Pendiente", alt: false, color: 'text-gray-400' };
 
-        // 1. NIVEL CRÍTICO (Grado 2 o superior)
         if (pas >= 140 || pad >= 90) {
             return {
-                label: tomaMed ? "HTA No Controlada" : "Hipertensión Controlada",
+                label: tomaMed ? "HTA No Controlada" : "Hipertensión",
                 alt: true,
                 color: 'text-red-500'
             };
         }
 
-        // 2. NIVEL ELEVADO (Basado en riesgo por Diabetes)
         if (pas >= 130 || pad >= 80) {
             if (tieneDiabetes) {
-                // Si tiene diabetes, 130/80 ya se considera No Controlada
-                return { label: "HTA No Controlada (Paciente con diabetes)", alt: true, color: 'text-red-500' };
+                return { label: "HTA No Controlada (DM)", alt: true, color: 'text-red-500' };
             }
-            // Si no tiene diabetes, se mantiene como Elevada
-            return { label: tomaMed ? "HTA Controlada (No Optima)" : "Presión Arterial Elevada", alt: true, color: 'text-orange-500' };
+            return { label: tomaMed ? "HTA Controlada (No Optima)" : "PA Elevada", alt: true, color: 'text-orange-500' };
         }
 
-        // 3. NIVEL NORMAL / CONTROLADO
         if (tomaMed) {
-            if (tieneDiabetes) {
-                return { label: "HTA Controlada (Paciente con diabetes)", alt: true, color: 'text-green-500' };
-            }
-            return { label: "HTA Controlada (Paciente con diabetes)", alt: true, color: 'text-blue-400' };
+            return { label: "HTA Controlada", alt: true, color: 'text-accent' };
         }
 
-        return { label: "Presión Arterial Normal", alt: false, color: 'text-green-500' };
+        return { label: "PA Normal", alt: false, color: 'text-green-500' };
     },
 
     apnea: (d) => {
         let p = 0;
         const imc = parseFloat(d.peso_kg) / ((parseFloat(d.talla_cm) / 100) ** 2) || 0;
-        // Criterios NoSAS simplificados
         if ((d.sexo === "Masculino" && d.circunferencia_cuello >= 40) || (d.sexo === "Femenino" && d.circunferencia_cuello >= 38)) p += 4;
         if (imc >= 30) p += 5; else if (imc >= 25) p += 3;
         if (d.ronca === "Sí") p += 2;
         if (parseInt(d.edad) > 55) p += 4;
         if (d.sexo === "Masculino") p += 2;
-
         return { score: p, alt: p >= 8, label: p >= 8 ? "Riesgo Alto" : "Riesgo Bajo" };
     },
 
@@ -665,21 +659,26 @@ const Diagnosticos = {
     },
 
     fumadorPasivo: (d) => {
-        const has = (d['exposicion-humo'] === "Sí, fuman en mi presencia");
+        const expo = d.exposicion_humo || d['exposicion-humo'] || "";
+        const has = expo.includes("Sí");
         return { label: has ? "Presente" : "Ausente", alt: has };
     },
 
     actividad: (d) => {
-        const nivel = d['nivel-actividad'] || d.nivel_actividad || "";
+        const nivelRaw = d.nivel_actividad || d['nivel-actividad'] || "";
+        const nivel = nivelRaw.split(' (')[0];
         let label = "Baja", alt = true;
-        if (nivel === "Muy Activo") { label = "Alta"; alt = false; }
-        else if (nivel === "Moderadamente Activo") { label = "Moderada"; alt = false; }
+        // Solo moderado o muy activo se consideran adecuados en este criterio
+        if (nivel.includes("Moderadamente") || nivel.includes("Muy")) { 
+            label = "Adecuada"; 
+            alt = false; 
+        }
         return { label, alt };
     },
 
     alcohol: (d) => {
         const val = d.frecuencia_alcohol || "";
-        const has = val.includes("4 o más");
+        const has = val.includes("4 o más") || val.includes("Diaria");
         return { label: val || "Social/Nulo", alt: has };
     },
 
@@ -706,17 +705,8 @@ const Diagnosticos = {
     }
 };
 
-// SEGMENTO MÓVIL: Las etiquetas de nivel de actividad se sincronizan en actualizarEstiloVida y actualizarRecomendacionesVida
-
-/**
- * ============================================================
- * 10. ACTUALIZACIÓN DE UI DE DIAGNÓSTICOS Y RIESGOS
- * Mapea los resultados de los motores a los elementos del DOM.
- * ============================================================
- */
 function actualizarDiagnosticosYRiesgos(d, imcCalculado) {
     const imc = imcCalculado || 0;
-
     const safeSetDiag = (id, info) => {
         const el = document.getElementById(id);
         if (el) {
@@ -725,7 +715,7 @@ function actualizarDiagnosticosYRiesgos(d, imcCalculado) {
         }
     };
 
-    // --- SEGMENTO 11: DIAGNÓSTICOS DE FACTORES DE RIESGO ---
+    // --- SEGMENTO 11: RIESGOS ---
     safeSetDiag('res-riesgo-bio', Diagnosticos.riesgoBio(d));
     safeSetDiag('res-tabaquismo', Diagnosticos.tabaquismo(d));
     safeSetDiag('res-fumador-pasivo', Diagnosticos.fumadorPasivo(d));
@@ -736,32 +726,20 @@ function actualizarDiagnosticosYRiesgos(d, imcCalculado) {
     safeSetDiag('res-ansiedad', Diagnosticos.ansiedad(d));
     safeSetDiag('res-depresion', Diagnosticos.depresion(d));
 
-    // Dentro de la función de diagnósticos/riesgos
-    const dLipRiesgo = Diagnosticos.lipidos(d);
-
-    safeSetDiag('res-lipidos', {
-        label: dLipRiesgo.label,
-        alt: dLipRiesgo.alt
-    });
-
     // --- SEGMENTO 12: CARDIOMETABÓLICOS ---
-    const dNut = Diagnosticos.nutricional(imc);
-    const dLip = Diagnosticos.lipidos(d);
+    safeSetDiag('diag-nutricional', Diagnosticos.nutricional(imc));
+    safeSetDiag('diag-obesidad-abd', Diagnosticos.obesidadAbd(d));
+    safeSetDiag('diag-presion', Diagnosticos.hipertension(d));
+    safeSetDiag('diag-glucosa', Diagnosticos.glucosa(d));
+    safeSetDiag('diag-lipidos', Diagnosticos.lipidos(d));
+
+    // Sincronización de textos
     const dGlu = Diagnosticos.glucosa(d);
+    const dLip = Diagnosticos.lipidos(d);
     const dHta = Diagnosticos.hipertension(d);
-    const dAbd = Diagnosticos.obesidadAbd(d);
-
-    safeSetDiag('diag-nutricional', dNut);
-    safeSetDiag('diag-lipidos', dLip);
-    safeSetDiag('diag-obesidad-abd', dAbd);
-    safeSetDiag('diag-glucosa', dGlu);
-    safeSetDiag('diag-presion', dHta);
-
-    // --- SINCRONIZACIÓN DE TEXTOS DE APOYO ---
-    const updateText = (id, text) => { if (document.getElementById(id)) document.getElementById(id).innerText = text; };
-    updateText("diagnostico-glucosa-texto", `Estado actual: ${dGlu.label}`);
-    updateText("diagnostico-lipidos-texto", `Perfil: ${dLip.label}`);
-    updateText("diagnostico-presion-texto", `Categoría: ${dHta.label}`);
+    if (document.getElementById("diagnostico-glucosa-texto")) document.getElementById("diagnostico-glucosa-texto").innerText = `Estado actual: ${dGlu.label}`;
+    if (document.getElementById("diagnostico-lipidos-texto")) document.getElementById("diagnostico-lipidos-texto").innerText = `Perfil: ${dLip.label}`;
+    if (document.getElementById("diagnostico-presion-texto")) document.getElementById("diagnostico-presion-texto").innerText = `Categoría: ${dHta.label}`;
 }
 
 /**
@@ -774,7 +752,7 @@ function actualizarAHAScore(d, imcCalculado) {
     const ahaScores = {};
     const imc = imcCalculado || 0;
 
-    // --- LÓGICA DE CÁLCULO (Se mantiene igual para precisión médica) ---
+    // --- LÓGICA DE CÁLCULO ---
     const salHabitos = d.habitos_sal || "";
     const evitaSal = salHabitos.includes("Evito comer comidas procesadas") || salHabitos.includes("Evito la sal");
 
@@ -802,8 +780,6 @@ function actualizarAHAScore(d, imcCalculado) {
     ahaScores.sueno = sPt >= 7 ? 100 : (sPt >= 5 ? 50 : 20);
     ahaScores.peso = (imc >= 18.5 && imc < 25) ? 100 : (imc < 30 ? 70 : 30);
 
-    // --- LÓGICA DE CÁLCULO (Se mantiene igual para precisión médica) ---
-    // Puntos Glucosa (Lógica AHA Desconectada)
     const gluVal = parseFloat(d.glucosa_ayunas);
     const hba1cVal = parseFloat(d.hba1c);
     const tratadaGlu = (d.medicamento_glucosa === "Sí");
@@ -814,30 +790,22 @@ function actualizarAHAScore(d, imcCalculado) {
     } else if (!tratadaGlu && (gluVal < 126 || hba1cVal < 6.5)) {
         ahaScores.glucosa = 60;
     } else {
-        ahaScores.glucosa = 30; // Diabetes o en tratamiento
+        ahaScores.glucosa = 30;
     }
 
-    // Puntos Lípidos (AHA Essential 8: No-HDL)
-    let scoreLipidos = 0; // Por defecto 0 si no hay datos
-
-    // Verificamos si existen ambos valores antes de calcular
+    let scoreLipidos = 0;
     if (d.colesterol_total && d.colesterol_hdl) {
         const total = parseFloat(d.colesterol_total);
         const hdl = parseFloat(d.colesterol_hdl);
         const noHdl = total - hdl;
-
-        // Lógica de puntuación basada en el valor calculado
         if (noHdl < 130) scoreLipidos = 100;
         else if (noHdl < 160) scoreLipidos = 60;
         else scoreLipidos = 30;
     } else {
-        // Si no hay laboratorios, el score es 0
         scoreLipidos = 0;
     }
-
     ahaScores.lipidos = scoreLipidos;
 
-    // Puntos Presión (Lógica AHA Desconectada)
     const pasVal = parseFloat(d.presion_sistolica);
     const padVal = parseFloat(d.presion_diastolica);
     const tratadaHta = (d.medicamento_presion === "Sí");
@@ -846,7 +814,7 @@ function actualizarAHAScore(d, imcCalculado) {
     } else if (!tratadaHta && pasVal < 120 && padVal < 80) {
         ahaScores.presion = 100;
     } else if (!tratadaHta && pasVal < 130 && padVal < 80) {
-        ahaScores.presion = 70; // Elevada
+        ahaScores.presion = 70;
     } else {
         ahaScores.presion = 40;
     }
@@ -855,11 +823,9 @@ function actualizarAHAScore(d, imcCalculado) {
     const totalAha = Math.round(Object.values(ahaScores).reduce((a, b) => a + b, 0) / 8);
     const color = totalAha >= 80 ? "#10b981" : (totalAha >= 50 ? "#f59e0b" : "#ef4444");
 
-    // 1. Valor Central (Soporta tu clase .value-text-modern)
     const valTotalEl = document.getElementById('val-aha-total');
     if (valTotalEl) valTotalEl.innerText = totalAha;
 
-    // 2. Status Badge (Actualiza color y borde según tu .status-badge-modern)
     const statusEl = document.getElementById('val-aha-status');
     if (statusEl) {
         statusEl.innerText = totalAha >= 80 ? "Salud Óptima" : (totalAha >= 50 ? "Salud Moderada" : "Salud Pobre");
@@ -868,23 +834,19 @@ function actualizarAHAScore(d, imcCalculado) {
         statusEl.style.boxShadow = `0 0 15px ${color}22`;
     }
 
-    // 3. EFECTO GLOW (Conecta con .glow-overlay-modern)
     const glowEl = document.getElementById('glow-aha');
     if (glowEl) {
-        glowEl.style.background = color; // Tu CSS tiene el blur(50px) y la opacidad
-        glowEl.style.opacity = "0.2"; // Un poco más intenso para que se note
+        glowEl.style.background = color;
+        glowEl.style.opacity = "0.2";
     }
 
-    // 4. Arco SVG (Progreso Progresivo)
     const progressArc = document.getElementById('gauge-progress-aha');
     if (progressArc) {
         const fullLength = 119.5;
         progressArc.style.strokeDasharray = `${(totalAha / 100) * fullLength} ${fullLength}`;
-        // Mantiene el gradiente del HTML a menos que el score sea crítico (<30)
         progressArc.style.stroke = totalAha < 30 ? "#ef4444" : "url(#gaugeGradient)";
     }
 
-    // 5. Barras Individuales (Tamaño aumentado y alineación mejorada)
     const labels = {
         nutricion: 'Nutrición', actividad: 'Actividad Física', tabaco: 'Tabaco',
         sueno: 'Sueño', peso: 'Peso (IMC)', glucosa: 'Glucosa',
@@ -894,17 +856,15 @@ function actualizarAHAScore(d, imcCalculado) {
     Object.entries(ahaScores).forEach(([key, val]) => {
         const container = document.getElementById(`item-aha-${key}`);
         if (container) {
-            // Usamos tu paleta: Verde (#10b981), Naranja (#f59e0b) y Rojo (#ef4444)
             const itemColor = val >= 80 ? "#10b981" : (val >= 50 ? "#f59e0b" : "#ef4444");
-
             container.innerHTML = `
                 <div class="flex justify-between items-end mb-2">
                     <span class="text-[13px] font-bold uppercase tracking-wider text-black/70">${labels[key]}</span>
                     <span class="text-[14px] font-black" style="color: ${itemColor}">${val} <span class="text-[10px] opacity-50">PTS</span></span>
                 </div>
-                <div class="w-full bg-white/10 h-2 rounded-full overflow-hidden shadow-inner">
+                <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden shadow-inner">
                     <div class="h-full transition-all duration-1000 ease-out" 
-                         style="width: ${val}%; background: ${itemColor}; box-shadow: 0 0 12px ${itemColor}66;">
+                         style="width: ${val}%; background: ${itemColor}; box-shadow: 0 0 12px ${itemColor}44;">
                     </div>
                 </div>`;
         }
@@ -913,7 +873,7 @@ function actualizarAHAScore(d, imcCalculado) {
 
 /**
  * ============================================================
- * 12. ACTUALIZACIÓN DE RECOMENDACIONES DE VIDA
+ * 14. ACTUALIZACIÓN DE RECOMENDACIONES DE VIDA
  * Unifica: Peso, Metabolismo, Nutrición, Actividad, Tabaco, 
  * Apnea, salud mental, Glucemia y Lípidos.
  * ============================================================
@@ -932,7 +892,8 @@ function actualizarRecomendacionesVida(d, imcCalculado) {
 
     // Factor de actividad
     const factores = { "Sedentario": 1.2, "Poco Activo": 1.375, "Moderadamente Activo": 1.55, "Muy Activo": 1.725 };
-    const factor = factores[d.nivel_actividad] || 1.2;
+    const nivelLimpio = (d.nivel_actividad || d['nivel-actividad'] || "").split(' (')[0];
+    const factor = factores[nivelLimpio] || 1.2;
     const mantenimiento = Math.round(tmb * factor);
 
     safeSet("mb-peso", Math.round(tmb) + " kcal/día");
@@ -1034,7 +995,8 @@ function actualizarRecomendacionesVida(d, imcCalculado) {
     safeSet("val-diag-dislipidemia", dLip.label);
 
     // Actividad Física basada en Nivel
-    const nivelParaRec = d['nivel-actividad'] || d.nivel_actividad || "";
+    const nivelParaRecRaw = d['nivel-actividad'] || d.nivel_actividad || "";
+    const nivelParaRec = nivelParaRecRaw.split(' (')[0];
     let recAct;
 
     switch (nivelParaRec) {
