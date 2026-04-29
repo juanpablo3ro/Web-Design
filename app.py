@@ -56,7 +56,11 @@ def init_db():
             rec_glucosa TEXT, rec_granos TEXT, rec_lacteos TEXT, rec_lipidos_cardio TEXT,
             rec_lipidos TEXT, rec_optimismo TEXT, rec_pasivo TEXT, rec_pescado TEXT,
             rec_pesimismo TEXT, rec_presion TEXT, rec_sodio TEXT, rec_tabaco TEXT,
-            rec_vegetales TEXT, diag_lipidos TEXT
+            rec_vegetales TEXT, diag_lipidos TEXT,
+            -- Metas Nutricionales
+            calorias_diarias REAL, gramos_carbohidratos REAL, porciones_vegetales INTEGER, 
+            porciones_fruta INTEGER, gramos_proteina_total REAL, gramos_grasa REAL, 
+            meta_kg REAL, total_perder_kg REAL, tiempo_meses INTEGER
         )
     ''')
 
@@ -87,9 +91,11 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS perfil_nutricional (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            paciente_id INTEGER,
+            paciente_id INTEGER UNIQUE,
             deseo_bajar_peso TEXT,
             porcentaje_peso TEXT,
+            saciedad_baseline INTEGER,
+            preferencia_sabor TEXT,
             vegetariano TEXT,
             consumo_leche_huevos TEXT,
             frecuencia_procesados TEXT,
@@ -151,13 +157,265 @@ def init_db():
             titulo TEXT,
             porcentaje_visto REAL DEFAULT 0,
             ultima_fecha TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (paciente_id) REFERENCES historias_clinicas (id)
+        )
+    ''')
+
+    # NUEVAS TABLAS: Registro de Alimentos Detallado (TCA Venezuela)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS alimentos_master (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            codigo TEXT,
+            nombre TEXT,
+            categoria TEXT,
+            porcion_g REAL,
+            energia_kcal REAL,
+            proteina_g REAL,
+            grasa_g REAL,
+            carbohidratos_g REAL,
+            fibra_g REAL
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS registro_comidas_diario (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            paciente_id INTEGER,
+            fecha TEXT DEFAULT CURRENT_DATE,
+            momento TEXT, -- Desayuno, Almuerzo, Cena, Merienda, Bebida, Otros
+            alimento_id INTEGER,
+            es_preparacion INTEGER DEFAULT 0, -- 0: master, 1: preparacion_usuario
+            cantidad_g REAL,
+            calorias REAL,
+            proteinas REAL,
+            grasas REAL,
+            carbohidratos REAL,
             FOREIGN KEY (paciente_id) REFERENCES historias_clinicas(id)
         )
     ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS preparaciones_usuario (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            paciente_id INTEGER,
+            nombre TEXT,
+            ingredientes_json TEXT, -- Almacenamos los IDs y cantidades
+            calorias_total REAL,
+            proteinas_total REAL,
+            grasas_total REAL,
+            carbohidratos_total REAL,
+            FOREIGN KEY (paciente_id) REFERENCES historias_clinicas(id)
+        )
+    ''')
+
+    # Preferencias de Alimentos (Detallado)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS preferencias_alimentos (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            paciente_id INTEGER,
+            alimento_id TEXT, 
+            tipo TEXT, 
+            puntuacion INTEGER,
+            FOREIGN KEY (paciente_id) REFERENCES historias_clinicas(id),
+            UNIQUE(paciente_id, alimento_id)
+        )
+    ''')
+
+    # Catálogos (Se siembran automáticamente si están vacíos)
+    for tabla in ['frutas', 'vegetales', 'proteinas', 'carbohidratos', 'lacteos', 'grasas', 'comida_riesgosa']:
+        extra_fields = ", recomendacion_alternativa TEXT" if tabla == 'comida_riesgosa' else ""
+        extra_types = ", tipo TEXT" if tabla in ['proteinas', 'carbohidratos'] else ""
+        cursor.execute(f'''
+            CREATE TABLE IF NOT EXISTS catalogo_{tabla} (
+                id_slug TEXT PRIMARY KEY,
+                nombre_mostrar TEXT,
+                porcion TEXT,
+                calorias REAL,
+                grasa REAL,
+                carbohidratos REAL,
+                proteinas REAL
+                {extra_types}
+                {extra_fields}
+            )
+        ''')
+
     conn.commit()
+    seed_catalogs(conn)
     conn.close()
 
-# Inicializar DB al arrancar
+def seed_catalogs(conn):
+    """Inserta los datos iniciales de los catálogos si las tablas están vacías."""
+    cursor = conn.cursor()
+    
+    catalogo_data = {
+        "frutas": [
+            ('albaricoque', 'Albaricoque', '1', 17.0, 0.1, 3.8, 0.4),
+            ('arandano', 'Arándano', '1 taza de', 46.0, 0.6, 9.7, 0.6),
+            ('banana', 'Banana', '1 unidad de', 112.0, 0.4, 28.7, 1.3),
+            ('cereza', 'Cereza', '1 taza de', 40.0, 0.3, 8.5, 0.8),
+            ('frambuesa', 'Frambuesa', 'media taza de', 10.0, 0.1, 2.2, 0.2),
+            ('fresa', 'Fresa', '1 taza de', 47.0, 0.4, 11.2, 0.9),
+            ('granada', 'Granada', 'media taza de', 52.0, 0.2, 13.2, 0.7),
+            ('grosella', 'Grosella', 'media taza de', 56.0, 0.2, 13.8, 1.4),
+            ('guayaba', 'Guayaba', 'media taza de', 37.0, 0.5, 7.8, 1.4),
+            ('higo', 'Higo', 'media taza de', 37.0, 0.1, 9.5, 0.3),
+            ('kiwan', 'Kiwan', 'media taza de', 25.0, 0.0, 3.0, 1.0),
+            ('kiwi', 'Kiwi', 'media taza de', 46.0, 0.4, 11.1, 0.8),
+            ('lima', 'Lima', 'media taza de', 20.0, 0.1, 7.0, 0.4),
+            ('litchi', 'Litchi', '1', 6.0, 0.0, 1.5, 0.0),
+            ('mamon_chino', 'Mamón chino', 'media taza de', 70.0, 0.0, 20.0, 0.0),
+            ('mandarina', 'Mandarina', 'media taza de', 45.0, 0.2, 11.2, 0.6),
+            ('mango', 'Mango', 'media taza de', 67.0, 0.2, 17.6, 0.5),
+            ('mangostan', 'Mangostán', 'media taza de', 73.0, 0.5, 17.9, 0.4),
+            ('manzana', 'Manzana', 'media taza de', 80.0, 0.2, 21.2, 0.4),
+            ('maracuya', 'Maracuyá o parchita', 'media taza de', 17.0, 0.1, 4.2, 0.4),
+            ('melocoton', 'Melocotón o durazno', 'media taza de', 57.0, 0.3, 14.0, 1.3),
+            ('melon', 'Melón', '1 taza de', 53.0, 0.3, 12.7, 1.3),
+            ('membrillo', 'Membrillo', 'media taza de', 52.0, 0.0, 14.0, 0.3),
+            ('mora', 'Mora', 'media taza de', 31.0, 0.3, 6.9, 1.0),
+            ('naranja', 'Naranja', 'media taza de', 62.0, 0.1, 15.3, 1.2),
+            ('kumquat', 'Naranja enana o kumquat', 'media taza de', 70.0, 1.0, 16.1, 0.0),
+            ('nispero', 'Níspero', 'media taza de', 64.0, 0.2, 16.5, 0.5),
+            ('papaya', 'Papaya (lechosa)', '1 taza de', 55.0, 0.2, 13.7, 0.8),
+            ('pera', 'Pera', 'media taza de', 96.0, 0.2, 25.6, 0.6),
+            ('pina', 'Piña', 'media taza de', 54.0, 0.1, 14.1, 0.6),
+            ('pitahaya', 'Pitahaya', 'media taza de', 50.0, 0.3, 12.2, 0.7),
+            ('pomelo', 'Pomelo', 'media taza de', 41.0, 0.1, 10.3, 0.8),
+            ('sandia', 'Sandía o patilla', 'media taza de', 86.0, 0.4, 21.5, 1.7),
+            ('tamarindo_chino', 'Tamarindo chino', 'media taza de', 5.0, 0.0, 1.2, 0.0),
+            ('tomate_arbol', 'Tomate de árbol', 'media taza de', 21.0, 0.2, 4.3, 1.0),
+            ('uchuva', 'Uchuva', 'media taza de', 73.0, 0.5, 19.6, 1.5),
+            ('uva', 'Uva', '1 taza de', 55.0, 0.1, 14.4, 0.5)
+        ],
+        "vegetales": [
+            ('berenjena', 'Berenjena', '1 taza de', 66.0, 3.8, 8.3, 0.8),
+            ('berro', 'Berro', '1 taza de', 7.0, 0.1, 1.0, 0.8),
+            ('betabel', 'Betabel o remolacha', 'media taza de', 25.0, 0.1, 6.5, 1.8),
+            ('brocoli', 'Brócoli', '1 taza de', 31.0, 0.3, 6.0, 2.5),
+            ('alfalfa', 'Brotes de alfalfa', 'media taza de', 5.0, 0.1, 0.6, 0.6),
+            ('calabaza', 'Calabaza', 'media taza de', 58.0, 2.1, 9.9, 1.3),
+            ('champinon', 'Champiñón', '1 taza de', 20.0, 1.1, 2.1, 0.8),
+            ('col', 'Col (repollo)', '1 taza de', 17.0, 0.0, 3.9, 1.0),
+            ('coliflor', 'Coliflor', 'media taza de', 34.0, 2.3, 2.8, 1.2),
+            ('esparrago', 'Espárrago', '1 taza de', 36.0, 2.0, 3.7, 2.1),
+            ('espinacas', 'Espinacas', '1 taza de', 7.0, 0.1, 1.0, 0.8),
+            ('guisantes', 'Guisantes', 'media taza de', 81.0, 0.4, 14.4, 5.4),
+            ('hinojo', 'Hinojo', 'media taza de', 27.0, 0.2, 7.2, 1.2),
+            ('lechuga', 'Lechuga', '1 taza de', 8.0, 0.0, 1.6, 0.5),
+            ('nabo', 'Nabo', '1 taza de', 28.0, 0.1, 6.4, 0.9),
+            ('pepino', 'Pepino', '1 taza de', 16.0, 0.2, 2.8, 0.7),
+            ('rabano', 'Rábano', '1 taza de', 19.0, 0.1, 3.9, 0.7),
+            ('rucula', 'Rúcula', '1 taza de', 4.0, 0.0, 0.3, 0.2),
+            ('tomate', 'Tomate', '1 taza de', 22.0, 0.2, 4.8, 1.0),
+            ('zanahoria', 'Zanahoria', 'media taza de', 41.0, 1.8, 6.0, 0.5),
+            ('zucchini', 'Zucchini o calabacín o zapallo Italiano', '1 taza de', 16.0, 0.1, 3.3, 1.2)
+        ],
+        "proteinas": [
+            ('atun_lata', 'Atún en lata', 'animal', '1 lata de', 99.0, 0.7, 0.0, 21.6),
+            ('atun_fresco', 'Atún fresco', 'animal', '100 gr de', 143.0, 4.6, 0.0, 23.8),
+            ('camarones', 'Camarones', 'animal', '85 gr de', 122.0, 2.0, 1.0, 23.4),
+            ('carne_molida', 'Carne molida', 'animal', '85 gr de', 235.0, 15.7, 0.0, 21.5),
+            ('filet_bacalao', 'Filet de bacalao', 'animal', '85 gr de', 179.0, 9.2, 7.0, 16.3),
+            ('filet_res', 'Filet de carne de res', 'animal', '85 gr de', 214.0, 12.7, 0.0, 23.2),
+            ('filet_magra', 'Filet de carne magra', 'animal', '85 gr de', 225.0, 14.7, 0.0, 24.6),
+            ('filet_cochino', 'Filet de cochino', 'animal', '85 gr de', 211.0, 12.1, 0.0, 23.8),
+            ('filet_jurel', 'Filet de jurel', 'animal', '85 gr de', 139.0, 6.3, 0.0, 19.2),
+            ('filet_merluza', 'Filet de merluza', 'animal', '85 gr de', 112.0, 3.7, 0.0, 18.1),
+            ('filet_pargo', 'Filet de pargo', 'animal', '85 gr de', 100.0, 1.3, 0.0, 20.5),
+            ('filet_salmon', 'Filet de salmón', 'animal', '85 gr de', 139.0, 5.6, 0.0, 20.5),
+            ('filet_trucha', 'Filet de trucha', 'animal', '85 gr de', 135.0, 5.9, 0.0, 19.0),
+            ('higado_res', 'Hígado de res', 'animal', '100 gr de', 135.0, 3.6, 3.8, 20.3),
+            ('huevos', 'Huevo', 'animal', '1 unidad', 74.0, 4.9, 0.3, 6.2),
+            ('jamon', 'Jamón', 'animal', '1 tajada de', 35.0, 1.3, 0.5, 4.9),
+            ('mortadela', 'Mortadela', 'animal', '1 tajada de', 33.0, 2.1, 0.5, 3.1),
+            ('muslo_pollo', 'Muslo de pollo', 'animal', '1 unidad', 105.0, 5.4, 0.0, 13.1),
+            ('pechuga_pollo', 'Pechuga de pollo', 'animal', '95 gr de', 191.0, 7.5, 0.0, 28.9),
+            ('pescado_fresco', 'Pescado fresco', 'animal', '85 gr de', 84.0, 0.9, 0.0, 17.6),
+            ('salchichas', 'Salchicha', 'animal', '1 unidad', 86.0, 6.4, 3.6, 3.4),
+            ('sardina', 'Sardina', 'animal', '85 gr de', 177.0, 9.7, 0.0, 20.9),
+            ('alubias', 'Alubias o judías', 'vegetal', 'media taza de', 152.0, 0.7, 27.0, 10.7),
+            ('coles_bruselas_veg', 'Coles de Bruselas (veg)', 'vegetal', 'media taza de', 44.0, 2.2, 5.5, 1.9),
+            ('garbanzos', 'Garbanzos', 'vegetal', 'media taza de', 148.0, 2.4, 24.5, 7.8),
+            ('germen_trigo', 'Germen de trigo', 'vegetal', '3 cucharadas de', 102.0, 2.7, 14.6, 6.5),
+            ('lentejas', 'Lentejas', 'vegetal', 'media taza de', 162.0, 6.6, 10.3, 8.2),
+            ('quinoa', 'Quinoa', 'vegetal', 'media taza de', 114.0, 1.7, 21.0, 4.0),
+            ('semillas_calabaza', 'Semillas de calabaza', 'vegetal', '1 cucharada de', 92.0, 7.7, 3.0, 4.1),
+            ('semillas_girasol', 'Semillas de girasol', 'vegetal', '1 cucharada de', 103.0, 8.9, 3.8, 4.1),
+            ('semillas_lino', 'Semillas de lino', 'vegetal', '1 cucharadita de', 48.0, 3.7, 2.6, 1.6),
+            ('sesamo', 'Sésamo', 'vegetal', '1 cucharada de', 52.0, 4.4, 2.1, 1.6),
+            ('soja', 'Soja', 'vegetal', '2 cucharadas de', 94.0, 0.3, 10.8, 13.3),
+            ('tofu', 'Tofu', 'vegetal', 'media taza de', 55.0, 2.7, 2.9, 4.8)
+        ],
+        "carbohidratos": [
+            ('arroz_blanco', 'Arroz blanco', 'refinado', 'media taza de', 103.0, 0.2, 22.3, 2.1),
+            ('cereales_azucarados', 'Cereales azucarados', 'refinado', '1 taza de', 110.0, 1.0, 26.0, 1.0),
+            ('galletas_dulces', 'Galletas dulces', 'refinado', '3 unidades', 160.0, 7.0, 22.0, 2.0),
+            ('galletas_saladas', 'Galletas saladas', 'refinado', '5 unidades', 60.0, 1.5, 10.0, 1.0),
+            ('harina_maiz', 'Harina de maíz precocida', 'refinado', 'media taza de', 145.0, 1.0, 31.0, 3.0),
+            ('harina_trigo', 'Harina de trigo refinada', 'refinado', 'media taza de', 110.0, 0.5, 23.0, 3.0),
+            ('pan_blanco', 'Pan blanco', 'refinado', '1 rebanada de', 70.0, 1.0, 13.0, 2.0),
+            ('pan_dulce', 'Pan dulce', 'refinado', '1 unidad pequeña', 150.0, 4.5, 25.0, 3.0),
+            ('pasta_blanca', 'Pasta blanca', 'refinado', 'media taza de', 110.0, 0.5, 22.0, 4.0),
+            ('yuca', 'Yuca', 'refinado', 'media taza de', 165.0, 0.3, 39.0, 1.4),
+            ('arroz_integral', 'Arroz integral', 'integral', 'media taza de', 108.0, 0.9, 22.4, 2.5),
+            ('avena_hojuelas', 'Avena en hojuelas', 'integral', 'media taza de', 150.0, 2.5, 27.0, 5.0),
+            ('cebada', 'Cebada', 'integral', 'media taza de', 97.0, 0.3, 22.2, 1.8),
+            ('centeno', 'Centeno', 'integral', 'media taza de', 128.0, 0.8, 27.5, 3.9),
+            ('cuscus', 'Cuscús', 'integral', 'media taza de', 112.0, 0.1, 23.2, 3.7),
+            ('pan_integral', 'Pan integral', 'integral', '1 rebanada de', 65.0, 1.0, 12.0, 3.0),
+            ('pasta_integral', 'Pasta integral', 'integral', 'media taza de', 105.0, 0.8, 22.0, 4.5),
+            ('papas', 'Papas', 'integral', '1 unidad mediana', 110.0, 0.1, 26.0, 3.0),
+            ('batata', 'Batata o camote', 'integral', 'media taza de', 103.0, 0.1, 23.6, 2.3),
+            ('maiz_tierno', 'Maíz tierno', 'integral', 'media taza de', 81.0, 1.0, 18.5, 2.6)
+        ],
+        "lacteos": [
+            ('leche_completa', 'Leche completa', '1 vaso de', 146.0, 7.9, 11.0, 7.8),
+            ('leche_descremada', 'Leche descremada', '1 vaso de', 86.0, 0.4, 11.9, 8.4),
+            ('queso_amarillo', 'Queso amarillo', '1 tajada de', 54.0, 4.4, 2.5, 1.1),
+            ('queso_blanco', 'Queso blanco', '1 tajada de', 84.0, 6.4, 1.1, 5.3),
+            ('queso_mozarella', 'Queso mozzarella', '1 tajada de', 86.0, 5.6, 1.0, 7.3),
+            ('ricota', 'Ricota', '1 tajada de', 44.0, 2.9, 1.1, 3.2),
+            ('yogurt', 'Yogurt', '1 vaso de', 143.0, 3.5, 15.9, 11.9),
+            ('yogurt_descremado', 'Yogurt descremado', '1 vaso de', 60.0, 0.4, 8.0, 7.0)
+        ],
+        "grasas": [
+            ('crema_leche', 'Crema de leche', '1 cucharada de', 52.0, 5.5, 0.4, 0.3),
+            ('aguacate', 'Aguacate', 'medio', 106.0, 9.7, 5.6, 1.3),
+            ('mantequilla', 'Mantequilla', '1 cucharadita de', 60.0, 6.7, 0.0, 0.1),
+            ('aceitunas', 'Aceitunas', '10 unidades', 41.0, 4.0, 1.0, 0.0),
+            ('margarina', 'Margarina', '1 cucharadita de', 37.0, 4.1, 0.0, 0.0),
+            ('mayonesa', 'Mayonesa', '1 cucharada de', 57.0, 4.9, 3.5, 0.1),
+            ('merey', 'Merey o anacardos', '3 cucharadas', 165.0, 13.5, 8.5, 4.7),
+            ('nueces', 'Nueces', '3 cucharadas', 183.0, 18.2, 3.8, 4.2),
+            ('pistachos', 'Pistachos', '3 cucharadas', 158.0, 12.6, 7.9, 5.8),
+            ('aceite_oliva', 'Aceite de oliva', '1 cucharada de', 80.0, 9.0, 0.0, 0.0),
+            ('aceite_ajonjoli', 'Aceite de ajonjolí', '1 cucharada de', 80.0, 9.0, 0.0, 0.0),
+            ('aceite_girasol', 'Aceite de girasol', '1 cucharada de', 107.0, 12.0, 0.0, 0.0),
+            ('aceite_maiz', 'Aceite de maíz', '1 cucharada de', 107.0, 12.0, 0.0, 0.0),
+            ('aceite_palma', 'Aceite de palma', '1 cucharada de', 120.0, 13.6, 0.0, 0.0),
+            ('aceite_soja', 'Aceite de soja', '1 cucharada de', 130.0, 14.0, 0.0, 0.0),
+            ('almendras', 'Almendras', '20 unidades', 138.0, 12.0, 4.6, 5.0),
+            ('cacahuete', 'Cacahuete o maní', '3 cucharadas', 164.0, 13.9, 6.0, 6.6)
+        ],
+        "comida_riesgosa": [
+            ('hamburguesa', 'Hamburguesa', '1 unidad', 668.0, 40.0, 36.8, 38.9, 'Elija carnes magras, pan integral y evite salsas con mucha grasa.'),
+            ('pizza', 'Pizza', '1 unidad', 847.0, 36.0, 93.1, 37.8, 'Prefiera masas integrales y rellenos de vegetales.'),
+            ('empanada', 'Empanada', '3 unidades', 720.0, 37.8, 72.0, 22.2, 'Prefiera empanadas horneadas en lugar de fritas.'),
+            ('hallaca', 'Hallaca', '1 unidad', 589.0, 41.1, 32.8, 23.6, 'Reduzca la cantidad de grasa en la masa y elija rellenos más magros.'),
+            ('mondongo', 'Mondongo', '1 plato', 773.0, 29.0, 102.0, 29.0, 'Trate de desgrasar muy bien la carne antes de la preparación.'),
+            ('pabellon', 'Pabellón criollo', '1 plato', 848.0, 38.0, 93.1, 37.0, 'Use cortes magros y evite freír los plátanos (prefiera horneados).'),
+            ('hot_dog', 'Perro caliente (hot dog)', '1 unidad', 242.0, 14.5, 18.0, 10.3, 'Elija salchichas de pavo o pollo y evite el exceso de salsas.'),
+            ('helado', 'Helado', '1 taza de', 267.0, 14.2, 32.4, 4.6, 'Opte por sorbetes de fruta natural sin azúcar añadida.'),
+            ('refresco', 'Refresco', '1 vaso de', 120.0, 0.0, 24.8, 0.0, 'Sustituya por agua con gas y limón o infusiones naturales.')
+        ]
+    }
+    
+    for tabla, items in catalogo_data.items():
+        cursor.execute(f"SELECT COUNT(*) FROM catalogo_{tabla}")
+        if cursor.fetchone()[0] == 0:
+            placeholders = ", ".join(["?"] * len(items[0]))
+            cursor.executemany(f"INSERT INTO catalogo_{tabla} VALUES ({placeholders})", items)
+    
+    conn.commit()
+
 init_db()
 
 # --- MIDDLEWARE DE AUTENTICACIÓN ---
@@ -376,6 +634,11 @@ def landing_usuario():
     perfil_nut = cursor.fetchone()
     nutricional_completado = True if perfil_nut else False
 
+    # 8. Obtener peso registrado hoy (si existe)
+    cursor.execute("SELECT peso FROM registro_peso WHERE paciente_id = ? AND fecha = date('now')", (p_id,))
+    peso_hoy_row = cursor.fetchone()
+    peso_hoy = peso_hoy_row[0] if peso_hoy_row else None
+
     conn.close()
     
     return render_template('landing_usuario.html', 
@@ -386,7 +649,8 @@ def landing_usuario():
                           score_inicial=score_inicial,
                           historial_pesos=historial_pesos,
                           metas=metas_nut,
-                          nutricional_completado=nutricional_completado)
+                          nutricional_completado=nutricional_completado,
+                          peso_hoy=peso_hoy)
 
 @app.route('/cuestionario')
 def cuestionario():
@@ -437,7 +701,11 @@ def ver_gemelo(p_id):
 @app.route('/perfil_nutricional')
 @login_required
 def perfil_nutricional():
-    # Esta ruta carga el nuevo cuestionario de preferencias alimentarias
+    # Validar que tenga historia clínica primero
+    if not session.get('paciente_id'):
+        return render_template('landing_usuario.html', 
+                               notification="Primero debes completar tu Historia Clínica inicial.")
+    
     return render_template('cuestionario_nutricional.html')
 
 # 7. Reporte Nutricional Dinámico
@@ -987,6 +1255,149 @@ def reporte_nutricional(p_id):
                            nutricion=nutricion,
                            role=session.get('role'))
 
+# --- 8. REGISTRO DE ALIMENTOS (TCA VENEZUELA) ---
+
+@app.route('/registro_alimentos')
+@login_required
+def registro_alimentos():
+    return render_template('registro_alimentos.html')
+
+@app.route('/api/alimentos/search')
+@login_required
+def search_alimentos():
+    query = request.args.get('q', '')
+    if len(query) < 2:
+        return jsonify([])
+    
+    conn = sqlite3.connect('prodi_salud.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    # Buscamos en master y en preparaciones del usuario
+    cursor.execute("""
+        SELECT id, nombre, categoria, porcion_g, energia_kcal, proteina_g, grasa_g, carbohidratos_g, 0 as es_preparacion
+        FROM alimentos_master 
+        WHERE nombre LIKE ? 
+        LIMIT 20
+    """, ('%' + query + '%',))
+    master_results = [dict(row) for row in cursor.fetchall()]
+    
+    cursor.execute("""
+        SELECT id, nombre, 'Mis Preparaciones' as categoria, 100 as porcion_g, calorias_total as energia_kcal, 
+               proteinas_total as proteina_g, grasas_total as grasa_g, carbohidratos_total as carbohidratos_g, 1 as es_preparacion
+        FROM preparaciones_usuario 
+        WHERE paciente_id = ? AND nombre LIKE ?
+    """, (session.get('paciente_id'), '%' + query + '%'))
+    user_results = [dict(row) for row in cursor.fetchall()]
+    
+    conn.close()
+    return jsonify(user_results + master_results)
+
+@app.route('/api/registro/comida', methods=['POST'])
+@login_required
+def save_comida_log():
+    data = request.json
+    p_id = session.get('paciente_id')
+    if not p_id:
+        return jsonify({"error": "No paciente ID"}), 400
+        
+    fecha = data.get('fecha', datetime.now().strftime('%Y-%m-%d'))
+    momento = data.get('momento') # Desayuno, Almuerzo, etc.
+    alimento_id = data.get('alimento_id')
+    es_preparacion = data.get('es_preparacion', 0)
+    cantidad_g = float(data.get('cantidad_g', 100))
+    
+    # Calcular macros proporcionales
+    conn = sqlite3.connect('prodi_salud.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    if es_preparacion:
+        cursor.execute("SELECT * FROM preparaciones_usuario WHERE id = ?", (alimento_id,))
+        ref = cursor.fetchone()
+        factor = cantidad_g / 100.0 # Asumimos que las preparaciones son base 100g
+    else:
+        cursor.execute("SELECT * FROM alimentos_master WHERE id = ?", (alimento_id,))
+        ref = cursor.fetchone()
+        factor = cantidad_g / (ref['porcion_g'] if ref and ref['porcion_g'] > 0 else 100.0)
+
+    if not ref:
+        conn.close()
+        return jsonify({"error": "Alimento no encontrado"}), 404
+        
+    cal = (ref['energia_kcal'] or 0) * factor
+    prot = (ref['proteina_g'] or 0) * factor
+    fat = (ref['grasa_g'] or 0) * factor
+    carb = (ref['carbohidratos_g'] or 0) * factor
+    
+    cursor.execute("""
+        INSERT INTO registro_comidas_diario 
+        (paciente_id, fecha, momento, alimento_id, es_preparacion, cantidad_g, calorias, proteinas, grasas, carbohidratos)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (p_id, fecha, momento, alimento_id, es_preparacion, cantidad_g, cal, prot, fat, carb))
+    
+    # Marcar que hubo actividad en el diario hoy para la adherencia
+    cursor.execute("INSERT OR IGNORE INTO diario_alimentos (paciente_id, fecha) VALUES (?, ?)", (p_id, fecha))
+    
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route('/api/registro/diario')
+@login_required
+def get_diario_resumen():
+    fecha = request.args.get('fecha', datetime.now().strftime('%Y-%m-%d'))
+    p_id = session.get('paciente_id')
+    
+    conn = sqlite3.connect('prodi_salud.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    cursor.execute("""
+        SELECT r.*, 
+               CASE WHEN r.es_preparacion = 1 THEN p.nombre ELSE m.nombre END as nombre_alimento
+        FROM registro_comidas_diario r
+        LEFT JOIN alimentos_master m ON r.alimento_id = m.id AND r.es_preparacion = 0
+        LEFT JOIN preparaciones_usuario p ON r.alimento_id = p.id AND r.es_preparacion = 1
+        WHERE r.paciente_id = ? AND r.fecha = ?
+    """, (p_id, fecha))
+    
+    items = [dict(row) for row in cursor.fetchall()]
+    conn.close()
+    
+    return jsonify(items)
+
+@app.route('/api/registro/comida/<int:reg_id>', methods=['DELETE'])
+@login_required
+def delete_comida_log(reg_id):
+    p_id = session.get('paciente_id')
+    conn = sqlite3.connect('prodi_salud.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM registro_comidas_diario WHERE id = ? AND paciente_id = ?", (reg_id, p_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
+@app.route('/api/preparaciones', methods=['POST'])
+@login_required
+def save_preparacion():
+    data = request.json
+    p_id = session.get('paciente_id')
+    nombre = data.get('nombre')
+    ingredientes = data.get('ingredientes') # Lista de dicts
+    totales = data.get('totales') # Dict con kcal, prot, etc.
+    
+    import json
+    conn = sqlite3.connect('prodi_salud.db')
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO preparaciones_usuario 
+        (paciente_id, nombre, ingredientes_json, calorias_total, proteinas_total, grasas_total, carbohidratos_total)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    """, (p_id, nombre, json.dumps(ingredientes), totales['kcal'], totales['prot'], totales['fat'], totales['carb']))
+    conn.commit()
+    conn.close()
+    return jsonify({"success": True})
+
     
 # --- 2. FUNCIONES DE CORREO ELECTRÓNICO ---
 def enviar_email_al_equipo(data, resumen_salud):
@@ -1146,7 +1557,7 @@ def submit_nutricion():
                     cursor.execute("""
                         INSERT INTO preferencias_alimentos (paciente_id, alimento_id, tipo, puntuacion)
                         VALUES (?, ?, ?, ?)
-                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion
+                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion, tipo = EXCLUDED.tipo
                     """, (p_id, food_id, 'fruta', int(score)))
 
             # Guardar Vegetales
@@ -1156,18 +1567,19 @@ def submit_nutricion():
                     cursor.execute("""
                         INSERT INTO preferencias_alimentos (paciente_id, alimento_id, tipo, puntuacion)
                         VALUES (?, ?, ?, ?)
-                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion
+                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion, tipo = EXCLUDED.tipo
                     """, (p_id, food_id, 'verdura', int(score)))
 
             # Guardar Proteínas
             for food_id in proteinas_ids:
                 score = request.form.get(food_id)
                 if score is not None:
-                    tipo_p = 'proteina_animal' if food_id in proteinas_ids[:22] else 'proteina_vegetal'
+                    # Corregido: tipo 'animal' y 'vegetal' para coincidir con reporte_nutricional
+                    tipo_p = 'animal' if food_id in proteinas_ids[:22] else 'vegetal'
                     cursor.execute("""
                         INSERT INTO preferencias_alimentos (paciente_id, alimento_id, tipo, puntuacion)
                         VALUES (?, ?, ?, ?)
-                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion
+                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion, tipo = EXCLUDED.tipo
                     """, (p_id, food_id, tipo_p, int(score)))
             
             # Guardar Carbohidratos
@@ -1178,7 +1590,7 @@ def submit_nutricion():
                     cursor.execute("""
                         INSERT INTO preferencias_alimentos (paciente_id, alimento_id, tipo, puntuacion)
                         VALUES (?, ?, ?, ?)
-                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion
+                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion, tipo = EXCLUDED.tipo
                     """, (p_id, food_id, tipo_c, int(score)))
 
             # Guardar Lácteos
@@ -1188,7 +1600,7 @@ def submit_nutricion():
                     cursor.execute("""
                         INSERT INTO preferencias_alimentos (paciente_id, alimento_id, tipo, puntuacion)
                         VALUES (?, ?, ?, ?)
-                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion
+                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion, tipo = EXCLUDED.tipo
                     """, (p_id, food_id, 'lacteo', int(score)))
 
             # Guardar Grasas
@@ -1198,7 +1610,7 @@ def submit_nutricion():
                     cursor.execute("""
                         INSERT INTO preferencias_alimentos (paciente_id, alimento_id, tipo, puntuacion)
                         VALUES (?, ?, ?, ?)
-                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion
+                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion, tipo = EXCLUDED.tipo
                     """, (p_id, food_id, 'grasa', int(score)))
 
             # Guardar Frecuencias de Comida Riesgosa
@@ -1215,7 +1627,7 @@ def submit_nutricion():
                     cursor.execute("""
                         INSERT INTO preferencias_alimentos (paciente_id, alimento_id, tipo, puntuacion)
                         VALUES (?, ?, ?, ?)
-                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion
+                        ON CONFLICT(paciente_id, alimento_id) DO UPDATE SET puntuacion = EXCLUDED.puntuacion, tipo = EXCLUDED.tipo
                     """, (p_id, food_id, 'frecuencia_riesgosa', freq_map[freq_val]))
 
             conn.commit()
@@ -1244,15 +1656,45 @@ def save_checkin():
         cursor = conn.cursor()
         
         # Construcción dinámica basada en los datos recibidos
-        columnas = data.keys()
+        cursor.execute("PRAGMA table_info(seguimiento_twin)"); valid_cols = [r[1] for r in cursor.fetchall()]; filtered_data = {k: v for k, v in data.items() if k in valid_cols}; columnas = filtered_data.keys()
         placeholders = ", ".join(["?"] * len(columnas))
         query = f"INSERT INTO seguimiento_twin ({', '.join(columnas)}) VALUES ({placeholders})"
         
-        cursor.execute(query, list(data.values()))
+        cursor.execute(query, list(filtered_data.values()))
         conn.commit()
         conn.close()
         
         return jsonify({"status": "success", "message": "Check-in guardado"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/registrar_peso', methods=['POST'])
+@login_required
+def registrar_peso():
+    """Ruta rápida para registrar el peso diario desde el landing"""
+    data = request.get_json()
+    p_id = session.get('paciente_id')
+    peso = data.get('peso')
+    
+    if not p_id or peso is None:
+        return jsonify({"error": "Datos incompletos"}), 400
+        
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        cursor = conn.cursor()
+        
+        # Verificar si ya existe registro hoy
+        cursor.execute("SELECT id FROM registro_peso WHERE paciente_id = ? AND fecha = date('now')", (p_id,))
+        existente = cursor.fetchone()
+        
+        if existente:
+            cursor.execute("UPDATE registro_peso SET peso = ? WHERE id = ?", (peso, existente[0]))
+        else:
+            cursor.execute("INSERT INTO registro_peso (paciente_id, fecha, peso) VALUES (?, date('now'), ?)", (p_id, peso))
+            
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1288,7 +1730,7 @@ def dashboard():
         cursor.execute("SELECT * FROM historias_clinicas ORDER BY fecha_registro DESC")
         pacientes = cursor.fetchall()
         conn.close()
-        return render_template('dashboard.html', pacientes=pacientes)
+        return render_template('index.html', pacientes=pacientes)
     except Exception as e:
         return f"Error al cargar el dashboard: {e}"
 
@@ -1482,6 +1924,76 @@ def update_submission():
 
 
 
+
+
+@app.route('/base_de_datos')
+def base_de_datos():
+    if 'user_id' not in session or session.get('role') != 'admin':
+        return redirect(url_for('login'))
+    
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # 1. Obtener nombres de columnas de Historias Clínicas (Excluyendo analisis_driver)
+        cursor.execute("PRAGMA table_info(historias_clinicas)")
+        cols_hc = [row[1] for row in cursor.fetchall() if row[1] != 'analisis_driver']
+        
+        # 2. Obtener nombres de columnas de Perfil Nutricional (Excluyendo IDs y fechas redundantes)
+        cursor.execute("PRAGMA table_info(perfil_nutricional)")
+        cols_pn = [row[1] for row in cursor.fetchall() if row[1] not in ['id', 'paciente_id', 'fecha_registro']]
+        
+        # 3. Query con JOIN aliasing para evitar colisiones de nombres (ej: frecuencia_alcohol)
+        hc_select = ", ".join([f"hc.{c}" for c in cols_hc])
+        pn_select = ", ".join([f"pn.{c} as pn_{c}" for c in cols_pn]) if cols_pn else ""
+        
+        # Crear lista de columnas finales para el header (usando los alias para PN)
+        columnas_finales = cols_hc + [f"pn_{c}" for c in cols_pn]
+        
+        query = f"""
+            SELECT {hc_select} {', ' + pn_select if pn_select else ''}
+            FROM historias_clinicas hc
+            LEFT JOIN perfil_nutricional pn ON hc.id = pn.paciente_id
+            ORDER BY hc.id DESC
+        """
+        
+        cursor.execute(query)
+        filas_raw = cursor.fetchall()
+        
+        # 4. Obtener resumen de preferencias individuales para cada paciente
+        filas = []
+        for row in filas_raw:
+            p_id = row['id']
+            # Obtener top 3 frutas
+            cursor.execute("""
+                SELECT alimento_id FROM preferencias_alimentos 
+                WHERE paciente_id = ? AND tipo = 'fruta' AND puntuacion >= 4
+                LIMIT 3
+            """, (p_id,))
+            top_frutas = ", ".join([r[0].capitalize() for r in cursor.fetchall()])
+            
+            # Obtener top 3 verduras
+            cursor.execute("""
+                SELECT alimento_id FROM preferencias_alimentos 
+                WHERE paciente_id = ? AND tipo = 'verdura' AND puntuacion >= 4
+                LIMIT 3
+            """, (p_id,))
+            top_verduras = ", ".join([r[0].capitalize() for r in cursor.fetchall()])
+            
+            # Convertir row a dict y añadir extras
+            d = dict(row)
+            d['pn_top_frutas'] = top_frutas if top_frutas else "--"
+            d['pn_top_verduras'] = top_verduras if top_verduras else "--"
+            filas.append(d)
+            
+        columnas_finales = columnas_finales + ['pn_top_frutas', 'pn_top_verduras']
+        
+        conn.close()
+        return render_template('base_de_datos.html', columnas=columnas_finales, filas=filas)
+    except Exception as e:
+        print(f"Error en base_de_datos extendida: {e}")
+        return f"Error al cargar la base de datos extendida: {e}", 500
 
 
 # --- 4. EJECUCIÓN DEL SERVIDOR (SIEMPRE AL FINAL) ---

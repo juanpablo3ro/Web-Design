@@ -330,7 +330,7 @@
                 ('leche_descremada', 'Leche descremada'),
                 ('queso_amarillo', 'Queso amarillo'),
                 ('queso_blanco', 'Queso blanco'),
-                ('queso_mozarella', 'Queso mozarella'),
+                ('queso_mozarella', 'Queso mozzarella'),
                 ('ricota', 'Ricota'),
                 ('yogurt', 'Yogurt'),
                 ('yogurt_descremado', 'Yogurt descremado')
@@ -387,35 +387,7 @@
                 {% endfor %}
             </fieldset>
 
-            <!-- Preferencias de Lácteos -->
-            <fieldset>
-                <legend>Preferencias de Lácteos</legend>
-                <p class="instructions">Indica cuánto te gustan estos productos lácteos (0: No me gusta, 5: Me encanta)
-                </p>
 
-                {% set lacteos = [
-                ('leche_completa', 'Leche completa'),
-                ('leche_descremada', 'Leche descremada'),
-                ('queso_amarillo', 'Queso amarillo'),
-                ('queso_blanco', 'Queso blanco'),
-                ('queso_mozarella', 'Queso mozzarella'),
-                ('ricota', 'Ricota'),
-                ('yogurt', 'Yogurt'),
-                ('yogurt_descremado', 'Yogurt descremado')
-                ] %}
-
-                {% for id, nombre in lacteos %}
-                <div class="food-preference">
-                    <label style="color: white; font-weight: bold;">{{ nombre }}:</label>
-                    <span id="{{ id }}-value" class="range-value">0</span>
-                    <input type="range" id="{{ id }}" name="{{ id }}" min="0" max="5" value="0" class="modern-range">
-                    <div class="range-labels">
-                        <span>No me gusta</span>
-                        <span>Me encanta</span>
-                    </div>
-                </div>
-                {% endfor %}
-            </fieldset>
             <!-- Frecuencia de Consumo General -->
             <fieldset class="radio-wrapper-18">
                 <legend>Frecuencia de Consumo</legend>

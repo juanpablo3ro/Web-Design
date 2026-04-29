@@ -1,7 +1,9 @@
 :root {
     --color-bg: #ECEDF8;
-    --color-primary: #334155; /* Gris pizarra suave para texto principal */
-    --color-secondary: #1E293B; /* Azul pizarra profundo para encabezados */
+    --color-primary: #334155;
+    /* Gris pizarra suave para texto principal */
+    --color-secondary: #1E293B;
+    /* Azul pizarra profundo para encabezados */
     --color-accent: #189788;
     --color-success: #10B981;
     --color-warning: #F59E0B;
@@ -10,27 +12,41 @@
     --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.02), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
 }
 
-.text-accent { color: var(--color-accent) !important; }
-.bg-accent { background-color: var(--color-accent) !important; }
-.border-accent { border-color: var(--color-accent) !important; }
+.text-accent {
+    color: var(--color-accent) !important;
+}
+
+.bg-accent {
+    background-color: var(--color-accent) !important;
+}
+
+.border-accent {
+    border-color: var(--color-accent) !important;
+}
 
 body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--color-bg);
     color: var(--color-primary);
     line-height: 1.6;
-    font-size: 16px; /* Base sólida para legibilidad */
+    font-size: 16px;
+    /* Base sólida para legibilidad */
     padding: 30px;
     -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4 {
+h1,
+h2,
+h3,
+h4 {
     color: var(--color-secondary);
     font-weight: 700;
     letter-spacing: -0.01em;
 }
 
-.glass-card, .glass-green, .glass-orange {
+.glass-card,
+.glass-green,
+.glass-orange {
     background: var(--card-bg) !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
@@ -38,7 +54,8 @@ h1, h2, h3, h4 {
     border: 1px solid var(--card-border) !important;
     border-radius: 16px;
     box-shadow: var(--card-shadow);
-    padding: 28px; /* Incrementado para mejor aire visual */
+    padding: 28px;
+    /* Incrementado para mejor aire visual */
     transition: transform 0.2s ease;
 }
 
@@ -55,7 +72,8 @@ h1, h2, h3, h4 {
     border-left: 4px solid var(--color-warning) !important;
 }
 
-.val-highlight, .val-highlight-orange {
+.val-highlight,
+.val-highlight-orange {
     color: var(--color-accent) !important;
     font-size: 1.5rem;
     font-weight: 900;
@@ -153,7 +171,8 @@ h1, h2, h3, h4 {
 .gauge-card-modern {
     position: relative;
     padding: 2.5rem;
-    background: #f8fafc; /* Slate 50 para un ligero contraste interno */
+    background: #f8fafc;
+    /* Slate 50 para un ligero contraste interno */
     border-radius: 1.5rem;
     border: 1px solid rgba(0, 0, 0, 0.03);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
@@ -479,7 +498,8 @@ h1, h2, h3, h4 {
 /* Contenedor general de recomendaciones */
 .recomendaciones-section {
     margin-top: 40px;
-    padding: 0; /* Eliminamos el fondo oscuro y el padding extra */
+    padding: 0;
+    /* Eliminamos el fondo oscuro y el padding extra */
     border-radius: 0;
     background-color: transparent;
     box-shadow: none;
@@ -496,7 +516,8 @@ h1, h2, h3, h4 {
 
 .recomendacion-texto {
     font-size: 1.1rem;
-    color: #475569; /* Slate 600 para mejor legibilidad */
+    color: #475569;
+    /* Slate 600 para mejor legibilidad */
     line-height: 1.6;
 }
 
@@ -555,6 +576,7 @@ h1, h2, h3, h4 {
     .dashboard-container {
         flex-direction: column;
     }
+
     .sidebar {
         position: relative;
         width: 100%;
@@ -562,6 +584,7 @@ h1, h2, h3, h4 {
         border-right: none;
         border-bottom: 1px solid var(--card-border);
     }
+
     .report-content {
         margin-left: 0;
         width: 100%;
@@ -574,7 +597,7 @@ h1, h2, h3, h4 {
     width: 100%;
     padding: 12px 16px;
     border-radius: 12px;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
     font-weight: 700;
     margin-bottom: 8px;
     transition: all 0.2s ease;
@@ -618,13 +641,29 @@ h1, h2, h3, h4 {
 }
 
 /* --- ACCENTS --- */
-.text-justify { text-align: justify; }
+.text-justify {
+    text-align: justify;
+}
 
 @media print {
-    .no-print { display: none !important; }
-    .report-content { margin-left: 0 !important; width: 100% !important; }
-    body { background: white !important; padding: 0 !important; }
-    .glass-card { box-shadow: none !important; border: 1px solid #eee !important; }
+    .no-print {
+        display: none !important;
+    }
+
+    .report-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+
+    body {
+        background: white !important;
+        padding: 0 !important;
+    }
+
+    .glass-card {
+        box-shadow: none !important;
+        border: 1px solid #eee !important;
+    }
 }
 
 /* Participant Nav */
@@ -635,4 +674,79 @@ h1, h2, h3, h4 {
     background: rgba(236, 237, 248, 0.8);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--card-border);
+}
+
+/* --- NUTRITION SPECIFIC (NEW) --- */
+.alim-category-badge {
+    background: #F1F5F9;
+    /* slate-100 */
+    color: var(--color-accent);
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 16px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.gauge-mini-card {
+    background: #FFFFFF !important;
+    border-radius: 24px;
+    box-shadow: 0 15px 30px -10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.gauge-mini-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    filter: blur(40px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.gauge-mini-svg {
+    z-index: 1;
+    filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.05));
+}
+
+.gauge-mini-label {
+    fill: var(--color-secondary);
+    font-size: 4px;
+    font-weight: 900;
+    text-anchor: middle;
+}
+
+/* Print Overrides */
+@media print {
+    body {
+        background: #fff !important;
+        padding: 0 !important;
+    }
+
+    .sidebar,
+    .participant-nav,
+    .no-print {
+        display: none !important;
+    }
+
+    .report-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .glass-card {
+        break-inside: avoid;
+        border: 1px solid #eee !important;
+        box-shadow: none !important;
+    }
+
+    .section-header::after {
+        background: #ddd !important;
+    }
 }

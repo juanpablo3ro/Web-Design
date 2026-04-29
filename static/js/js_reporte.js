@@ -160,7 +160,7 @@ function actualizarSeccionMedicación(d) {
             "medicamento_lipidos": "h-med-lipidos",
             "medicamento_peso": "h-med-peso"
         };
-        
+
         let colorClass = has ? "text-emerald-600" : "opacity-30 text-slate-400";
         if (k === "medicamento_peso" && has) colorClass = "text-accent";
 
@@ -507,7 +507,7 @@ function actualizarLaboratorio(d) {
     // Sincronizar diagnóstico de lípidos si existe la función
     if (typeof Diagnosticos !== 'undefined') {
         const dLip = Diagnosticos.lipidos(d);
-        const resLip = document.getElementById('diag-lipidos-lab'); 
+        const resLip = document.getElementById('diag-lipidos-lab');
         if (resLip) {
             resLip.innerText = dLip.label;
             resLip.className = `text-sm font-bold ${dLip.color}`;
@@ -623,7 +623,7 @@ const Diagnosticos = {
             if (tieneDiabetes) {
                 return { label: "HTA No Controlada (DM)", alt: true, color: 'text-red-500' };
             }
-            return { label: tomaMed ? "HTA Controlada (No Optima)" : "PA Elevada", alt: true, color: 'text-orange-500' };
+            return { label: tomaMed ? "HTA Controlada (No Optima)" : "Presión Arterial Elevada", alt: true, color: 'text-orange-500' };
         }
 
         if (tomaMed) {
@@ -669,9 +669,9 @@ const Diagnosticos = {
         const nivel = nivelRaw.split(' (')[0];
         let label = "Baja", alt = true;
         // Solo moderado o muy activo se consideran adecuados en este criterio
-        if (nivel.includes("Moderadamente") || nivel.includes("Muy")) { 
-            label = "Adecuada"; 
-            alt = false; 
+        if (nivel.includes("Moderadamente") || nivel.includes("Muy")) {
+            label = "Adecuada";
+            alt = false;
         }
         return { label, alt };
     },
@@ -1120,7 +1120,7 @@ function actualizarRecomendacionesVida(d, imcCalculado) {
             recLipidosAuto = "Optimiza el consumo de grasas saludables y considera evaluación médica para tratamiento";
             break;
         case "Dislipidemia (Tratada)":
-            recLipidosAuto = "Mantén tu tratamiento actual y monitorea niveles para asegurar metas de control";
+            recLipidosAuto = "Es posible que sea necesario ajustar tu tratamiento";
             break;
         case "Normal (Tratada)":
             recLipidosAuto = "Excelente control bajo tratamiento; continúa con tus hábitos y medicación";

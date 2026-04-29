@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Base de Datos | PRODI Health</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #F8FAFC;
+            --color-accent: #189788;
+            --color-primary: #0F172A;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-primary);
+        }
+
+        h1, h2 {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .glass-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 70vh;
+            border-radius: 12px;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            background: #F1F5F9;
+            z-index: 10;
+            border-bottom: 2px solid #E2E8F0;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748B;
+            font-weight: 800;
+        }
+
+        td {
+            padding: 14px 16px;
+            font-size: 13px;
+            border-bottom: 1px solid #F1F5F9;
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background-color: #F8FAFC;
+        }
+
+        .search-input {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .search-input:focus {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 15px rgba(24, 151, 136, 0.1);
+        }
+
+        .btn-accent {
+            background: var(--color-accent);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(24, 151, 136, 0.3);
+        }
+
+        /* Scrollbar styling */
+        .table-container::-webkit-scrollbar {
+            height: 10px;
+            width: 10px;
+        }
+        .table-container::-webkit-scrollbar-track {
+            background: #F1F5F9;
+        }
+        .table-container::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 10px;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: #94A3B8;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-[1600px] mx-auto">
+        
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+            <div>
+                <nav class="mb-4">
+                    <a href="/dashboard" class="text-accent font-bold uppercase tracking-widest text-[11px] hover:underline">
+                        ← Regresar al Dashboard
+                    </a>
+                </nav>
+                <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight">
+                    Base de Datos Central <span class="text-accent text-5xl">.</span>
+                </h1>
+                <p class="text-slate-500 mt-2">Visualización completa de todos los registros clínicos recolectados.</p>
+            </div>
+
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <input type="text" id="dbSearch" placeholder="Buscar por nombre, email, id..." 
+                    class="search-input w-full md:w-80 px-5 py-3 rounded-xl bg-white shadow-sm outline-none text-sm">
+                
+                <button onclick="exportTableToCSV('registros_prodi.csv')" class="btn-accent px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                    Exportar
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Card -->
+        <div class="glass-card p-4">
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            {% for col in columnas %}
+                            <th class="{{ 'text-blue-600 bg-blue-50/50' if col.startswith('pn_') else '' }}">
+                                {{ col | replace('pn_', 'NUTRI: ') | replace('_', ' ') }}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fila in filas %}
+                        <tr class="row-item">
+                            {% for col in columnas %}
+                            <td>{{ fila[col] if fila[col] is not none else '--' }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6 flex justify-between items-center text-slate-400 text-xs font-bold uppercase tracking-widest">
+                <span>Total Registros: {{ filas | length }}</span>
+                <span>PRODI Intelligence &copy; 2026</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Lógica de búsqueda en tiempo real
+        document.getElementById('dbSearch').addEventListener('keyup', function() {
+            const term = this.value.toLowerCase();
+            const rows = document.querySelectorAll('.row-item');
+            
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+
+        // Función simple para exportar a CSV
+        function exportTableToCSV(filename) {
+            const csv = [];
+            const rows = document.querySelectorAll("table tr");
+            
+            for (let i = 0; i < rows.length; i++) {
+                const row = [], cols = rows[i].querySelectorAll("td, th");
+                
+                for (let j = 0; j < cols.length; j++) 
+                    row.push('"' + cols[j].innerText.replace(/"/g, '""') + '"');
+                
+                csv.push(row.join(","));        
+            }
+
+            // Download CSV
+            const csvFile = new Blob([csv.join("\n")], {type: "text/csv"});
+            const downloadLink = document.createElement("a");
+            downloadLink.download = filename;
+            downloadLink.href = window.URL.createObjectURL(csvFile);
+            downloadLink.style.display = "none";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+        }
+    </script>
+</body>
+</html>

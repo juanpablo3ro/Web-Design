@@ -124,53 +124,89 @@
 
 <body class="p-4 md:p-8">
 
-    <div class="max-w-7xl mx-auto space-y-10">
+    <div class="max-w-md mx-auto space-y-10 pb-10">
 
-        <!-- HEADER -->
-        <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <div>
-                <div class="flex items-center gap-3 mb-2">
-                    <span
-                        class="bg-cyan-100 text-cyan-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Día
-                        {{ dias_programa }} del Programa</span>
+        <!-- Notificaciones -->
+        {% if request.args.get('notification') %}
+        <div class="mb-6 p-4 bg-cyan-50 border-l-4 border-cyan-500 rounded-r-xl text-cyan-800 text-sm font-medium animate-pulse">
+            {{ request.args.get('notification') }}
+        </div>
+        {% endif %}
+
+        <!-- HEADER (Estilo Apple Minimalist) -->
+        <header class="space-y-8 pt-4">
+            <div class="flex justify-between items-start px-2">
+                <div class="space-y-1">
+                    <p class="text-[10px] font-bold text-cyan-500 uppercase tracking-[0.2em]">Día {{ dias_programa }}
+                        del
+                        programa</p>
+                    <h1 class="text-4xl font-bold text-gray-900 tracking-tight">Hola, {{ paciente.nombre }}</h1>
                 </div>
-                <h1 class="text-4xl font-black text-gray-900">Bienvenido, {{ paciente.nombre }}</h1>
-                <p class="text-gray-500 font-medium">Tu progreso es la clave de tu nueva salud cardiovascular.</p>
+                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="Logo" class="h-6 opacity-20 grayscale">
             </div>
-            <div class="text-right">
-                <p class="text-xs font-bold text-gray-400 uppercase">Adherencia Acumulada</p>
-                <p class="text-5xl font-black text-cyan-600">{{ adherencia }}%</p>
+
+            <!-- Hero Card: Coach + Score -->
+            <div
+                class="relative bg-white rounded-[2.5rem] h-64 flex items-center shadow-2xl shadow-gray-200/30 border border-gray-50 overflow-hidden">
+                <!-- Coach Container (Zoomed into upper body) -->
+                <div class="w-1/2 h-full relative">
+                    <img src="{{ url_for('static', filename='img/bienvenido.png') }}" alt="Coach PRODI"
+                        class="absolute top-[-5%] left-[-25%] w-[220%] max-w-none object-top">
+                </div>
+
+                <!-- Score Container -->
+                <div class="w-1/2 pr-6 flex flex-col justify-center">
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1">Tu Cumplimiento</p>
+                    <div class="flex items-baseline">
+                        <span class="text-7xl font-bold text-gray-900 tracking-tighter">{{ adherencia }}</span>
+                        <span class="text-xl font-bold text-cyan-500 ml-0.5">%</span>
+                    </div>
+                    <div class="mt-4 h-1 w-full bg-gray-100 rounded-full">
+                        <div class="h-full bg-cyan-500 rounded-full" style="width: {{ adherencia }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mensaje Guía (Simple) -->
+            <div class="px-4">
+                <p class="text-[13px] text-gray-500 leading-relaxed">
+                    <span class="text-cyan-500 font-bold">Pro-tip:</span> A mayor cumplimiento del programa, mayor es tu
+                    posibilidad de éxito.
+                </p>
             </div>
         </header>
 
         <!-- BOTÓN CUESTIONARIO NUTRICIONAL (Solo si no está completado) -->
         {% if not nutricional_completado %}
         <section>
-            <div class="glass-card bg-orange-50 border-orange-200 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div
+                class="glass-card bg-orange-50 border-orange-200 flex flex-col md:flex-row justify-between items-center gap-6">
                 <div class="flex items-center gap-4">
                     <span class="text-4xl">🥗</span>
                     <div>
                         <h3 class="text-lg font-black text-orange-900">Personaliza tu nutrición</h3>
-                        <p class="text-sm text-orange-700 font-medium">Completa tu perfil nutricional para obtener metas personalizadas y tu reporte detallado.</p>
+                        <p class="text-sm text-orange-700 font-medium">Completa tu perfil nutricional para obtener metas
+                            personalizadas y tu reporte detallado.</p>
                     </div>
                 </div>
-                <a href="/perfil_nutricional" class="px-8 py-3 bg-orange-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 whitespace-nowrap">
+                <a href="/perfil_nutricional"
+                    class="px-8 py-3 bg-orange-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 whitespace-nowrap">
                     Completar Perfil
                 </a>
             </div>
         </section>
         {% endif %}
 
-        <!-- SECCIÓN 1: ADHERENCIA PONDERADA (PILARES DEL PROGRAMA) -->
+        <!-- SECCIÓN 1: CUMPLIMIENTO PONDERADO (PILARES DEL PROGRAMA) -->
         <section>
-            <div class="section-header">Mi Adherencia Semanal</div>
+            <div class="section-header">Mi Cumplimiento Semanal</div>
             <div class="glass-card space-y-8">
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <!-- Educación 40% -->
                     <div class="space-y-3">
                         <div class="flex justify-between text-xs font-black uppercase">
                             <span>Educación (40%)</span>
-                            <span class="text-cyan-600">{{ detalles.educacion.score }}% obtenido</span>
+                            <span class="text-cyan-600">{{ detalles.educacion.score }}% cumplimiento</span>
                         </div>
                         <div class="adherence-progress-bg">
                             <div class="adherence-progress-fill"
@@ -182,7 +218,7 @@
                     <div class="space-y-3">
                         <div class="flex justify-between text-xs font-black uppercase">
                             <span>Nutrición (30%)</span>
-                            <span class="text-cyan-600">{{ detalles.nutricion.score }}% obtenido</span>
+                            <span class="text-cyan-600">{{ detalles.nutricion.score }}% cumplimiento</span>
                         </div>
                         <div class="adherence-progress-bg">
                             <div class="adherence-progress-fill"
@@ -195,7 +231,7 @@
                     <div class="space-y-3">
                         <div class="flex justify-between text-xs font-black uppercase">
                             <span>Peso (20%)</span>
-                            <span class="text-cyan-600">{{ detalles.peso.score }}% obtenido</span>
+                            <span class="text-cyan-600">{{ detalles.peso.score }}% cumplimiento</span>
                         </div>
                         <div class="adherence-progress-bg">
                             <div class="adherence-progress-fill"
@@ -208,7 +244,7 @@
                     <div class="space-y-3">
                         <div class="flex justify-between text-xs font-black uppercase">
                             <span>Actividad (10%)</span>
-                            <span class="text-cyan-600">{{ detalles.actividad.score }}% obtenido</span>
+                            <span class="text-cyan-600">{{ detalles.actividad.score }}% cumplimiento</span>
                         </div>
                         <div class="adherence-progress-bg">
                             <div class="adherence-progress-fill"
@@ -219,276 +255,194 @@
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- REPORTES Y RECOMENDACIONES -->
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <a href="/reporte/{{ paciente.id }}" class="nav-card glass-card border-l-8 border-cyan-500 text-left items-start p-8 group">
-                <div class="flex justify-between w-full mb-4">
-                    <span class="text-3xl">📋</span>
-                    <span class="bg-cyan-100 text-cyan-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Ver Análisis</span>
+            <!-- SECCIÓN GUÍA: RECOMENDACIONES -->
+            <section class="space-y-6">
+                <!-- Coach 2 Hero (Centrada, mitad superior) -->
+                <div
+                    class="relative bg-white rounded-[2.5rem] h-64 shadow-2xl shadow-gray-200/30 border border-gray-50 overflow-hidden">
+                    <img src="{{ url_for('static', filename='img/coach2.png') }}" alt="Coach Guide"
+                        class="w-full h-auto object-top object-contain scale-[1] ">
                 </div>
-                <h3 class="text-xl font-black text-gray-900 mb-2 group-hover:text-cyan-600 transition-colors">Recomendaciones Generales</h3>
-                <p class="text-sm text-gray-500 font-medium italic">Accede a tu reporte médico detallado basado en tu historial clínico inicial.</p>
-            </a>
 
-            <!-- CARD NUTRICIÓN: Acceso condicional -->
-            <div onclick="handleNutritionalClick(event, {{ 'true' if nutricional_completado else 'false' }})" class="nav-card glass-card border-l-8 border-orange-500 text-left items-start p-8 group cursor-pointer">
-                <div class="flex justify-between w-full mb-4">
-                    <span class="text-3xl">🍎</span>
-                    <span class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-[10px] font-black uppercase">Ver Plan</span>
+                <div class="text-center space-y-6">
+                    <h2 class="text-2xl font-bold text-gray-900 tracking-tight">¿Qué deseas ver?</h2>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Recomendaciones Generales -->
+                        <a href="/reporte/{{ paciente.id }}"
+                            class="bg-white p-6 rounded-[2.5rem] shadow-xl shadow-gray-200/20 border border-gray-50 flex flex-col items-center text-center space-y-3 group transition-all duration-300 hover:shadow-cyan-100 hover:-translate-y-1">
+                            <div
+                                class="w-14 h-14 bg-cyan-50 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-cyan-500 group-hover:text-white transition-all duration-300">
+                                <span>📋</span>
+                            </div>
+                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-wider">TUS
+                                Recomendaciones<br>Generales</span>
+                        </a>
+
+                        <!-- Recomendaciones Nutricionales -->
+                        <div onclick="handleNutritionalClick(event, {{ 'true' if nutricional_completado else 'false' }})"
+                            class="bg-white p-6 rounded-[2.5rem] shadow-xl shadow-gray-200/20 border border-gray-50 flex flex-col items-center text-center space-y-3 group cursor-pointer transition-all duration-300 hover:shadow-orange-100 hover:-translate-y-1">
+                            <div
+                                class="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
+                                <span>🍎</span>
+                            </div>
+                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-wider">Tu
+                                Plan<br>Nutricional</span>
+                            <a href="/reporte_nutricional/{{ paciente.id }}" id="nutritionalLink" class="hidden"></a>
+                        </div>
+                    </div>
                 </div>
-                <h3 class="text-xl font-black text-gray-900 mb-2 group-hover:text-orange-600 transition-colors">Recomendaciones Nutricionales</h3>
-                <p class="text-sm text-gray-500 font-medium italic">Consulta tu plan de alimentación y metas calóricas personalizadas.</p>
-                <a href="/reporte_nutricional/{{ paciente.id }}" id="nutritionalLink" class="hidden"></a>
+            </section>
+
+            <!-- MODAL: CUESTIONARIO PENDIENTE -->
+            <div id="nutritionalModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNutritionalModal()"></div>
+                <div
+                    class="glass-card bg-white relative z-10 max-w-md w-full p-8 text-center shadow-2xl border-orange-200">
+                    <div class="text-6xl mb-6">🔒</div>
+                    <h3 class="text-2xl font-black text-gray-900 mb-4">¡Paso Pendiente!</h3>
+                    <p class="text-gray-600 mb-8 leading-relaxed">
+                        Para acceder a tus <strong>Recomendaciones Nutricionales</strong> personalizadas, primero
+                        necesitamos que completes tu perfil nutricional. Esto nos permitirá calcular tus metas exactas.
+                    </p>
+                    <div class="flex flex-col gap-3">
+                        <a href="/perfil_nutricional"
+                            class="px-8 py-4 bg-orange-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20">
+                            Completar Perfil Ahora
+                        </a>
+                        <button onclick="closeNutritionalModal()"
+                            class="px-8 py-4 bg-gray-100 text-gray-500 rounded-xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all">
+                            Tal vez después
+                        </button>
+                    </div>
+                </div>
             </div>
-        </section>
 
-        <!-- MODAL: CUESTIONARIO PENDIENTE -->
-        <div id="nutritionalModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNutritionalModal()"></div>
-            <div class="glass-card bg-white relative z-10 max-w-md w-full p-8 text-center shadow-2xl border-orange-200">
-                <div class="text-6xl mb-6">🔒</div>
-                <h3 class="text-2xl font-black text-gray-900 mb-4">¡Paso Pendiente!</h3>
-                <p class="text-gray-600 mb-8 leading-relaxed">
-                    Para acceder a tus <strong>Recomendaciones Nutricionales</strong> personalizadas, primero necesitamos que completes tu perfil nutricional. Esto nos permitirá calcular tus metas exactas.
-                </p>
-                <div class="flex flex-col gap-3">
-                    <a href="/perfil_nutricional" class="px-8 py-4 bg-orange-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20">
-                        Completar Perfil Ahora
-                    </a>
-                    <button onclick="closeNutritionalModal()" class="px-8 py-4 bg-gray-100 text-gray-500 rounded-xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all">
-                        Tal vez después
+            <!-- MODAL: ÉXITO NUTRICIONAL -->
+            <div id="successModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSuccessModal()"></div>
+                <div
+                    class="glass-card bg-white relative z-10 max-w-md w-full p-8 text-center shadow-2xl border-green-200">
+                    <div class="text-6xl mb-6">🎈</div>
+                    <h3 class="text-2xl font-black text-gray-900 mb-4">¡Gracias por completar tu información!</h3>
+                    <p class="text-gray-600 mb-8 leading-relaxed">
+                        Tus <strong>Recomendaciones Nutricionales</strong> ya están disponibles. ¡Sigue así!
+                    </p>
+                    <button onclick="closeSuccessModal()"
+                        class="px-8 py-4 bg-green-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 w-full">
+                        Excelente
                     </button>
                 </div>
             </div>
-        </div>
 
-        <!-- MODAL: ÉXITO NUTRICIONAL -->
-        <div id="successModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
-            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSuccessModal()"></div>
-            <div class="glass-card bg-white relative z-10 max-w-md w-full p-8 text-center shadow-2xl border-green-200">
-                <div class="text-6xl mb-6">🎈</div>
-                <h3 class="text-2xl font-black text-gray-900 mb-4">¡Gracias por completar tu información!</h3>
-                <p class="text-gray-600 mb-8 leading-relaxed">
-                    Tus <strong>Recomendaciones Nutricionales</strong> ya están disponibles. ¡Sigue así!
-                </p>
-                <button onclick="closeSuccessModal()" class="px-8 py-4 bg-green-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 w-full">
-                    Excelente
-                </button>
-            </div>
-        </div>
 
-        <!-- SECCIÓN 2: SALUD CARDIOVASCULAR E INDICADORES -->
-        <section>
-            <div class="section-header">Salud Cardiovascular Inicial vs. Progreso</div>
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                <!-- PANEL IZQUIERDO: BIOMETRÍA INICIAL -->
-                <div class="lg:col-span-4 space-y-6">
-                    <div class="glass-card border-l-4 border-orange-500 h-full flex flex-col justify-between">
-                        <div>
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="biometric-label">Estado Inicial (Día 0)</h3>
-                                <span class="badge-score">
-                                    {% if score_inicial is not none %}
-                                    {{ score_inicial }} / 100
-                                    {% else %}
-                                    -- / 100
-                                    {% endif %}
-                                </span>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-y-6 gap-x-4">
-                                <div>
-                                    <p class="biometric-label text-orange-600">Presión Arterial</p>
-                                    <p class="biometric-value">{{ paciente.presion_sistolica }}/{{
-                                        paciente.presion_diastolica }} <small class="text-[10px]">mmHg</small></p>
-                                </div>
-                                <div>
-                                    <p class="biometric-label">Peso Inicial</p>
-                                    <p class="biometric-value">{{ paciente.peso_kg }} <small
-                                            class="text-[10px]">kg</small></p>
-                                </div>
-                                <div>
-                                    <p class="biometric-label">Colesterol LDL</p>
-                                    <p class="biometric-value">{{ paciente.colesterol_ldl or '--' }} <small
-                                            class="text-[10px]">mg/dL</small></p>
-                                </div>
-                                <div>
-                                    <p class="biometric-label">Glucosa Ayunas</p>
-                                    <p class="biometric-value">{{ paciente.glucosa_ayunas or '--' }} <small
-                                            class="text-[10px]">mg/dL</small></p>
-                                </div>
-                                <div class="col-span-2 pt-4 border-t border-gray-100">
-                                    <p class="biometric-label">Situación Inicial</p>
-                                    <p class="text-sm font-bold text-orange-700 mt-1">Evaluación de base registrada el
-                                        {{ (paciente.fecha_registro.split(' ') | first) if paciente.fecha_registro else
-                                        '--' }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- PANEL DERECHO: GRÁFICA DE SEGUIMIENTO SCORE CV -->
-                <div class="lg:col-span-8 glass-card">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <h3 class="text-xs font-bold text-gray-400 uppercase">Evolución del Score Cardiovascular
-                            </h3>
-                            <p class="text-2xl font-black text-green-600">
-                                {% if score_inicial is not none %}
-                                Actual: {{ score_inicial + 5 }} / 100
-                                {% else %}
-                                Actual: Pendiente
-                                {% endif %}
-                            </p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded">
-                                {% if score_inicial is not none %}
-                                +5 puntos ganados
-                                {% else %}
-                                Pendiente de datos
-                                {% endif %}
-                            </span>
-                        </div>
-                    </div>
-                    <div style="height: 250px;">
-                        <canvas id="cvEvolutionChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECCIÓN 3: METAS BIOLÓGICAS (PESO Y CALORÍAS) -->
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-                <div class="section-header">Control de Peso</div>
-                <div class="glass-card">
-                    <div style="height: 180px;">
-                        <canvas id="weightChart"></canvas>
-                    </div>
-                    <div class="mt-4 flex justify-between items-center border-t border-gray-100 pt-4">
-                        <span class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Tendencia de
-                            Peso</span>
-                        <span class="text-lg font-black text-cyan-600">Actual: {{ historial_pesos['values'][-1] }}
-                            kg</span>
-                    </div>
-                </div>
-            </div>
-
-            <div>
-                <div class="section-header">Meta Energética Diaria</div>
-                <div class="glass-card flex flex-col justify-between h-[calc(100%-48px)]">
-                    <div class="flex justify-between items-end mb-6">
-                        <div>
-                            <p class="text-4xl font-black text-cyan-600">
-                                {{ metas.calorias if metas.calorias > 0 else 'Pendiente' }}
-                            </p>
-                            <p class="text-xs font-bold text-gray-400 uppercase">Kcal Meta Diaria</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xs font-bold text-gray-300 uppercase tracking-widest">Basado en tu perfil</p>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-3 gap-4 py-6 bg-gray-50 rounded-2xl text-center">
-                        <div>
-                            <p class="biometric-label">Proteína</p>
-                            <p class="font-black">{{ metas.proteina if metas.calorias > 0 else '--' }}g</p>
-                        </div>
-                        <div>
-                            <p class="biometric-label">Carbs</p>
-                            <p class="font-black">{{ metas.carbos if metas.calorias > 0 else '--' }}g</p>
-                        </div>
-                        <div>
-                            <p class="biometric-label">Grasas</p>
-                            <p class="font-black">{{ metas.grasas if metas.calorias > 0 else '--' }}g</p>
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-center text-gray-400 mt-4 italic">"Mantener esta distribución optimiza tu
-                        adherencia metabólica."</p>
-                </div>
-            </div>
-        </section>
-
-        <!-- SECCIÓN 4: ACCIÓN Y EDUCACIÓN -->
-        <section class="grid grid-cols-1 md:grid-cols-12 gap-8">
-            <div class="md:col-span-8">
-                <div class="section-header">Sesión Educativa Semanal</div>
-                <div class="glass-card p-4">
-                    <div class="video-player">
-                        <div
-                            class="text-center p-8 bg-black/40 w-full h-full flex flex-col items-center justify-center">
+            <!-- SECCIÓN 4: ACCIÓN Y EDUCACIÓN -->
+            <section class="grid grid-cols-1 md:grid-cols-12 gap-8">
+                <div class="md:col-span-8">
+                    <div class="section-header">Tu Sesión Educativa Semanal</div>
+                    <div class="glass-card p-4">
+                        <div class="video-player">
                             <div
-                                class="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center mb-4 shadow-xl shadow-cyan-500/30">
-                                <svg class="w-10 h-10 text-white fill-current" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z" />
-                                </svg>
+                                class="text-center p-8 bg-black/40 w-full h-full flex flex-col items-center justify-center">
+                                <div
+                                    class="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center mb-4 shadow-xl shadow-cyan-500/30">
+                                    <svg class="w-10 h-10 text-white fill-current" viewBox="0 0 24 24">
+                                        <path d="M8 5v14l11-7z" />
+                                    </svg>
+                                </div>
+                                <h4 class="text-white text-xl font-black mb-1">Módulo 1: Introducción a la
+                                    Bio-Optimización
+                                </h4>
+                                <p class="text-cyan-200 font-bold">Progreso Actual: {{ detalles.educacion.pct }}%
+                                    completado
+                                </p>
                             </div>
-                            <h4 class="text-white text-xl font-black mb-1">Módulo 1: Introducción a la Bio-Optimización
-                            </h4>
-                            <p class="text-cyan-200 font-bold">Progreso Actual: {{ detalles.educacion.pct }}% completado
-                            </p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="md:col-span-4">
-                <div class="section-header">Acciones Rápidas</div>
-                <div class="glass-card bg-cyan-50 border-cyan-100 h-[calc(100%-48px)] flex flex-col justify-between">
-                    <div class="space-y-4">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xl">📝</span>
-                            <p class="font-black text-sm">Registro Diario</p>
+                <div class="md:col-span-4">
+                    <div class="section-header">Acciones Rápidas</div>
+                    <div class="glass-card bg-cyan-50 border-cyan-100 h-[calc(100%-48px)] flex flex-col p-6">
+                        <div class="space-y-6">
+                            <!-- Registro de Peso -->
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-cyan-50">
+                                        <svg class="w-6 h-6 text-cyan-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="4" />
+                                            <circle cx="12" cy="10" r="3" />
+                                            <path d="M12 7v3" />
+                                            <path d="M9 10h6" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <p class="font-black text-sm">Peso de hoy</p>
+                                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Registro diario</p>
+                                    </div>
+                                </div>
+
+                                {% if peso_hoy %}
+                                <div id="weightDisplay" class="flex items-center justify-between bg-white/60 p-4 rounded-2xl border border-cyan-100 backdrop-blur-sm">
+                                    <span class="text-lg font-black text-cyan-600">{{ peso_hoy }} kg</span>
+                                    <button onclick="enableWeightEdit()" class="text-[9px] font-black text-gray-400 uppercase tracking-widest hover:text-cyan-600 transition-colors">Corregir</button>
+                                </div>
+                                <div id="weightForm" class="hidden flex gap-2">
+                                    <input type="number" step="0.1" id="weightInput" value="{{ peso_hoy }}" 
+                                        class="w-full px-4 py-3 rounded-xl border border-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-bold bg-white">
+                                    <button onclick="saveWeight()" class="px-4 bg-cyan-600 text-white rounded-xl text-[10px] font-black uppercase tracking-tighter">OK</button>
+                                </div>
+                                {% else %}
+                                <div id="weightForm" class="flex gap-2">
+                                    <input type="number" step="0.1" id="weightInput" placeholder="00.0 kg" 
+                                        class="w-full px-4 py-3 rounded-xl border border-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-bold bg-white">
+                                    <button onclick="saveWeight()" class="px-6 bg-cyan-600 text-white rounded-xl text-[10px] font-black uppercase tracking-tighter shadow-lg shadow-cyan-600/20">Guardar</button>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="pt-6 border-t border-cyan-100/50">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <span class="text-2xl">🍎</span>
+                                    <p class="font-black text-sm">Alimentación</p>
+                                </div>
+                                <a href="/registro_alimentos"
+                                    class="block text-center py-4 bg-white border border-cyan-200 text-cyan-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-100 transition-all shadow-sm">
+                                    Registrar Alimentos
+                                </a>
+                            </div>
                         </div>
-                        <p class="text-sm leading-relaxed text-gray-700">
-                            No olvides registrar tus alimentos y actividad de hoy para mantener tu score de adherencia
-                            al máximo.
-                        </p>
-                    </div>
-                    <div class="space-y-2">
-                        <a href="/seguimiento"
-                            class="block text-center py-3 bg-white border border-cyan-200 text-cyan-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-100 transition-colors">
-                            Registrar Seguimiento
-                        </a>
-                        <a href="/reporte_nutricional/{{ paciente.id }}"
-                            class="block text-center py-3 bg-cyan-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-700 transition-colors">
-                            Ver Mi Reporte Nutricional
-                        </a>
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- SECCIÓN 5: HERRAMIENTAS -->
-        <section>
-            <div class="section-header">Herramientas de Salud</div>
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
-                <a href="/perfil_nutricional" class="nav-card glass-card border-b-4 border-cyan-500">
-                    <h3 class="mb-1">Nutrición</h3>
-                    <p>Plan y Metas</p>
-                </a>
-                <a href="/digital_twin/{{ paciente.id }}" class="nav-card glass-card border-b-4 border-orange-500">
-                    <h3 class="mb-1">Twin</h3>
-                    <p>Gemelo Digital</p>
-                </a>
-                <a href="/seguimiento" class="nav-card glass-card border-b-4 border-blue-500">
-                    <h3 class="mb-1">Diario</h3>
-                    <p>Registros Hoy</p>
-                </a>
-                <a href="#" class="nav-card glass-card border-b-4 border-green-500">
-                    <h3 class="mb-1">Rutas</h3>
-                    <p>Actividad</p>
-                </a>
-                <a href="/logout" class="nav-card glass-card border-b-4 border-red-500">
-                    <h3 class="mb-1">Salir</h3>
-                    <p>Cerrar Sesión</p>
-                </a>
-            </div>
-        </section>
+            <!-- SECCIÓN 5: HERRAMIENTAS -->
+            <section>
+                <div class="section-header">Herramientas de Salud</div>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+                    <a href="/perfil_nutricional" class="nav-card glass-card border-b-4 border-cyan-500">
+                        <h3 class="mb-1">Nutrición</h3>
+                        <p>Plan y Metas</p>
+                    </a>
+                    <a href="/digital_twin/{{ paciente.id }}" class="nav-card glass-card border-b-4 border-orange-500">
+                        <h3 class="mb-1">Twin</h3>
+                        <p>Gemelo Digital</p>
+                    </a>
+                    <a href="/registro_alimentos" class="nav-card glass-card border-b-4 border-blue-500">
+                        <h3 class="mb-1">Diario</h3>
+                        <p>Registros Hoy</p>
+                    </a>
+                    <a href="#" class="nav-card glass-card border-b-4 border-green-500">
+                        <h3 class="mb-1">Rutas</h3>
+                        <p>Actividad</p>
+                    </a>
+                    <a href="/logout" class="nav-card glass-card border-b-4 border-red-500">
+                        <h3 class="mb-1">Salir</h3>
+                        <p>Cerrar Sesión</p>
+                    </a>
+                </div>
+            </section>
 
     </div>
 
@@ -524,18 +478,18 @@
                             {{ (score_inicial | default(0)) + 3 }},
                             {{ (score_inicial | default(0)) + 5 }}
                         ],
-                        borderColor: '#ED7D30',
-                        backgroundColor: 'rgba(237, 125, 48, 0.1)',
-                        fill: true,
-                        tension: 0.4,
+        borderColor: '#ED7D30',
+            backgroundColor: 'rgba(237, 125, 48, 0.1)',
+                fill: true,
+                    tension: 0.4,
                         borderWidth: 5,
-                        pointRadius: 6,
-                        pointBackgroundColor: '#ED7D30',
-                        pointBorderColor: '#FFF',
-                        pointBorderWidth: 2
+                            pointRadius: 6,
+                                pointBackgroundColor: '#ED7D30',
+                                    pointBorderColor: '#FFF',
+                                        pointBorderWidth: 2
                     }]
                 },
-                options: chartDefaults
+        options: chartDefaults
             });
         }
         {% else %}
@@ -575,7 +529,7 @@
         }
 
         // Mostrar el modal de éxito si existe el parámetro en la URL
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('notification')) {
                 document.getElementById('successModal').classList.remove('hidden');
@@ -589,18 +543,55 @@
                 type: 'line',
                 data: {
                     labels: {{ historial_pesos['labels'] | tojson | safe }},
-                    datasets: [{
-                        label: 'Peso (kg)',
-                        data: {{ historial_pesos['values'] | tojson | safe }},
-                        borderColor: '#00D1D1',
-                        borderWidth: 4,
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#00D1D1'
+        datasets: [{
+            label: 'Peso (kg)',
+            data: {{ historial_pesos['values'] | tojson | safe }},
+            borderColor: '#00D1D1',
+            borderWidth: 4,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#00D1D1'
                     }]
                 },
-                options: chartDefaults
+        options: chartDefaults
             });
+        }
+
+        async function saveWeight() {
+            const input = document.getElementById('weightInput');
+            const peso = input.value;
+            if(!peso) {
+                input.classList.add('border-red-400');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/registrar_peso', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({peso: parseFloat(peso)})
+                });
+                if(response.ok) {
+                    const btn = document.querySelector('#weightForm button');
+                    if(btn) {
+                        btn.innerHTML = "✓ Guardado";
+                        btn.classList.replace('bg-cyan-600', 'bg-green-500');
+                    }
+                    setTimeout(() => {
+                        location.reload();
+                    }, 800);
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+
+        function enableWeightEdit() {
+            const display = document.getElementById('weightDisplay');
+            const form = document.getElementById('weightForm');
+            if(display) display.classList.add('hidden');
+            if(form) form.classList.remove('hidden');
+            document.getElementById('weightInput').focus();
         }
     </script>
 
