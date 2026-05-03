@@ -1,3 +1,14 @@
 sisi@gmail.com
 Juan_1256
 http://localhost:5001/perfil
+
+
+pepelepu@mail.com
+Juan_1256
+
+admin@prodi.com
+admin123
+
+
+
+sqlite3 prodi_salud.db "UPDATE usuarios SET role = 'admin' WHERE email = 'admin@prodi.com';"

@@ -90,7 +90,13 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
         if (typeof vincularListenersEdicion === 'function') vincularListenersEdicion();
 
+        // --- 5. GENERACIÓN AUTOMÁTICA DEL COACH (Ollama) ---
+        if (typeof verificarYGenerarCoachOllama === 'function') {
+            setTimeout(verificarYGenerarCoachOllama, 1000); // Dar un segundo para que los gauges terminen de animar si es necesario
+        }
+
     } catch (err) {
+
         console.error("Error crítico en el reporte:", err);
     }
 });
@@ -1191,7 +1197,7 @@ function getSubmissionId() {
 /**
  * Genera un archivo .txt con la totalidad de los datos del paciente (18 segmentos)
  */
-function descargarReporteTxtParaGemini() {
+function generarContenidoReporteTxt() {
     const id = getSubmissionId();
     const ahora = new Date();
     const fechaStr = ahora.toLocaleDateString() + ' ' + ahora.toLocaleTimeString();
@@ -1352,17 +1358,71 @@ function descargarReporteTxtParaGemini() {
     contenido += `       FIN DEL REPORTE MÉDICO\n`;
     contenido += `==================================================`;
 
+    return contenido;
+}
+
+/**
+ * Genera un archivo .txt con la totalidad de los datos del paciente (18 segmentos)
+ */
+function descargarReporteTxtParaGemini() {
+    const contenido = generarContenidoReporteTxt();
+    const id = getSubmissionId();
+    const el = document.getElementById('p-nombre');
+    const nombre = el ? el.innerText.trim() : id;
+
     // Disparar descarga
     const blob = new Blob([contenido], { type: 'text/plain' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Reporte_Salud_Completo_${getVal('p-nombre') || id}.txt`;
+    a.download = `Reporte_Salud_Completo_${nombre}.txt`;
     document.body.appendChild(a);
     a.click();
     window.URL.revokeObjectURL(url);
     a.remove();
 }
+
+/**
+ * Automatización del Coach Virtual con Ollama
+ */
+async function verificarYGenerarCoachOllama() {
+    const narrativaDiv = document.getElementById('narrativa-ia');
+    if (!narrativaDiv) return;
+
+    const textoActual = narrativaDiv.innerText.trim();
+    const isPlaceholder = textoActual === '' || 
+                          textoActual === 'Cargando análisis personalizado...' || 
+                          textoActual === 'Generando reporte personalizado...' || 
+                          (textoActual.startsWith('Paciente:') && textoActual.length < 200);
+
+    if (isPlaceholder) {
+        narrativaDiv.innerText = 'Generando recomendación del Coach Virtual (Ollama)...';
+        
+        const contenidoReporte = generarContenidoReporteTxt();
+        const pacienteId = getSubmissionId();
+        
+        try {
+            const response = await fetch('/api/generar_coach_ollama', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ texto: contenidoReporte, id: pacienteId })
+            });
+            
+            const result = await response.json();
+            if (response.ok && result.success) {
+                narrativaDiv.innerText = result.respuesta;
+                // El guardado ya se realiza directamente en el backend (app.py)
+                // para garantizar que la respuesta no se pierda.
+            } else {
+                narrativaDiv.innerText = 'Error al generar el análisis: ' + (result.error || 'Desconocido');
+            }
+        } catch (error) {
+            console.error('Error llamando a Ollama:', error);
+            narrativaDiv.innerText = 'Error de conexión con el generador local de IA.';
+        }
+    }
+}
+
 /**
  * Evento para guardar cambios en la base de datos (POST)
  * Incluye el análisis pegado de Gemini y todos los campos editables.

@@ -18,3 +18,19 @@ Paso,Comando,Qué hace
 1. Preparar,git add .,Selecciona todos los cambios para guardar.
 2. Comentar,"git commit -m ""Mi primer cambio""","Crea la ""versión"" con una descripción."
 3. Subir,git push -u origin main,Envía tus versiones a la nube (GitHub).
+
+
+
+Para entrar y modificar el modelo en localhost
+1, entra a 
+cd prodi-coach
+2, abre el model file
+nano Modelfile
+3, Edita unicamente el bloque de system
+SYSTEM """
+...tu prompt aquí...
+"""
+4, Guarda los cambios Ctrl + O, y sal del editor con Ctrl + X
+5, reconstruye el modelo
+ollama create prodi-coach -f Modelfile
+6, ollama run prodi-coach 

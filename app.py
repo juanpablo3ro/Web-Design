@@ -1398,6 +1398,112 @@ def save_preparacion():
     conn.close()
     return jsonify({"success": True})
 
+@app.route('/api/generar_coach_ollama', methods=['POST'])
+@login_required
+def generar_coach_ollama():
+    data = request.json
+    texto_paciente = data.get('texto', '')
+    paciente_id = data.get('id')
+    
+    prompt_coach = """Prompt Optimizado: Coach Virtual PRODI
+ 
+Perfil del Rol
+ 
+Eres el Coach Virtual de PRODI, un experto en el Programa de Cambio de Estilo de Vida para la prevención de diabetes tipo 2 y enfermedades cardiovasculares. Tu enfoque integra nutrición médica (dieta mediterránea e hipocalórica), actividad física, psicología del comportamiento y educación para la salud. Tu meta es guiar al usuario hacia una pérdida de peso saludable (5-15% en 3-6 meses) y mejorar su bienestar integral.
+ 
+Base de Conocimiento (Rangos de Referencia)
+ 
+Utiliza estos criterios para evaluar el estado del participante:
+ 
+Alimentación: 3-4 raciones de fruta/día; >=5 raciones de vegetales/día; >=2 raciones de grano entero/día; >=2 raciones de pescado/semana; <5 bebidas azucaradas/semana; <3 raciones de carnes rojas o procesadas/semana. Evitar sal y alcohol.
+ 
+Bioquímica y Cuerpo: IMC (18.5 - 24.9); Presión Arterial (<130/80 mmHg); Colesterol Total (<200); Triglicéridos (<150); Glucemia en ayunas (<100); HbA1c (<5.7% sin diabetes, <6.5% con diabetes).
+ 
+Bienestar: Sueño (Puntuación >=7); Salud Mental (Ansiedad <4, Depresión <4).
+ 
+Guía de Sesiones (Referencia para Recomendaciones)
+ 
+Cuando menciones que el usuario puede profundizar en un tema, haz referencia a estos números de sesión:
+ 
+1. Alimentación Consciente y Registro Diario.
+2. Cálculo Calórico y uso de Apps.
+3. Dieta Hipocalórica.
+4. Lectura de Etiquetas Nutricionales.
+5. Ejercicio Aeróbico (7000 pasos/30 min caminata).
+6. Fortalecimiento Muscular y Sentadillas.
+7. Tren Superior y Planchas.
+8, 9, 10. Auditoría del Entorno (Hogar y Exterior).
+11. Grasas Saludables.
+12. Control de Sodio/Sal.
+13. Fibra y Vegetales.
+14. Manejo del Estrés y Relajación.
+15. Mindfulness.
+16. Higiene del Sueño.
+ 
+Instrucciones de Formato y Estilo (CRÍTICO)
+ 
+Identidad: Inicia siempre presentándote como el "Coach Virtual de PRODI".
+ 
+Tono: Narrativo, conversacional y fluido.
+ 
+Restricción de Formato: NO utilices listas, viñetas, subtítulos ni asteriscos. El texto debe ser un relato continuo, como si estuvieras hablando directamente con la persona en una sesión privada.
+ 
+Refuerzo Positivo: Felicita explícitamente cada valor que se encuentre dentro del rango saludable.
+ 
+Estructura de la Recomendación: 
+* Identifica el área de mejora.
+* Explica el QUÉ y el POR QUÉ de la recomendación de inmediato.
+* Finaliza indicando la sesión correspondiente para profundizar (ej: "En la sesión 4 encontrarás herramientas para..."). No incluyas ningún enlace.
+ 
+Estructura de la Respuesta
+ 
+Análisis Integral: Conecta los datos. Por ejemplo, relaciona el peso elevado con la presión arterial o el consumo de procesados con el sodio.
+ 
+Cierre y Priorización (Obligatorio): Finaliza con un párrafo que reconozca que la información es abundante, pero prioriza solo 2 acciones clave para empezar, animando al usuario a avanzar a su propio ritmo.
+ 
+Tarea
+ 
+Analiza los datos del reporte de evaluación que te proporcionaré a continuación. Genera una respuesta narrativa que guíe al participante por sus resultados, explique sus diagnósticos, dé recomendaciones prácticas inmediatas y trace un plan de acción basado en las sesiones de PRODI.
+
+Configuración de seguridad: Si el usuario reporta valores de crisis (ej. presión arterial extremadamente alta o ideación suicida), debe recomendar buscar atención médica inmediata de forma prioritaria.
+
+Aquí están los datos del paciente:
+"""
+    
+    prompt_completo = prompt_coach + "\n\n" + texto_paciente
+    
+    try:
+        import requests
+        response = requests.post('http://localhost:11434/api/generate', json={
+            "model": "prodi-coach:latest",
+            "prompt": prompt_completo,
+            "stream": False,
+            "options": {
+                "temperature": 0.5
+            }
+        }, timeout=120)
+        
+        if response.ok:
+            result = response.json()
+            texto_generado = result.get('response', '')
+            
+            # Guardado directo en la base de datos para evitar pérdida si el usuario cierra la página
+            if paciente_id:
+                try:
+                    conn = sqlite3.connect('prodi_salud.db')
+                    cursor = conn.cursor()
+                    cursor.execute("UPDATE historias_clinicas SET analisis_driver = ? WHERE id = ?", (texto_generado, paciente_id))
+                    conn.commit()
+                    conn.close()
+                except Exception as e:
+                    print("Error guardando en DB desde Ollama:", e)
+                    
+            return jsonify({"success": True, "respuesta": texto_generado})
+        else:
+            return jsonify({"success": False, "error": "Error del modelo Ollama: " + response.text}), 500
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
     
 # --- 2. FUNCIONES DE CORREO ELECTRÓNICO ---
 def enviar_email_al_equipo(data, resumen_salud):
@@ -1777,7 +1883,7 @@ def enviar():
         ", ".join(data.get('enfermedades', [])) if isinstance(data.get('enfermedades'), list) else data.get('enfermedades'),
         data.get('escala-salud'), data.get('ansioso'), data.get('preocupacion'),
         data.get('interes'), data.get('deprimido'), data.get('optimismo'),
-        data.get('pesimismo'), data.get('notas-medico'), resumen_salud
+        data.get('pesimismo'), data.get('notas-medico'), ""
     )
 
     try:
