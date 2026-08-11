@@ -3,595 +3,893 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prodi - Panel del Participante</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prodi Saga - Nivel {{ dias_programa }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --color-primary: #00D1D1;
-            --color-secondary: #ED7D30;
-            --color-bg: #f8fafc;
-            --text-main: #000000;
+            --color-primary: #0ea5e9;
+            --color-secondary: #f59e0b;
+            --active-node: #0ea5e9;
+            --completed-node: #10b981;
+            /* Verde esmeralda para progreso */
+            --locked-node: #94a3b8;
+            --path-color: rgb(212, 179, 145);
+            /* Tierra suave y traslúcida */
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--color-bg);
-            color: var(--text-main);
-        }
-
-        .glass-card {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            border-radius: 24px;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-            padding: 24px;
-        }
-
-        .section-header {
-            font-weight: 800;
-            font-size: 1.25rem;
-            color: var(--text-main);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .section-header::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .adherence-progress-bg {
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 12px;
-            height: 12px;
+            font-family: 'Outfit', sans-serif;
+            background-color: #f0f9ff;
+            margin: 0;
             overflow: hidden;
+            /* Evitamos scroll doble */
         }
 
-        .adherence-progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #00D1D1, #0891b2);
-            transition: width 1s ease-out;
-        }
-
-        .nav-card {
-            text-decoration: none;
-            transition: all 0.2s ease;
+        .app-shell {
+            width: 100%;
+            max-width: 430px;
+            height: 100vh;
+            margin: 0 auto;
+            position: relative;
+            background: skyblue;
+            /* Color base del cielo */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+        }
+
+        /* Contenedor del Mapa (Scroll hacia arriba) */
+        #saga-viewport {
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+            scrollbar-width: none;
+            overflow-anchor: none;
+        }
+
+        #saga-viewport::-webkit-scrollbar {
+            display: none;
+        }
+
+        #map-container {
+            width: 100%;
+            height: 14000px;
+            position: relative;
+            background-image: url('/static/img/bg1.png');
+            background-size: 100% auto;
+            background-repeat: repeat-y;
+            background-position: center top;
+        }
+
+        .session-tag {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 6px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
             align-items: center;
-            text-align: center;
+            gap: 2px;
+            z-index: 5;
+            box-shadow:
+                0 4px 0 rgba(0, 0, 0, 0.1),
+                0 8px 15px rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
         }
 
-        .nav-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--color-primary);
+        .session-icon {
+            font-size: 18px;
         }
 
-        .nav-card h3 {
-            color: #00D1D1;
-            font-weight: 800;
-            font-size: 1.1rem;
+        .session-text {
+            font-size: 9px;
+            font-weight: 900;
+            color: #1e293b;
+            text-transform: uppercase;
+            white-space: nowrap;
         }
 
-        .nav-card p {
-            font-weight: 600;
-            font-size: 0.9rem;
+        .nutrition-tag {
+            position: absolute;
+            background: rgba(255, 247, 237, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 6px 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(249, 115, 22, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            z-index: 5;
+            box-shadow:
+                0 4px 0 rgba(249, 115, 22, 0.2),
+                0 8px 15px rgba(249, 115, 22, 0.1);
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
         }
 
-        .video-player {
-            aspect-ratio: 16/9;
-            background: #000;
+        .nutrition-tag:active {
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .nutrition-icon {
+            font-size: 16px;
+        }
+
+        .nutrition-text {
+            font-size: 8px;
+            font-weight: 900;
+            color: #c2410c;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        /* Fondo Reactivo */
+        .sun-rays {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(253, 224, 71, 0.15) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .storm-cloud {
+            position: absolute;
+            opacity: 0.4;
+            filter: grayscale(1);
+            z-index: 10;
+        }
+
+        /* Nodos */
+        .node {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            /* Efecto 3D: Gradiente radial para simular volumen */
+            background: radial-gradient(circle at 35% 35%, #ffffff, #e2e8f0);
+            border: 2px solid #cbd5e1;
+            /* Sombra de grosor (4px) y sombra proyectada (15px) */
+            box-shadow:
+                0 4px 0 #94a3b8,
+                0 8px 15px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 900;
+            color: #64748b;
+            transform: translateX(-50%);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 1px 0 white;
+        }
+
+        .node.completed {
+            background: radial-gradient(circle at 35% 35%, #34d399, #059669);
+            border-color: #065f46;
+            color: white;
+            box-shadow:
+                0 4px 0 #047857,
+                0 8px 15px rgba(0, 0, 0, 0.2);
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .node.active {
+            background: radial-gradient(circle at 35% 35%, #D68F4A, #7b542c);
+            border-color: #68150A;
+            color: white;
+            width: 54px;
+            height: 54px;
+            z-index: 11;
+            box-shadow:
+                0 6px 0 #867e7b,
+                0 12px 25px rgba(105, 108, 91, 0.4);
+            animation: pulse-node 2s infinite;
+            text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.3);
+            font-size: 18px;
+        }
+
+        @keyframes pulse-node {
+            0% {
+                transform: translateX(-50%) scale(1);
+            }
+
+            50% {
+                transform: translateX(-50%) scale(1.08);
+            }
+
+            100% {
+                transform: translateX(-50%) scale(1);
+            }
+        }
+
+        .node.milestone {
+            border-radius: 14px;
+            background: radial-gradient(circle at 35% 35%, #fbef5a, #facc15);
+            border-color: #a16207;
+            color: #854d0e;
+            font-size: 20px;
+            box-shadow:
+                0 4px 0 #a16207,
+                0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Avatar */
+        #avatar-box {
+            position: absolute;
+            width: 140px;
+            height: 140px;
+            z-index: 50;
+            transform: translate(-50%, -100%);
+            pointer-events: none;
+            filter: drop-shadow(0 12px 20px rgba(0, 0, 0, 0.2));
+        }
+
+        /* Dock de Misiones (Estilo lateral/inferior compacto) */
+        .mission-dock {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border-radius: 24px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+
+        .mission-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            position: relative;
+        }
+
+        .icon-circle {
+            width: 50px;
+            height: 50px;
             border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            overflow: hidden;
+            font-size: 26px;
+            transition: all 0.2s;
+            background: white;
+            /* Relieve 3D inferior */
+            box-shadow:
+                0 4px 0 rgba(0, 0, 0, 0.1),
+                0 6px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.5);
         }
 
-        .badge-score {
-            background: #ED7D30;
+        .mission-btn:active .icon-circle {
+            transform: scale(0.9);
+        }
+
+        .xp-tag {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #facc15;
+            color: #854d0e;
+            font-size: 8px;
+            font-weight: 900;
+            padding: 2px 5px;
+            border-radius: 6px;
+        }
+
+        #map-path {
+            fill: none;
+            stroke: var(--path-color);
+            stroke-width: 40;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            opacity: 0.6;
+            filter: blur(2px);
+        }
+
+        /* Resaltado del Reporte para nuevos usuarios */
+        .pulse-report {
+            animation: pulse-emerald 2s infinite;
+            position: relative;
+        }
+
+        .pulse-report::after {
+            content: '!';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #10b981;
             color: white;
-            padding: 4px 12px;
-            border-radius: 8px;
-            font-weight: 800;
-            font-size: 1.1rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 900;
+            border: 2px solid white;
         }
 
-        .biometric-label {
-            font-size: 0.7rem;
-            font-weight: 800;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
+        @keyframes pulse-emerald {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+                transform: scale(1);
+            }
 
-        .biometric-value {
-            font-weight: 800;
-            font-size: 1rem;
+            70% {
+                box-shadow: 0 0 0 15px rgba(16, 185, 129, 0);
+                transform: scale(1.1);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+                transform: scale(1);
+            }
         }
     </style>
 </head>
 
-<body class="p-4 md:p-8">
+<body>
 
-    <div class="max-w-md mx-auto space-y-10 pb-10">
-
-        <!-- Notificaciones -->
-        {% if request.args.get('notification') %}
-        <div class="mb-6 p-4 bg-cyan-50 border-l-4 border-cyan-500 rounded-r-xl text-cyan-800 text-sm font-medium animate-pulse">
-            {{ request.args.get('notification') }}
+    <div class="app-shell">
+        <!-- Barra de Progreso Global Superior -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-slate-200/50 z-[200]">
+            <div class="h-full bg-cyan-500 transition-all duration-1000 shadow-[0_0_10px_#0ea5e9]"
+                style="width: {{ adherencia }}%;"></div>
         </div>
-        {% endif %}
 
-        <!-- HEADER (Estilo Apple Minimalist) -->
-        <header class="space-y-8 pt-4">
-            <div class="flex justify-between items-start px-2">
-                <div class="space-y-1">
-                    <p class="text-[10px] font-bold text-cyan-500 uppercase tracking-[0.2em]">Día {{ dias_programa }}
-                        del
-                        programa</p>
-                    <h1 class="text-4xl font-bold text-gray-900 tracking-tight">Hola, {{ paciente.nombre }}</h1>
-                </div>
-                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="Logo" class="h-6 opacity-20 grayscale">
-            </div>
-
-            <!-- Hero Card: Coach + Score -->
-            <div
-                class="relative bg-white rounded-[2.5rem] h-64 flex items-center shadow-2xl shadow-gray-200/30 border border-gray-50 overflow-hidden">
-                <!-- Coach Container (Zoomed into upper body) -->
-                <div class="w-1/2 h-full relative">
-                    <img src="{{ url_for('static', filename='img/bienvenido.png') }}" alt="Coach PRODI"
-                        class="absolute top-[-5%] left-[-25%] w-[220%] max-w-none object-top">
-                </div>
-
-                <!-- Score Container -->
-                <div class="w-1/2 pr-6 flex flex-col justify-center">
-                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-1">Tu Cumplimiento</p>
-                    <div class="flex items-baseline">
-                        <span class="text-7xl font-bold text-gray-900 tracking-tighter">{{ adherencia }}</span>
-                        <span class="text-xl font-bold text-cyan-500 ml-0.5">%</span>
-                    </div>
-                    <div class="mt-4 h-1 w-full bg-gray-100 rounded-full">
-                        <div class="h-full bg-cyan-500 rounded-full" style="width: {{ adherencia }}%"></div>
-                    </div>
+        <div class="absolute top-0 left-0 w-full p-6 z-[110] flex justify-between items-start pointer-events-none">
+            <div class="bg-white/90 backdrop-blur p-3 rounded-2xl shadow-xl pointer-events-auto border border-white/50">
+                <p class="text-[9px] font-black text-cyan-600 uppercase tracking-tighter">NIVEL {{ (dias_programa // 7)
+                    + 1 }}</p>
+                <h2 class="text-lg font-black text-slate-800">Hola, {{ paciente.nombre.split(' ')[0] if paciente.nombre
+                    else 'Participante' }}</h2>
+                <!-- Badge de cumplimiento integrado -->
+                <div class="mt-1 flex items-center gap-1.5">
+                    <div class="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></div>
+                    <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Cumplimiento: {{
+                        adherencia }}%</span>
                 </div>
             </div>
 
-            <!-- Mensaje Guía (Simple) -->
-            <div class="px-4">
-                <p class="text-[13px] text-gray-500 leading-relaxed">
-                    <span class="text-cyan-500 font-bold">Pro-tip:</span> A mayor cumplimiento del programa, mayor es tu
-                    posibilidad de éxito.
-                </p>
-            </div>
-        </header>
-
-        <!-- BOTÓN CUESTIONARIO NUTRICIONAL (Solo si no está completado) -->
-        {% if not nutricional_completado %}
-        <section>
-            <div
-                class="glass-card bg-orange-50 border-orange-200 flex flex-col md:flex-row justify-between items-center gap-6">
-                <div class="flex items-center gap-4">
-                    <span class="text-4xl">🥗</span>
-                    <div>
-                        <h3 class="text-lg font-black text-orange-900">Personaliza tu nutrición</h3>
-                        <p class="text-sm text-orange-700 font-medium">Completa tu perfil nutricional para obtener metas
-                            personalizadas y tu reporte detallado.</p>
-                    </div>
+            <div class="flex flex-col gap-2 pointer-events-auto items-end">
+                <div
+                    class="bg-orange-500 text-white px-3 py-1.5 rounded-xl text-xs font-black flex items-center gap-2 shadow-lg shadow-orange-500/20">
+                    🔥 <span>{{ streak }} DÍAS</span>
                 </div>
-                <a href="/perfil_nutricional"
-                    class="px-8 py-3 bg-orange-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 whitespace-nowrap">
-                    Completar Perfil
+                <a href="/logout"
+                    class="bg-white/90 backdrop-blur text-red-500 px-4 py-1.5 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 shadow-lg border border-red-100 transition-transform active:scale-95">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" x2="9" y1="12" y2="12" />
+                    </svg>
+                    <span>SALIR</span>
                 </a>
             </div>
-        </section>
-        {% endif %}
+        </div>
 
-        <!-- SECCIÓN 1: CUMPLIMIENTO PONDERADO (PILARES DEL PROGRAMA) -->
-        <section>
-            <div class="section-header">Mi Cumplimiento Semanal</div>
-            <div class="glass-card space-y-8">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-                    <!-- Educación 40% -->
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-xs font-black uppercase">
-                            <span>Educación (40%)</span>
-                            <span class="text-cyan-600">{{ detalles.educacion.score }}% cumplimiento</span>
-                        </div>
-                        <div class="adherence-progress-bg">
-                            <div class="adherence-progress-fill"
-                                style="--progreso: {{ detalles.educacion.pct }}%; width: var(--progreso);"></div>
-                        </div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase">{{ detalles.educacion.label }}</p>
+        <div id="saga-viewport">
+            <!-- Capas de Fondo Reactivo -->
+            {% if streak >= 3 %}
+            <div class="sun-rays animate-spin-slow"></div>
+            {% endif %}
+
+            <div id="map-container">
+                {% if not peso_hoy %}
+                <div class="storm-cloud text-5xl" id="reactive-cloud"
+                    style="top: {{ 9800 - (dias_programa * 120) - 80 }}px; left: {{ 215 + 40 }}px;">☁️</div>
+                {% endif %}
+
+                <svg id="svg-map" width="100%" height="100%" style="position:absolute; top:0; left:0;">
+                    <path id="map-path" d=""></path>
+                </svg>
+
+                <div id="avatar-box" class="cursor-pointer transition-transform hover:scale-105 active:scale-95 pointer-events-auto" onclick="toggleCoachBubble()">
+                    <img src="{{ url_for('static', filename='img/avatar.png') }}" alt="Avatar"
+                        class="w-full h-full object-contain drop-shadow-xl">
+                    <!-- Distintivo indicador de chat flotando sobre el avatar -->
+                    <div class="absolute -top-1 -right-1 bg-cyan-500 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shadow-lg animate-bounce border-2 border-white">💬</div>
+                </div>
+
+                <div id="coach-bubble-container" class="absolute w-72 bg-white/95 backdrop-blur-md p-5 rounded-3xl shadow-2xl border-2 border-cyan-400 pointer-events-auto hidden flex-col gap-3 z-[150] transform -translate-x-1/2 -translate-y-full" style="overflow-anchor: none;">
+                    <!-- Flecha del globo apuntando al avatar -->
+                    <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white/95 border-b-2 border-r-2 border-cyan-400 transform rotate-45"></div>
+                    
+                    <!-- Botón de cerrar -->
+                    <div class="flex justify-end relative z-10">
+                        <button onclick="closeCoachBubble(event)" class="text-slate-400 hover:text-slate-600 text-xs font-bold p-1">✕</button>
                     </div>
-                    <!-- Nutrición 30% -->
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-xs font-black uppercase">
-                            <span>Nutrición (30%)</span>
-                            <span class="text-cyan-600">{{ detalles.nutricion.score }}% cumplimiento</span>
-                        </div>
-                        <div class="adherence-progress-bg">
-                            <div class="adherence-progress-fill"
-                                style="--progress-width: {{ detalles.nutricion.pct }}%; width: var(--progress-width);">
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase">{{ detalles.nutricion.label }}</p>
+                    
+                    <!-- Cuerpo del Mensaje -->
+                    <div id="coach-bubble-text" class="text-xs text-slate-600 leading-relaxed text-left max-h-48 overflow-y-auto pr-1 font-medium relative z-10">
+                        <!-- Aquí va el texto o el indicador de escribiendo -->
                     </div>
-                    <!-- Monitoreo 20% -->
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-xs font-black uppercase">
-                            <span>Peso (20%)</span>
-                            <span class="text-cyan-600">{{ detalles.peso.score }}% cumplimiento</span>
-                        </div>
-                        <div class="adherence-progress-bg">
-                            <div class="adherence-progress-fill"
-                                style="--progress-width: {{ detalles.peso.pct }}%; width: var(--progress-width);">
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase">{{ detalles.peso.label }}</p>
+                    
+                    <!-- Input para responder / conversar -->
+                    <div class="flex gap-2 pt-2 border-t border-slate-100 relative z-10">
+                        <input type="text" id="coach-input" placeholder="Pregúntale a Leah..." onkeydown="if(event.key === 'Enter') sendCoachMessage()" class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-cyan-500 font-medium text-slate-700">
+                        <button onclick="sendCoachMessage()" class="bg-cyan-500 hover:bg-cyan-600 text-white px-3 py-2 rounded-xl text-xs font-black shadow-md shadow-cyan-500/20 transition-all active:scale-95">ENVIAR</button>
                     </div>
-                    <!-- Actividad 10% -->
-                    <div class="space-y-3">
-                        <div class="flex justify-between text-xs font-black uppercase">
-                            <span>Actividad (10%)</span>
-                            <span class="text-cyan-600">{{ detalles.actividad.score }}% cumplimiento</span>
+                </div>
+
+
+                {% set total_dias = 105 %}
+                {% set height_step = 120 %}
+                {% set base_y = 13500 %}
+
+                {% for d in range(1, total_dias + 1) %}
+                {% set y_pos = base_y - (d * height_step) %}
+                {% set node_x = 215 + (45 * ((d % 4) - 1.5)) %}
+                {% set is_session = (d == 1) or (d > 1 and d % 7 == 0) %}
+                {% set session_num = 1 if d == 1 else (d // 7) + 1 %}
+
+                <div class="node 
+                    {{ 'completed' if d < dias_programa else '' }} 
+                    {{ 'active' if d == dias_programa else '' }}
+                    {{ 'milestone' if d % 7 == 0 else '' }}
+                    {{ 'cursor-pointer' if is_session or d == 2 else '' }}" id="node-{{ d }}" {% if is_session %}
+                    onclick="openVideo({{ session_num }})" {% elif d==2 %}
+                    onclick="window.location.href='/perfil_nutricional'" {% endif %} data-x="{{ node_x }}"
+                    data-y="{{ y_pos }}">
+                    {{ '🏆' if d % 7 == 0 else d }}
+                </div>
+
+                {% if is_session %}
+                <div class="session-tag cursor-pointer active:scale-95 transition-transform"
+                    onclick="openVideo({{ session_num }})" style="top: {{ y_pos }}px; 
+                                left: {{ node_x + 35 if node_x < 215 else node_x - 85 }}px;
+                                pointer-events: auto;">
+                    <span class="session-icon">🎥</span>
+                    <span class="session-text">Sesión {{ session_num }}</span>
+                </div>
+                {% endif %}
+
+                {% if d == 2 %}
+                <a href="/perfil_nutricional" class="nutrition-tag cursor-pointer" style="top: {{ y_pos }}px; 
+                                left: {{ node_x + 35 if node_x < 215 else node_x - 85 }}px;">
+                    <span class="nutrition-icon">🍎</span>
+                    <span class="nutrition-text">Nutrición</span>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mission-dock">
+            <button onclick="openWeight()" class="mission-btn">
+                <span class="xp-tag">+20</span>
+                <div class="icon-circle bg-cyan-50">⚖️</div>
+                <span class="text-[9px] font-black text-slate-500 uppercase">Peso</span>
+            </button>
+
+            <a href="/registro_alimentos" class="mission-btn">
+                <span class="xp-tag">+30</span>
+                <div class="icon-circle bg-orange-50">🍎</div>
+                <span class="text-[9px] font-black text-slate-500 uppercase">Comida</span>
+            </a>
+
+            <a href="/registro_actividad" class="mission-btn">
+                <span class="xp-tag">+10</span>
+                <div class="icon-circle bg-indigo-50">🏃‍♂️</div>
+                <span class="text-[9px] font-black text-slate-500 uppercase">Pasos</span>
+            </a>
+
+            <div class="w-[1px] h-10 bg-slate-200 mx-2"></div>
+
+            <a href="/reporte/{{ paciente.id }}" class="mission-btn">
+                <div
+                    class="icon-circle bg-slate-100 {{ 'pulse-report' if dias_programa == 1 and not paciente.reporte_visto else '' }}">
+                    📜</div>
+                <span class="text-[9px] font-black text-slate-500 uppercase">Reporte</span>
+            </a>
+
+            <div onclick="handleNutritionalClick(event, {{ 'true' if nutricional_completado else 'false' }})"
+                class="mission-btn cursor-pointer">
+                <div class="icon-circle bg-orange-50">📘</div>
+                <span class="text-[9px] font-black text-slate-500 uppercase">Plan Nut.</span>
+                <a href="/reporte_nutricional/{{ paciente.id }}" id="nutritionalLink" class="hidden"></a>
+            </div>
+
+            <!-- Botón de Video Semanal -->
+            <button onclick="openVideoList()" class="mission-btn">
+                <div class="icon-circle bg-red-50">🎥</div>
+                <span class="text-[9px] font-black text-slate-500 uppercase">Sesiones</span>
+            </button>
+        </div>
+
+        <!-- SECCIÓN: SESIÓN EDUCATIVA (MODAL O SECCIÓN) -->
+        <div id="videoModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeVideo()"></div>
+            <div class="glass-card bg-white relative z-10 max-w-md w-full p-4 text-center shadow-2xl">
+                <div
+                    class="video-player mb-4 relative rounded-2xl overflow-hidden bg-black aspect-video flex items-center justify-center">
+                    <div class="text-center p-8">
+                        <div
+                            class="w-16 h-16 bg-cyan-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-xl">
+                            <svg class="w-8 h-8 text-white fill-current" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
                         </div>
-                        <div class="adherence-progress-bg">
-                            <div class="adherence-progress-fill"
-                                style="--progress-width: {{ detalles.actividad.pct }}%; width: var(--progress-width);">
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-gray-500 font-bold uppercase">{{ detalles.actividad.label }}</p>
+                        <h4 class="text-white text-sm font-black mb-1" id="video-session-title">Cargando...</h4>
+                        <p class="text-cyan-200 text-[10px] font-bold">Progreso: {{ detalles.educacion.pct }}%</p>
                     </div>
+                </div>
+                <button onclick="closeVideo()"
+                    class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-black uppercase tracking-widest text-[10px]">Cerrar</button>
+            </div>
+        </div>
+
+        <!-- MODAL REGISTRO PESO -->
+        <div id="weightModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeWeight()"></div>
+            <div class="glass-card bg-white relative z-10 max-w-sm w-full p-8 text-center shadow-2xl border-cyan-200">
+                <div class="text-4xl mb-4">⚖️</div>
+                <h3 class="text-xl font-black text-gray-900 mb-2">Misión: Registrar Peso</h3>
+                <p class="text-xs text-gray-500 mb-6 uppercase font-bold">Gana +20 XP y mantén tu racha</p>
+                <div class="flex flex-col gap-4">
+                    <input type="number" step="0.1" id="weightInput" placeholder="Tu peso hoy (kg)"
+                        class="w-full px-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-cyan-500 focus:outline-none text-center text-2xl font-black">
+                    <button onclick="saveWeight()"
+                        class="w-full py-4 bg-cyan-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-cyan-600/20">Completar
+                        Misión</button>
                 </div>
             </div>
-            <!-- SECCIÓN GUÍA: RECOMENDACIONES -->
-            <section class="space-y-6">
-                <!-- Coach 2 Hero (Centrada, mitad superior) -->
-                <div
-                    class="relative bg-white rounded-[2.5rem] h-64 shadow-2xl shadow-gray-200/30 border border-gray-50 overflow-hidden">
-                    <img src="{{ url_for('static', filename='img/coach2.png') }}" alt="Coach Guide"
-                        class="w-full h-auto object-top object-contain scale-[1] ">
-                </div>
+        </div>
 
-                <div class="text-center space-y-6">
-                    <h2 class="text-2xl font-bold text-gray-900 tracking-tight">¿Qué deseas ver?</h2>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Recomendaciones Generales -->
-                        <a href="/reporte/{{ paciente.id }}"
-                            class="bg-white p-6 rounded-[2.5rem] shadow-xl shadow-gray-200/20 border border-gray-50 flex flex-col items-center text-center space-y-3 group transition-all duration-300 hover:shadow-cyan-100 hover:-translate-y-1">
-                            <div
-                                class="w-14 h-14 bg-cyan-50 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-cyan-500 group-hover:text-white transition-all duration-300">
-                                <span>📋</span>
-                            </div>
-                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-wider">TUS
-                                Recomendaciones<br>Generales</span>
-                        </a>
-
-                        <!-- Recomendaciones Nutricionales -->
-                        <div onclick="handleNutritionalClick(event, {{ 'true' if nutricional_completado else 'false' }})"
-                            class="bg-white p-6 rounded-[2.5rem] shadow-xl shadow-gray-200/20 border border-gray-50 flex flex-col items-center text-center space-y-3 group cursor-pointer transition-all duration-300 hover:shadow-orange-100 hover:-translate-y-1">
-                            <div
-                                class="w-14 h-14 bg-orange-50 rounded-2xl flex items-center justify-center text-2xl group-hover:bg-orange-500 group-hover:text-white transition-all duration-300">
-                                <span>🍎</span>
-                            </div>
-                            <span class="text-[11px] font-bold text-gray-900 uppercase tracking-wider">Tu
-                                Plan<br>Nutricional</span>
-                            <a href="/reporte_nutricional/{{ paciente.id }}" id="nutritionalLink" class="hidden"></a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- MODAL: CUESTIONARIO PENDIENTE -->
-            <div id="nutritionalModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
-                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNutritionalModal()"></div>
-                <div
-                    class="glass-card bg-white relative z-10 max-w-md w-full p-8 text-center shadow-2xl border-orange-200">
-                    <div class="text-6xl mb-6">🔒</div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-4">¡Paso Pendiente!</h3>
-                    <p class="text-gray-600 mb-8 leading-relaxed">
-                        Para acceder a tus <strong>Recomendaciones Nutricionales</strong> personalizadas, primero
-                        necesitamos que completes tu perfil nutricional. Esto nos permitirá calcular tus metas exactas.
-                    </p>
-                    <div class="flex flex-col gap-3">
-                        <a href="/perfil_nutricional"
-                            class="px-8 py-4 bg-orange-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20">
-                            Completar Perfil Ahora
-                        </a>
-                        <button onclick="closeNutritionalModal()"
-                            class="px-8 py-4 bg-gray-100 text-gray-500 rounded-xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all">
-                            Tal vez después
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- MODAL: ÉXITO NUTRICIONAL -->
-            <div id="successModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
-                <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeSuccessModal()"></div>
-                <div
-                    class="glass-card bg-white relative z-10 max-w-md w-full p-8 text-center shadow-2xl border-green-200">
-                    <div class="text-6xl mb-6">🎈</div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-4">¡Gracias por completar tu información!</h3>
-                    <p class="text-gray-600 mb-8 leading-relaxed">
-                        Tus <strong>Recomendaciones Nutricionales</strong> ya están disponibles. ¡Sigue así!
-                    </p>
-                    <button onclick="closeSuccessModal()"
-                        class="px-8 py-4 bg-green-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 w-full">
-                        Excelente
+        <!-- MODAL: CUESTIONARIO PENDIENTE -->
+        <div id="nutritionalModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeNutritionalModal()"></div>
+            <div class="glass-card bg-white relative z-10 max-w-md w-full p-8 text-center shadow-2xl border-orange-200">
+                <div class="text-6xl mb-6">🔒</div>
+                <h3 class="text-2xl font-black text-gray-900 mb-4">¡Paso Pendiente!</h3>
+                <p class="text-gray-600 mb-8 leading-relaxed">
+                    Para acceder a tus <strong>Recomendaciones Nutricionales</strong> personalizadas, primero
+                    necesitamos que completes tu perfil nutricional. Esto nos permitirá calcular tus metas exactas.
+                </p>
+                <div class="flex flex-col gap-3">
+                    <a href="/perfil_nutricional"
+                        class="px-8 py-4 bg-orange-500 text-white rounded-xl font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20">
+                        Completar Perfil Ahora
+                    </a>
+                    <button onclick="closeNutritionalModal()"
+                        class="px-8 py-4 bg-gray-100 text-gray-500 rounded-xl font-black uppercase tracking-widest hover:bg-gray-200 transition-all">
+                        Tal vez después
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+    <!-- MODAL: BIENVENIDA / REPORTE -->
+    <div id="welcomeReportModal" class="hidden fixed inset-0 z-[3000] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-md" onclick="closeWelcomeModal()"></div>
+        <div class="glass-card bg-white relative z-10 max-w-md w-full p-8 text-center shadow-2xl border-emerald-200">
+            <div class="text-6xl mb-6">📜</div>
+            <h3 class="text-2xl font-black text-gray-900 mb-2">¡Bienvenido a PRODI!</h3>
+            <p class="text-xs text-emerald-600 font-black uppercase tracking-widest mb-4">Tu Reporte de Salud está listo
+            </p>
+            <p class="text-gray-600 mb-8 leading-relaxed">
+                Antes de comenzar con tu primera sesión, te recomendamos revisar tu <strong>Análisis de Salud</strong>.
+                Encontrarás diagnósticos clave y tu plan de acción personalizado.
+            </p>
+            <div class="flex flex-col gap-3">
+                <a href="/reporte/{{ paciente.id }}"
+                    class="px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20">
+                    Ver Mi Reporte Ahora
+                </a>
+                <button onclick="closeWelcomeModal()"
+                    class="px-8 py-4 bg-slate-100 text-slate-500 rounded-2xl font-black uppercase tracking-widest hover:bg-slate-200 transition-all text-[10px]">
+                    Explorar el Mapa
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- MODAL: LISTA DE SESIONES -->
+    <div id="videoListModal" class="hidden fixed inset-0 z-[2000] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeVideoList()"></div>
+        <div class="glass-card bg-white relative z-10 max-w-md w-full p-6 text-center shadow-2xl border-red-200">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black text-gray-900">🎥 Biblioteca de Sesiones</h3>
+                <button onclick="closeVideoList()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
 
+            <div class="grid grid-cols-4 gap-3 mb-8">
+                {% for i in range(1, 17) %}
+                <button onclick="selectSession({{ i }})"
+                    class="aspect-square flex flex-col items-center justify-center rounded-2xl border-2 transition-all 
+                            {{ 'bg-red-50 border-red-200 text-red-600' if i <= (dias_programa // 7) + 1 else 'bg-gray-50 border-gray-100 text-gray-400' }}">
+                    <span class="text-xs font-black">S{{ i }}</span>
+                    {% if i > (dias_programa // 7) + 1 %}
+                    <span class="text-[10px]">🔒</span>
+                    {% else %}
+                    <span class="text-[10px]">▶️</span>
+                    {% endif %}
+                </button>
+                {% endfor %}
+            </div>
 
+            <p class="text-[10px] text-gray-400 uppercase font-bold mb-4">Selecciona una sesión para verla</p>
 
-            <!-- SECCIÓN 4: ACCIÓN Y EDUCACIÓN -->
-            <section class="grid grid-cols-1 md:grid-cols-12 gap-8">
-                <div class="md:col-span-8">
-                    <div class="section-header">Tu Sesión Educativa Semanal</div>
-                    <div class="glass-card p-4">
-                        <div class="video-player">
-                            <div
-                                class="text-center p-8 bg-black/40 w-full h-full flex flex-col items-center justify-center">
-                                <div
-                                    class="w-20 h-20 bg-cyan-500 rounded-full flex items-center justify-center mb-4 shadow-xl shadow-cyan-500/30">
-                                    <svg class="w-10 h-10 text-white fill-current" viewBox="0 0 24 24">
-                                        <path d="M8 5v14l11-7z" />
-                                    </svg>
-                                </div>
-                                <h4 class="text-white text-xl font-black mb-1">Módulo 1: Introducción a la
-                                    Bio-Optimización
-                                </h4>
-                                <p class="text-cyan-200 font-bold">Progreso Actual: {{ detalles.educacion.pct }}%
-                                    completado
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="md:col-span-4">
-                    <div class="section-header">Acciones Rápidas</div>
-                    <div class="glass-card bg-cyan-50 border-cyan-100 h-[calc(100%-48px)] flex flex-col p-6">
-                        <div class="space-y-6">
-                            <!-- Registro de Peso -->
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-cyan-50">
-                                        <svg class="w-6 h-6 text-cyan-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                            <rect x="3" y="3" width="18" height="18" rx="4" />
-                                            <circle cx="12" cy="10" r="3" />
-                                            <path d="M12 7v3" />
-                                            <path d="M9 10h6" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p class="font-black text-sm">Peso de hoy</p>
-                                        <p class="text-[10px] text-gray-400 uppercase font-bold tracking-tight">Registro diario</p>
-                                    </div>
-                                </div>
-
-                                {% if peso_hoy %}
-                                <div id="weightDisplay" class="flex items-center justify-between bg-white/60 p-4 rounded-2xl border border-cyan-100 backdrop-blur-sm">
-                                    <span class="text-lg font-black text-cyan-600">{{ peso_hoy }} kg</span>
-                                    <button onclick="enableWeightEdit()" class="text-[9px] font-black text-gray-400 uppercase tracking-widest hover:text-cyan-600 transition-colors">Corregir</button>
-                                </div>
-                                <div id="weightForm" class="hidden flex gap-2">
-                                    <input type="number" step="0.1" id="weightInput" value="{{ peso_hoy }}" 
-                                        class="w-full px-4 py-3 rounded-xl border border-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-bold bg-white">
-                                    <button onclick="saveWeight()" class="px-4 bg-cyan-600 text-white rounded-xl text-[10px] font-black uppercase tracking-tighter">OK</button>
-                                </div>
-                                {% else %}
-                                <div id="weightForm" class="flex gap-2">
-                                    <input type="number" step="0.1" id="weightInput" placeholder="00.0 kg" 
-                                        class="w-full px-4 py-3 rounded-xl border border-cyan-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 text-sm font-bold bg-white">
-                                    <button onclick="saveWeight()" class="px-6 bg-cyan-600 text-white rounded-xl text-[10px] font-black uppercase tracking-tighter shadow-lg shadow-cyan-600/20">Guardar</button>
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="pt-6 border-t border-cyan-100/50">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="text-2xl">🍎</span>
-                                    <p class="font-black text-sm">Alimentación</p>
-                                </div>
-                                <a href="/registro_alimentos"
-                                    class="block text-center py-4 bg-white border border-cyan-200 text-cyan-600 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-cyan-100 transition-all shadow-sm">
-                                    Registrar Alimentos
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- SECCIÓN 5: HERRAMIENTAS -->
-            <section>
-                <div class="section-header">Herramientas de Salud</div>
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
-                    <a href="/perfil_nutricional" class="nav-card glass-card border-b-4 border-cyan-500">
-                        <h3 class="mb-1">Nutrición</h3>
-                        <p>Plan y Metas</p>
-                    </a>
-                    <a href="/digital_twin/{{ paciente.id }}" class="nav-card glass-card border-b-4 border-orange-500">
-                        <h3 class="mb-1">Twin</h3>
-                        <p>Gemelo Digital</p>
-                    </a>
-                    <a href="/registro_alimentos" class="nav-card glass-card border-b-4 border-blue-500">
-                        <h3 class="mb-1">Diario</h3>
-                        <p>Registros Hoy</p>
-                    </a>
-                    <a href="#" class="nav-card glass-card border-b-4 border-green-500">
-                        <h3 class="mb-1">Rutas</h3>
-                        <p>Actividad</p>
-                    </a>
-                    <a href="/logout" class="nav-card glass-card border-b-4 border-red-500">
-                        <h3 class="mb-1">Salir</h3>
-                        <p>Cerrar Sesión</p>
-                    </a>
-                </div>
-            </section>
-
+            <button onclick="closeVideoList()"
+                class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl font-black uppercase tracking-widest text-[10px]">Cerrar</button>
+        </div>
+    </div>
     </div>
 
     <script>
-        const chartDefaults = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: {
-                    grid: { color: 'rgba(0,0,0,0.03)' },
-                    ticks: { font: { size: 10, weight: '800' }, color: '#999' }
-                },
-                x: {
-                    grid: { display: false },
-                    ticks: { font: { size: 10, weight: '800' }, color: '#999' }
+        function initMap() {
+            const viewport = document.getElementById('saga-viewport');
+            const path = document.getElementById('map-path');
+            const nodes = document.querySelectorAll('.node');
+            const avatar = document.getElementById('avatar-box');
+
+            let points = [];
+
+            nodes.forEach((node, i) => {
+                const x = parseFloat(node.getAttribute('data-x'));
+                const y = parseFloat(node.getAttribute('data-y'));
+
+                node.style.left = x + "px";
+                node.style.top = y + "px";
+                points.push({ x, y });
+
+                if (node.classList.contains('active')) {
+                    avatar.style.left = x + "px";
+                    avatar.style.top = y + "px";
+                    
+                    const coachBubble = document.getElementById('coach-bubble-container');
+                    if (coachBubble) {
+                        coachBubble.style.left = x + "px";
+                        coachBubble.style.top = (y - 145) + "px";
+                    }
+                    
+                    setTimeout(() => {
+                        viewport.scrollTo({
+                            top: y - (viewport.offsetHeight / 2),
+                            behavior: 'smooth'
+                        });
+                    }, 500);
                 }
+            });
+
+            // Generar curva suave con Bezier Cúbico para un efecto de "S"
+            if (points.length > 0) {
+                let d = `M ${points[0].x} ${points[0].y}`;
+                for (let i = 0; i < points.length - 1; i++) {
+                    const p0 = points[i];
+                    const p1 = points[i + 1];
+                    const cpY = (p0.y + p1.y) / 2;
+                    // Bezier cúbico para suavizar transiciones horizontales
+                    d += ` C ${p0.x} ${cpY}, ${p1.x} ${cpY}, ${p1.x} ${p1.y}`;
+                }
+                path.setAttribute('d', d);
             }
+        }
+
+
+
+        // Animación del avatar (Flotar)
+        gsap.to("#avatar-box", {
+            y: "-=15",
+            duration: 1.5,
+            repeat: -1,
+            yoyo: true,
+            ease: "power1.inOut"
+        });
+
+        // Scroll al avatar (Día actual) al cargar
+        window.onload = () => {
+            initMap();
+            {% if dias_programa == 1 and not paciente.reporte_visto %}
+            // Mostrar modal de bienvenida solo el día 1 si no ha visto el reporte
+            setTimeout(() => {
+                document.getElementById('welcomeReportModal').classList.remove('hidden');
+            }, 1000);
+            {% else %}
+            // Abrir el globo del coach automáticamente tras cargar el mapa
+            setTimeout(() => {
+                toggleCoachBubble();
+            }, 1200);
+            {% endif %}
         };
 
-        // 1. Gráfica de Evolución del Score Cardiovascular
-        {% if score_inicial is not none %}
-        const ctxScore = document.getElementById('cvEvolutionChart');
-        if (ctxScore) {
-            new Chart(ctxScore, {
-                type: 'line',
-                data: {
-                    labels: ['Inicial', 'Semana 1', 'Semana 2', 'Hoy'],
-                    datasets: [{
-                        data: [
-                            {{ score_inicial | default(0) }}, 
-                            {{ (score_inicial | default(0)) + 2 }},
-                            {{ (score_inicial | default(0)) + 3 }},
-                            {{ (score_inicial | default(0)) + 5 }}
-                        ],
-        borderColor: '#ED7D30',
-            backgroundColor: 'rgba(237, 125, 48, 0.1)',
-                fill: true,
-                    tension: 0.4,
-                        borderWidth: 5,
-                            pointRadius: 6,
-                                pointBackgroundColor: '#ED7D30',
-                                    pointBorderColor: '#FFF',
-                                        pointBorderWidth: 2
-                    }]
-                },
-        options: chartDefaults
-            });
-        }
-        {% else %}
-        // Placeholder elegante si no hay datos
-        const canvasCv = document.getElementById('cvEvolutionChart');
-        if (canvasCv) {
-            const ctxCv = canvasCv.getContext('2d');
-            ctxCv.font = "bold 14px Inter";
-            ctxCv.fillStyle = "#bbbbbb";
-            ctxCv.textAlign = "center";
-            ctxCv.fillText("Esperando datos biométricos iniciales...", canvasCv.width / 2, canvasCv.height / 2);
-        }
-        {% endif %}
-
-        // Lógica de Acceso Nutricional
-        function handleNutritionalClick(e, completado) {
-            if (completado) {
-                window.location.href = document.getElementById('nutritionalLink').href;
-            } else {
-                document.getElementById('nutritionalModal').classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // Bloquear scroll
-            }
+        function closeWelcomeModal() {
+            document.getElementById('welcomeReportModal').classList.add('hidden');
         }
 
-        function closeNutritionalModal() {
-            document.getElementById('nutritionalModal').classList.add('hidden');
-            document.body.style.overflow = 'auto'; // Habilitar scroll
+        function openWeight() {
+            document.getElementById('weightModal').classList.remove('hidden');
         }
 
-        function closeSuccessModal() {
-            document.getElementById('successModal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-            // Limpiar la URL del parámetro notification
-            const url = new URL(window.location);
-            url.searchParams.delete('notification');
-            window.history.replaceState({}, document.title, url);
-        }
-
-        // Mostrar el modal de éxito si existe el parámetro en la URL
-        window.addEventListener('load', function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('notification')) {
-                document.getElementById('successModal').classList.remove('hidden');
-                document.body.style.overflow = 'hidden';
-            }
-        });
-        // 2. Gráfica de Peso
-        const ctxWeight = document.getElementById('weightChart');
-        if (ctxWeight) {
-            new Chart(ctxWeight, {
-                type: 'line',
-                data: {
-                    labels: {{ historial_pesos['labels'] | tojson | safe }},
-        datasets: [{
-            label: 'Peso (kg)',
-            data: {{ historial_pesos['values'] | tojson | safe }},
-            borderColor: '#00D1D1',
-            borderWidth: 4,
-            tension: 0.3,
-            pointRadius: 4,
-            pointBackgroundColor: '#00D1D1'
-                    }]
-                },
-        options: chartDefaults
-            });
+        function closeWeight() {
+            document.getElementById('weightModal').classList.add('hidden');
         }
 
         async function saveWeight() {
             const input = document.getElementById('weightInput');
             const peso = input.value;
-            if(!peso) {
-                input.classList.add('border-red-400');
-                return;
-            }
-            
+            if (!peso) return;
+
             try {
                 const response = await fetch('/api/registrar_peso', {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({peso: parseFloat(peso)})
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ peso: parseFloat(peso) })
                 });
-                if(response.ok) {
-                    const btn = document.querySelector('#weightForm button');
-                    if(btn) {
-                        btn.innerHTML = "✓ Guardado";
-                        btn.classList.replace('bg-cyan-600', 'bg-green-500');
-                    }
-                    setTimeout(() => {
-                        location.reload();
-                    }, 800);
+
+                if (response.ok) {
+                    confetti({
+                        particleCount: 150,
+                        spread: 70,
+                        origin: { y: 0.6 },
+                        colors: ['#00D1D1', '#ED7D30', '#ffffff']
+                    });
+                    setTimeout(() => { location.reload(); }, 1000);
                 }
-            } catch(e) {
-                console.error(e);
+            } catch (e) { console.error(e); }
+        }
+
+        function openVideo(sessionNum) {
+            const title = sessionNum ? `Sesión ${sessionNum}` : `Módulo Actual`;
+            document.getElementById('video-session-title').innerText = title;
+            document.getElementById('videoListModal').classList.add('hidden'); // Cerrar lista si está abierta
+            document.getElementById('videoModal').classList.remove('hidden');
+        }
+
+        function closeVideo() { document.getElementById('videoModal').classList.add('hidden'); }
+
+        function openVideoList() { document.getElementById('videoListModal').classList.remove('hidden'); }
+        function closeVideoList() { document.getElementById('videoListModal').classList.add('hidden'); }
+
+        function selectSession(num) {
+            // Aquí podrías verificar si está bloqueado, pero permitiremos ver por ahora
+            openVideo(num);
+        }
+
+        function handleNutritionalClick(e, completado) {
+            if (completado) {
+                window.location.href = document.getElementById('nutritionalLink').href;
+            } else {
+                document.getElementById('nutritionalModal').classList.remove('hidden');
             }
         }
 
-        function enableWeightEdit() {
-            const display = document.getElementById('weightDisplay');
-            const form = document.getElementById('weightForm');
-            if(display) display.classList.add('hidden');
-            if(form) form.classList.remove('hidden');
-            document.getElementById('weightInput').focus();
+        function closeNutritionalModal() {
+            document.getElementById('nutritionalModal').classList.add('hidden');
+        }
+
+        // --- LÓGICA DEL COACH VIRTUAL (AVATAR INTERACTIVO) ---
+        let coachBubbleOpen = false;
+
+        function toggleCoachBubble() {
+            const bubble = document.getElementById('coach-bubble-container');
+            if (coachBubbleOpen) {
+                bubble.classList.add('hidden');
+                coachBubbleOpen = false;
+            } else {
+                bubble.classList.remove('hidden');
+                coachBubbleOpen = true;
+                const textDiv = document.getElementById('coach-bubble-text');
+                if (!textDiv.innerHTML.trim() || textDiv.innerHTML.includes('Escribiendo')) {
+                    initCoachDialogue();
+                }
+            }
+        }
+
+        function closeCoachBubble(e) {
+            if (e) e.stopPropagation();
+            document.getElementById('coach-bubble-container').classList.add('hidden');
+            coachBubbleOpen = false;
+        }
+
+        async function initCoachDialogue() {
+            const textDiv = document.getElementById('coach-bubble-text');
+            textDiv.innerHTML = `<div class="flex items-center justify-center gap-1.5 py-4">
+                <div class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>`;
+            
+            try {
+                const res = await fetch('/api/coach_avatar_dialogue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ init: true })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    typeText(textDiv, data.respuesta);
+                } else {
+                    textDiv.innerHTML = "¡Hola! Soy Leah, tu coach de salud. ¿Qué duda tienes hoy?";
+                }
+            } catch (e) {
+                textDiv.innerHTML = "¡Hola! Soy Leah, tu coach de salud. ¿Qué duda tienes hoy?";
+            }
+        }
+
+        async function sendCoachMessage() {
+            const input = document.getElementById('coach-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const textDiv = document.getElementById('coach-bubble-text');
+            textDiv.innerHTML += `<div class="mt-2 pt-2 border-t border-slate-100 text-right"><span class="bg-cyan-50 text-cyan-700 px-2.5 py-1.5 rounded-2xl text-[11px] font-bold inline-block shadow-sm">${msg}</span></div>`;
+            input.value = '';
+            
+            const typingId = 'typing-' + Date.now();
+            textDiv.innerHTML += `<div id="${typingId}" class="flex items-center gap-1.5 py-3">
+                <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce"></div>
+                <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>`;
+            textDiv.scrollTop = textDiv.scrollHeight;
+
+            try {
+                const res = await fetch('/api/coach_avatar_dialogue', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mensaje: msg, init: false })
+                });
+                const data = await res.json();
+                document.getElementById(typingId)?.remove();
+                
+                if (data.success) {
+                    const replyDiv = document.createElement('div');
+                    replyDiv.className = "mt-2 pt-2 border-t border-slate-100 text-slate-700 font-medium";
+                    textDiv.appendChild(replyDiv);
+                    typeText(replyDiv, data.respuesta);
+                } else {
+                    textDiv.innerHTML += `<div class="mt-2 text-red-500 font-bold">Error al conectar con Leah.</div>`;
+                }
+            } catch (e) {
+                document.getElementById(typingId)?.remove();
+                textDiv.innerHTML += `<div class="mt-2 text-red-500 font-bold">Error de conexión.</div>`;
+            }
+        }
+
+        function typeText(element, text) {
+            element.innerHTML = '';
+            let i = 0;
+            const timer = setInterval(() => {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    const bubbleText = document.getElementById('coach-bubble-text');
+                    if (bubbleText) {
+                        bubbleText.scrollTop = bubbleText.scrollHeight;
+                    }
+                } else {
+                    clearInterval(timer);
+                }
+            }, 25);
         }
     </script>
 

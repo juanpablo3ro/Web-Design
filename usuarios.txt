@@ -9,6 +9,7 @@ Juan_1256
 admin@prodi.com
 admin123
 
-
+culocerrado@mail.com
+12345
 
 sqlite3 prodi_salud.db "UPDATE usuarios SET role = 'admin' WHERE email = 'admin@prodi.com';"

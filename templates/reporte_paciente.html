@@ -76,7 +76,7 @@
                     <header class="mb-0">
                         <div class="flex items-center gap-2 text-accent font-bold mb-4">
                             <span class="w-8 h-1 bg-accent rounded-full"></span>
-                            <span class="text-[13px] tracking-[0.3em]">Informe Clínico Confidencial</span>
+                            <span class="text-[13px] tracking-[0.3em]">Informe PRODI</span>
                         </div>
                         <div class="flex flex-col md:flex-row justify-between items-end gap-6">
                             <div>
@@ -139,7 +139,7 @@
 
                     <!-- 02 COACH VIRTUAL -->
                     <section>
-                        <h2 class="section-header">02 Resumen del Coach Virtual</h2>
+                        <h2 class="section-header">02 Resumen de Recomendaciones</h2>
                         <div class="glass-card !bg-white">
                             <div id="narrativa-ia"
                                 class="editable-field text-justify leading-relaxed text-slate-700 font-medium text-lg p-2"
@@ -148,6 +148,467 @@
                                 datos.analisis_driver else 'Generando reporte personalizado...' }}</div>
                         </div>
                     </section>
+
+                    <!-- SEGMENTOS 11 Y 12: DIAGNÓSTICOS Y RIESGOS -->
+                    <section class="mt-12">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                            <!-- 11 Diagnósticos de Factores de Riesgo -->
+                            <section>
+                                <h2 class="section-header">11 Diagnósticos de Factores de Riesgo</h2>
+                                <div class="glass-card">
+                                    <table class="metric-table w-full">
+                                        <tbody id="diag-riesgo">
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Riesgo Biológico</td>
+                                                <td id="res-riesgo-bio" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Tabaquismo</td>
+                                                <td id="res-tabaquismo" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Fumador Pasivo</td>
+                                                <td id="res-fumador-pasivo"
+                                                    class="p-3 text-right text-slate-400 font-bold">Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Actividad Física</td>
+                                                <td id="res-actividad-nivel"
+                                                    class="p-3 text-right text-slate-400 font-bold">Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Consumo de Alcohol</td>
+                                                <td id="res-alcohol" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Calidad del Sueño</td>
+                                                <td id="res-sueno" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Riesgo Apnea</td>
+                                                <td id="res-apnea" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Ansiedad</td>
+                                                <td id="res-ansiedad" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-0">
+                                                <td class="p-3 text-base">Depresión</td>
+                                                <td id="res-depresion" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+
+                            <!-- 12 Diagnósticos Cardiometabólicos -->
+                            <section>
+                                <h2 class="section-header">12 Diagnósticos Cardiometabólicos</h2>
+                                <div class="glass-card overflow-hidden">
+                                    <table class="metric-table w-full">
+                                        <tbody id="diag-cardiomet">
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Estado Nutricional (IMC)</td>
+                                                <td id="diag-nutricional" class="p-3 text-right font-bold text-accent">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Obesidad Abdominal</td>
+                                                <td id="diag-obesidad-abd"
+                                                    class="p-3 text-right text-slate-400 font-bold">Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Presión Arterial</td>
+                                                <td id="diag-presion" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-b border-slate-50">
+                                                <td class="p-3 text-base">Metabolismo de Glucosa</td>
+                                                <td id="diag-glucosa" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                            <tr class="border-0">
+                                                <td class="p-3 text-base">Perfil de Lípidos (Dislipidemia)</td>
+                                                <td id="diag-lipidos" class="p-3 text-right text-slate-400 font-bold">
+                                                    Calculando...</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+
+                    <!-- 13. Puntaje de Salud Cardiovascular AHA -->
+                    <section class="mt-12">
+                        <div class="glass-card p-8 md:p-12 relative overflow-hidden shadow-xl">
+                            <h2 class="text-black text-xl font-bold mb-8 uppercase tracking-wider">
+                                13 Puntaje de Salud Cardiovascular
+                            </h2>
+
+                            <div class="flex flex-col lg:flex-row items-center gap-12">
+                                <div class="gauge-card-modern w-full max-w-[350px]">
+                                    <div id="glow-aha" class="glow-overlay-modern"></div>
+                                    <div class="relative w-full">
+                                        <svg viewBox="0 0 100 65" class="w-full gauge-svg-modern">
+                                            <defs>
+                                                <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                    <stop offset="0%" stop-color="#ef4444" />
+                                                    <stop offset="50%" stop-color="#f59e0b" />
+                                                    <stop offset="100%" stop-color="#10b981" />
+                                                </linearGradient>
+                                            </defs>
+                                            <path d="M 12 50 A 38 38 0 0 1 88 50" fill="none" stroke="#f1f5f9"
+                                                stroke-width="6" />
+                                            <path id="gauge-progress-aha" d="M 12 50 A 38 38 0 0 1 88 50" fill="none"
+                                                stroke="url(#gaugeGradient)" stroke-width="6" stroke-dasharray="0 119.5"
+                                                style="transition: stroke-dasharray 1.2s ease-out;" />
+                                        </svg>
+
+                                        <div
+                                            class="absolute inset-x-0 bottom-0 flex flex-col items-center translate-y-2">
+                                            <span id="val-aha-total"
+                                                class="text-6xl font-black value-text-modern">--</span>
+                                            <div class="mt-4">
+                                                <span id="val-aha-status"
+                                                    class="status-badge-modern">Calculando...</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 flex-grow w-full">
+                                    <div id="item-aha-nutricion" class="item-aha-row"></div>
+                                    <div id="item-aha-actividad" class="item-aha-row"></div>
+                                    <div id="item-aha-tabaco" class="item-aha-row"></div>
+                                    <div id="item-aha-sueno" class="item-aha-row"></div>
+                                    <div id="item-aha-peso" class="item-aha-row"></div>
+                                    <div id="item-aha-glucosa" class="item-aha-row"></div>
+                                    <div id="item-aha-lipidos" class="item-aha-row"></div>
+                                    <div id="item-aha-presion" class="item-aha-row"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- RECOMENDACIONES -->
+                    <section class="banner-section banner-tall" style="background-image: url('../static/img/A6.jpeg');">
+                        <h2 class="text-white text-3xl font-black uppercase tracking-tighter shadow-sm">Recomendaciones
+                            de Estilo de Vida PRODI</h2>
+                    </section>
+
+                    <section class="recomendaciones-section">
+                        <h2 class="section-header">14 Manejo del Peso</h2>
+                        <div class="recomendaciones-container">
+                            <div class="glass-orange flex items-center justify-between mb-4">
+                                <span class="text-sm font-bold uppercase tracking-wide">Recomendación General</span>
+                                <span class="val-highlight-orange" id="val-rec-peso">---</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="glass-green flex items-center justify-between">
+                                    <span class="text-sm font-bold uppercase tracking-wide">Metabolismo Basal
+                                        (TMB)</span>
+                                    <span id="mb-peso" class="font-bold">--</span>
+                                </div>
+                                <div class="glass-green flex items-center justify-between">
+                                    <span class="text-sm font-bold uppercase tracking-wide">Gasto Total 24h</span>
+                                    <span id="val-balance-calorico" class="font-bold">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ESTADO DE OBJETIVO -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">Desea Bajar de Peso</p>
+                                <p id="objetivo-bajar" class="text-lg font-black text-slate-900">--</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">Meta de Pérdida</p>
+                                <p id="objetivo-perdida" class="text-lg font-black text-slate-900">--</p>
+                            </div>
+                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
+                                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">Tiempo Estimado</p>
+                                <p id="objetivo-tiempo" class="text-lg font-black text-slate-900">--</p>
+                            </div>
+                        </div>
+
+                        <!-- TABLA DE OBJETIVO DE PESO (solo visible si desea bajar de peso) -->
+                        <div id="tabla-objetivo-peso" class="glass-card grid grid-cols-2 md:grid-cols-3 gap-6"
+                            style="display:none; margin-top:20px;">
+                            <div class="text-center">
+                                <p class="data-label">Peso Actual</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-peso-actual">--</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="data-label">Peso a alcanzar</p>
+                                <p class="text-2xl font-bold text-accent" id="val-peso-meta">--</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="data-label">Reducir (kg)</p>
+                                <p class="text-2xl font-bold text-emerald-600" id="val-peso-reducir">--</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="data-label">Meses</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-meses">--</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="data-label">Meta Mensual</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-mensual">--</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="data-label">Meta Semanal</p>
+                                <p class="text-2xl font-bold text-slate-900" id="val-semanal">--</p>
+                            </div>
+                        </div>
+
+                        <!-- META CALÓRICA RECOMENDADA -->
+                        <div id="meta-calorica-box"
+                            class="flex items-center justify-between p-6 rounded-2xl border-2 mt-8 shadow-lg transition-all"
+                            style="background: rgba(24, 151, 136, 0.05); border-color: rgba(24, 151, 136, 0.2);">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-black uppercase text-accent tracking-widest">Meta Calórica
+                                    Diaria</span>
+                                <span class="text-sm text-slate-400">Objetivo personalizado para lograr tu meta</span>
+                            </div>
+                            <span class="text-4xl font-black text-accent" id="val-meta-calorica">0</span>
+                        </div>
+                    </section>
+
+                    <!-- 15 RECOMENDACIONES Nutricionales -->
+                    <section class="recomendaciones-section">
+                        <h2 class="section-header">15 Recomendaciones Nutricionales</h2>
+                        <section class="banner-section banner-tall mb-8"
+                            style="background-image: url('../static/img/b3.png'); height: 200px;">
+                        </section>
+
+                        <div class="recomendaciones-container space-y-4">
+                            <!-- GRASAS Y SODIO (ALTA PRIORIDAD) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-amber-500/10 border-amber-500/20">
+                                    <span class="text-xs font-bold uppercase text-amber-700">Consumo de Grasas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-grasas" contenteditable="true" data-key="rec_lipidos">
+                                        {{ datos.rec_lipidos or 'Pendiente' }}
+                                    </span>
+                                </div>
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-orange-500/10 border-orange-500/20">
+                                    <span class="text-xs font-bold uppercase text-orange-700">Consumo de Sodio</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-sodio" contenteditable="true" data-key="rec_sodio">
+                                        {{ datos.rec_sodio or 'Pendiente' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-emerald-500/5 border-emerald-500/20">
+                                    <span class="text-xs font-bold uppercase text-emerald-700">Frutas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-frutas" contenteditable="true" data-key="rec_frutas">
+                                        {{ datos.rec_frutas or '--' }}
+                                    </span>
+                                </div>
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-emerald-500/5 border-emerald-500/20">
+                                    <span class="text-xs font-bold uppercase text-emerald-700">Vegetales</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-vegetales" contenteditable="true" data-key="rec_vegetales">
+                                        {{ datos.rec_vegetales or '--' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-slate-50 border-slate-200">
+                                    <span class="text-xs font-bold uppercase text-slate-500">Granos Enteros</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-granos" contenteditable="true" data-key="rec_granos">
+                                        {{ datos.rec_granos or '--' }}
+                                    </span>
+                                </div>
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-slate-50 border-slate-200">
+                                    <span class="text-xs font-bold uppercase text-slate-500">Pescado y Proteínas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-pescado" contenteditable="true" data-key="rec_pescado">
+                                        {{ datos.rec_pescado or '--' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-red-500/5 border-red-500/10">
+                                    <span class="text-xs font-bold uppercase text-red-600">Bebidas Azucaradas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-azucar" contenteditable="true" data-key="rec_azucar">
+                                        {{ datos.rec_azucar or '--' }}
+                                    </span>
+                                </div>
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-red-500/5 border-red-500/10">
+                                    <span class="text-xs font-bold uppercase text-red-600">Carnes Rojas</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-carnes" contenteditable="true" data-key="rec_carnes">
+                                        {{ datos.rec_carnes or '--' }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-blue-500/5 border-blue-500/10">
+                                    <span class="text-xs font-bold uppercase text-blue-600">Lácteos</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-lacteos" contenteditable="true" data-key="rec_lacteos">
+                                        {{ datos.rec_lacteos or '--' }}
+                                    </span>
+                                </div>
+                                <div
+                                    class="flex items-center justify-between p-4 rounded-xl border bg-purple-500/5 border-purple-500/10">
+                                    <span class="text-xs font-bold uppercase text-purple-600">Consumo de Alcohol</span>
+                                    <span class="text-sm font-black text-right editable-field text-slate-900"
+                                        id="val-rec-alcohol" contenteditable="true" data-key="rec_alcohol">
+                                        {{ datos.rec_alcohol or '--' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="recomendaciones-section">
+                        <h2 class="section-header">16 Hábitos y Conductas</h2>
+                        <div class="recomendaciones-container">
+                            <div
+                                class="flex items-center justify-between p-6 rounded-2xl border mb-6 shadow-sm transition-all bg-accent/5 border-accent/20">
+                                <div class="flex flex-col">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-accent tracking-widest mb-1">Actividad
+                                        Física</span>
+                                    <span id="val-rec-actividad" class="text-lg font-bold text-slate-900 editable-field"
+                                        contenteditable="true" data-key="rec_actividad">Calculando...</span>
+                                </div>
+                                <div
+                                    class="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="p-6 rounded-2xl border bg-slate-50 border-slate-100">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Tabaquismo</span>
+                                    <span id="val-rec-tabaco" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_tabaco">Calculando...</span>
+                                </div>
+                                <div class="p-6 rounded-2xl border bg-slate-50 border-slate-100">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Fumador
+                                        Pasivo</span>
+                                    <span id="val-rec-pasivo" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_pasivo">Calculando...</span>
+                                </div>
+                                <div class="p-6 rounded-2xl border bg-slate-50 border-slate-100">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Apnea
+                                        del Sueño</span>
+                                    <span id="val-rec-apnea" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_apnea">Calculando...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="recomendaciones-section">
+                        <h2 class="section-header">17 Salud Mental</h2>
+                        <section class="banner-section banner-tall mb-8"
+                            style="background-image: url('../static/img/b4.png'); height: 300px;"></section>
+
+                        <div class="recomendaciones-container space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-6 rounded-2xl border bg-indigo-500/5 border-indigo-500/10">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-indigo-600 tracking-widest mb-2 block">Manejo
+                                        de Ansiedad</span>
+                                    <span id="val-rec-ansiedad" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_ansiedad">Calculando...</span>
+                                </div>
+                                <div class="p-6 rounded-2xl border bg-blue-500/5 border-blue-500/10">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-blue-600 tracking-widest mb-2 block">Manejo
+                                        de Depresión</span>
+                                    <span id="val-rec-depresion" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_depresion">Calculando...</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="p-6 rounded-2xl border bg-emerald-500/5 border-emerald-500/10">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-emerald-600 tracking-widest mb-2 block">Optimismo</span>
+                                    <span id="val-rec-optimismo" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_optimismo">Calculando...</span>
+                                </div>
+                                <div class="p-6 rounded-2xl border bg-red-500/5 border-red-500/10">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-red-600 tracking-widest mb-2 block">Pesimismo</span>
+                                    <span id="val-rec-pesimismo" class="text-sm font-bold text-slate-700 editable-field"
+                                        contenteditable="true" data-key="rec_pesimismo">Calculando...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="recomendaciones-section">
+                        <h2 class="section-header">18 Salud Cardiovascular</h2>
+                        <div class="recomendaciones-container">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="p-6 rounded-2xl border-l-4 border-l-accent bg-slate-50">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Presión
+                                        Arterial</span>
+                                    <span id="val-rec-presion" class="text-sm font-bold text-slate-900 editable-field"
+                                        contenteditable="true" data-key="rec_presion">Calculando...</span>
+                                </div>
+                                <div class="p-6 rounded-2xl border-l-4 border-l-amber-500 bg-slate-50">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Control
+                                        Glucosa</span>
+                                    <span id="val-rec-glucosa" class="text-sm font-bold text-slate-900 editable-field"
+                                        contenteditable="true" data-key="rec_glucosa">{{ datos.rec_glucosa or 'Estable'
+                                        }}</span>
+                                </div>
+                                <div class="p-6 rounded-2xl border-l-4 border-l-emerald-500 bg-slate-50">
+                                    <span
+                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Perfil
+                                        Lípido</span>
+                                    <span id="val-rec-lipidos-cardio"
+                                        class="text-sm font-bold text-slate-900 editable-field" contenteditable="true"
+                                        data-key="rec_lipidos_cardio">Calculando...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="banner-section banner-tall mb-8"
+                        style="background-image: url('../static/img/bds.jpg'); height: 300px;"></section>
+
 
                     <!-- ANTECEDENTES Y MEDICACIÓN -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -640,462 +1101,9 @@
                         </div>
                     </section>
 
-                    <!-- SEGMENTOS 11 Y 12: DIAGNÓSTICOS Y RIESGOS -->
-                    <section class="mt-12">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-                            <!-- 11 Diagnósticos de Factores de Riesgo -->
-                            <section>
-                                <h2 class="section-header">11 Diagnósticos de Factores de Riesgo</h2>
-                                <div class="glass-card">
-                                    <table class="metric-table w-full">
-                                        <tbody id="diag-riesgo">
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Riesgo Biológico</td>
-                                                <td id="res-riesgo-bio" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Tabaquismo</td>
-                                                <td id="res-tabaquismo" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Fumador Pasivo</td>
-                                                <td id="res-fumador-pasivo"
-                                                    class="p-3 text-right text-slate-400 font-bold">Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Actividad Física</td>
-                                                <td id="res-actividad-nivel"
-                                                    class="p-3 text-right text-slate-400 font-bold">Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Consumo de Alcohol</td>
-                                                <td id="res-alcohol" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Calidad del Sueño</td>
-                                                <td id="res-sueno" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Riesgo Apnea</td>
-                                                <td id="res-apnea" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Ansiedad</td>
-                                                <td id="res-ansiedad" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                            <tr class="border-0">
-                                                <td class="p-3 text-base">Depresión</td>
-                                                <td id="res-depresion" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </section>
 
-                            <!-- 12 Diagnósticos Cardiometabólicos -->
-                            <section>
-                                <h2 class="section-header">12 Diagnósticos Cardiometabólicos</h2>
-                                <div class="glass-card overflow-hidden">
-                                    <table class="metric-table w-full">
-                                        <tbody id="diag-cardiomet">
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Estado Nutricional (IMC)</td>
-                                                <td id="diag-nutricional" class="p-3 text-right font-bold text-accent">
-                                                    Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Obesidad Abdominal</td>
-                                                <td id="diag-obesidad-abd"
-                                                    class="p-3 text-right text-slate-400 font-bold">Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Presión Arterial</td>
-                                                <td id="diag-presion" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                            <tr class="border-b border-slate-50">
-                                                <td class="p-3 text-base">Metabolismo de Glucosa</td>
-                                                <td id="diag-glucosa" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                            <tr class="border-0">
-                                                <td class="p-3 text-base">Perfil de Lípidos (Dislipidemia)</td>
-                                                <td id="diag-lipidos" class="p-3 text-right text-slate-400 font-bold">
-                                                    Calculando...</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </section>
-                        </div>
-                    </section>
 
-                    <!-- 13. Puntaje de Salud Cardiovascular AHA -->
-                    <section class="mt-12">
-                        <div class="glass-card p-8 md:p-12 relative overflow-hidden shadow-xl">
-                            <h2 class="text-black text-xl font-bold mb-8 uppercase tracking-wider">
-                                13 Puntaje de Salud Cardiovascular
-                            </h2>
 
-                            <div class="flex flex-col lg:flex-row items-center gap-12">
-                                <div class="gauge-card-modern w-full max-w-[350px]">
-                                    <div id="glow-aha" class="glow-overlay-modern"></div>
-                                    <div class="relative w-full">
-                                        <svg viewBox="0 0 100 65" class="w-full gauge-svg-modern">
-                                            <defs>
-                                                <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                                    <stop offset="0%" stop-color="#ef4444" />
-                                                    <stop offset="50%" stop-color="#f59e0b" />
-                                                    <stop offset="100%" stop-color="#10b981" />
-                                                </linearGradient>
-                                            </defs>
-                                            <path d="M 12 50 A 38 38 0 0 1 88 50" fill="none" stroke="#f1f5f9"
-                                                stroke-width="6" />
-                                            <path id="gauge-progress-aha" d="M 12 50 A 38 38 0 0 1 88 50" fill="none"
-                                                stroke="url(#gaugeGradient)" stroke-width="6" stroke-dasharray="0 119.5"
-                                                style="transition: stroke-dasharray 1.2s ease-out;" />
-                                        </svg>
-
-                                        <div
-                                            class="absolute inset-x-0 bottom-0 flex flex-col items-center translate-y-2">
-                                            <span id="val-aha-total"
-                                                class="text-6xl font-black value-text-modern">--</span>
-                                            <div class="mt-4">
-                                                <span id="val-aha-status"
-                                                    class="status-badge-modern">Calculando...</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 flex-grow w-full">
-                                    <div id="item-aha-nutricion" class="item-aha-row"></div>
-                                    <div id="item-aha-actividad" class="item-aha-row"></div>
-                                    <div id="item-aha-tabaco" class="item-aha-row"></div>
-                                    <div id="item-aha-sueno" class="item-aha-row"></div>
-                                    <div id="item-aha-peso" class="item-aha-row"></div>
-                                    <div id="item-aha-glucosa" class="item-aha-row"></div>
-                                    <div id="item-aha-lipidos" class="item-aha-row"></div>
-                                    <div id="item-aha-presion" class="item-aha-row"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- RECOMENDACIONES -->
-                    <section class="banner-section banner-tall" style="background-image: url('../static/img/A6.jpeg');">
-                        <h2 class="text-white text-3xl font-black uppercase tracking-tighter shadow-sm">Recomendaciones
-                            de Estilo de Vida PRODI</h2>
-                    </section>
-
-                    <section class="recomendaciones-section">
-                        <h2 class="section-header">14 Manejo del Peso</h2>
-                        <div class="recomendaciones-container">
-                            <div class="glass-orange flex items-center justify-between mb-4">
-                                <span class="text-sm font-bold uppercase tracking-wide">Recomendación General</span>
-                                <span class="val-highlight-orange" id="val-rec-peso">---</span>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div class="glass-green flex items-center justify-between">
-                                    <span class="text-sm font-bold uppercase tracking-wide">Metabolismo Basal
-                                        (TMB)</span>
-                                    <span id="mb-peso" class="font-bold">--</span>
-                                </div>
-                                <div class="glass-green flex items-center justify-between">
-                                    <span class="text-sm font-bold uppercase tracking-wide">Gasto Total 24h</span>
-                                    <span id="val-balance-calorico" class="font-bold">--</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ESTADO DE OBJETIVO -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">Desea Bajar de Peso</p>
-                                <p id="objetivo-bajar" class="text-lg font-black text-slate-900">--</p>
-                            </div>
-                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">Meta de Pérdida</p>
-                                <p id="objetivo-perdida" class="text-lg font-black text-slate-900">--</p>
-                            </div>
-                            <div class="p-4 rounded-xl bg-slate-50 border border-slate-100">
-                                <p class="text-[9px] font-bold uppercase text-slate-400 mb-1">Tiempo Estimado</p>
-                                <p id="objetivo-tiempo" class="text-lg font-black text-slate-900">--</p>
-                            </div>
-                        </div>
-
-                        <!-- TABLA DE OBJETIVO DE PESO (solo visible si desea bajar de peso) -->
-                        <div id="tabla-objetivo-peso" class="glass-card grid grid-cols-2 md:grid-cols-3 gap-6"
-                            style="display:none; margin-top:20px;">
-                            <div class="text-center">
-                                <p class="data-label">Peso Actual</p>
-                                <p class="text-2xl font-bold text-slate-900" id="val-peso-actual">--</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="data-label">Peso a alcanzar</p>
-                                <p class="text-2xl font-bold text-accent" id="val-peso-meta">--</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="data-label">Reducir (kg)</p>
-                                <p class="text-2xl font-bold text-emerald-600" id="val-peso-reducir">--</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="data-label">Meses</p>
-                                <p class="text-2xl font-bold text-slate-900" id="val-meses">--</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="data-label">Meta Mensual</p>
-                                <p class="text-2xl font-bold text-slate-900" id="val-mensual">--</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="data-label">Meta Semanal</p>
-                                <p class="text-2xl font-bold text-slate-900" id="val-semanal">--</p>
-                            </div>
-                        </div>
-
-                        <!-- META CALÓRICA RECOMENDADA -->
-                        <div id="meta-calorica-box"
-                            class="flex items-center justify-between p-6 rounded-2xl border-2 mt-8 shadow-lg transition-all"
-                            style="background: rgba(24, 151, 136, 0.05); border-color: rgba(24, 151, 136, 0.2);">
-                            <div class="flex flex-col">
-                                <span class="text-xs font-black uppercase text-accent tracking-widest">Meta Calórica
-                                    Diaria</span>
-                                <span class="text-sm text-slate-400">Objetivo personalizado para lograr tu meta</span>
-                            </div>
-                            <span class="text-4xl font-black text-accent" id="val-meta-calorica">0</span>
-                        </div>
-                    </section>
-
-                    <!-- 15 RECOMENDACIONES Nutricionales -->
-                    <section class="recomendaciones-section">
-                        <h2 class="section-header">15 Recomendaciones Nutricionales</h2>
-                        <section class="banner-section banner-tall mb-8"
-                            style="background-image: url('../static/img/b3.png'); height: 200px;">
-                        </section>
-
-                        <div class="recomendaciones-container space-y-4">
-                            <!-- GRASAS Y SODIO (ALTA PRIORIDAD) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-amber-500/10 border-amber-500/20">
-                                    <span class="text-xs font-bold uppercase text-amber-700">Consumo de Grasas</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-grasas" contenteditable="true" data-key="rec_lipidos">
-                                        {{ datos.rec_lipidos or 'Pendiente' }}
-                                    </span>
-                                </div>
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-orange-500/10 border-orange-500/20">
-                                    <span class="text-xs font-bold uppercase text-orange-700">Consumo de Sodio</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-sodio" contenteditable="true" data-key="rec_sodio">
-                                        {{ datos.rec_sodio or 'Pendiente' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-emerald-500/5 border-emerald-500/20">
-                                    <span class="text-xs font-bold uppercase text-emerald-700">Frutas</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-frutas" contenteditable="true" data-key="rec_frutas">
-                                        {{ datos.rec_frutas or '--' }}
-                                    </span>
-                                </div>
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-emerald-500/5 border-emerald-500/20">
-                                    <span class="text-xs font-bold uppercase text-emerald-700">Vegetales</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-vegetales" contenteditable="true" data-key="rec_vegetales">
-                                        {{ datos.rec_vegetales or '--' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-slate-50 border-slate-200">
-                                    <span class="text-xs font-bold uppercase text-slate-500">Granos Enteros</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-granos" contenteditable="true" data-key="rec_granos">
-                                        {{ datos.rec_granos or '--' }}
-                                    </span>
-                                </div>
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-slate-50 border-slate-200">
-                                    <span class="text-xs font-bold uppercase text-slate-500">Pescado y Proteínas</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-pescado" contenteditable="true" data-key="rec_pescado">
-                                        {{ datos.rec_pescado or '--' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-red-500/5 border-red-500/10">
-                                    <span class="text-xs font-bold uppercase text-red-600">Bebidas Azucaradas</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-azucar" contenteditable="true" data-key="rec_azucar">
-                                        {{ datos.rec_azucar or '--' }}
-                                    </span>
-                                </div>
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-red-500/5 border-red-500/10">
-                                    <span class="text-xs font-bold uppercase text-red-600">Carnes Rojas</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-carnes" contenteditable="true" data-key="rec_carnes">
-                                        {{ datos.rec_carnes or '--' }}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-blue-500/5 border-blue-500/10">
-                                    <span class="text-xs font-bold uppercase text-blue-600">Lácteos</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-lacteos" contenteditable="true" data-key="rec_lacteos">
-                                        {{ datos.rec_lacteos or '--' }}
-                                    </span>
-                                </div>
-                                <div
-                                    class="flex items-center justify-between p-4 rounded-xl border bg-purple-500/5 border-purple-500/10">
-                                    <span class="text-xs font-bold uppercase text-purple-600">Consumo de Alcohol</span>
-                                    <span class="text-sm font-black text-right editable-field text-slate-900"
-                                        id="val-rec-alcohol" contenteditable="true" data-key="rec_alcohol">
-                                        {{ datos.rec_alcohol or '--' }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="recomendaciones-section">
-                        <h2 class="section-header">16 Hábitos y Conductas</h2>
-                        <div class="recomendaciones-container">
-                            <div
-                                class="flex items-center justify-between p-6 rounded-2xl border mb-6 shadow-sm transition-all bg-accent/5 border-accent/20">
-                                <div class="flex flex-col">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-accent tracking-widest mb-1">Actividad
-                                        Física</span>
-                                    <span id="val-rec-actividad" class="text-lg font-bold text-slate-900 editable-field"
-                                        contenteditable="true" data-key="rec_actividad">Calculando...</span>
-                                </div>
-                                <div
-                                    class="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-accent">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div class="p-6 rounded-2xl border bg-slate-50 border-slate-100">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Tabaquismo</span>
-                                    <span id="val-rec-tabaco" class="text-sm font-bold text-slate-700 editable-field"
-                                        contenteditable="true" data-key="rec_tabaco">Calculando...</span>
-                                </div>
-                                <div class="p-6 rounded-2xl border bg-slate-50 border-slate-100">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Fumador
-                                        Pasivo</span>
-                                    <span id="val-rec-pasivo" class="text-sm font-bold text-slate-700 editable-field"
-                                        contenteditable="true" data-key="rec_pasivo">Calculando...</span>
-                                </div>
-                                <div class="p-6 rounded-2xl border bg-slate-50 border-slate-100">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Apnea
-                                        del Sueño</span>
-                                    <span id="val-rec-apnea" class="text-sm font-bold text-slate-700 editable-field"
-                                        contenteditable="true" data-key="rec_apnea">Calculando...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="recomendaciones-section">
-                        <h2 class="section-header">17 Salud Mental</h2>
-                        <section class="banner-section banner-tall mb-8"
-                            style="background-image: url('../static/img/b4.png'); height: 300px;"></section>
-
-                        <div class="recomendaciones-container space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="p-6 rounded-2xl border bg-indigo-500/5 border-indigo-500/10">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-indigo-600 tracking-widest mb-2 block">Manejo
-                                        de Ansiedad</span>
-                                    <span id="val-rec-ansiedad" class="text-sm font-bold text-slate-700 editable-field"
-                                        contenteditable="true" data-key="rec_ansiedad">Calculando...</span>
-                                </div>
-                                <div class="p-6 rounded-2xl border bg-blue-500/5 border-blue-500/10">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-blue-600 tracking-widest mb-2 block">Manejo
-                                        de Depresión</span>
-                                    <span id="val-rec-depresion" class="text-sm font-bold text-slate-700 editable-field"
-                                        contenteditable="true" data-key="rec_depresion">Calculando...</span>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="p-6 rounded-2xl border bg-emerald-500/5 border-emerald-500/10">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-emerald-600 tracking-widest mb-2 block">Optimismo</span>
-                                    <span id="val-rec-optimismo" class="text-sm font-bold text-slate-700 editable-field"
-                                        contenteditable="true" data-key="rec_optimismo">Calculando...</span>
-                                </div>
-                                <div class="p-6 rounded-2xl border bg-red-500/5 border-red-500/10">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-red-600 tracking-widest mb-2 block">Pesimismo</span>
-                                    <span id="val-rec-pesimismo" class="text-sm font-bold text-slate-700 editable-field"
-                                        contenteditable="true" data-key="rec_pesimismo">Calculando...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section class="recomendaciones-section">
-                        <h2 class="section-header">18 Salud Cardiovascular</h2>
-                        <div class="recomendaciones-container">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div class="p-6 rounded-2xl border-l-4 border-l-accent bg-slate-50">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Presión
-                                        Arterial</span>
-                                    <span id="val-rec-presion" class="text-sm font-bold text-slate-900 editable-field"
-                                        contenteditable="true" data-key="rec_presion">Calculando...</span>
-                                </div>
-                                <div class="p-6 rounded-2xl border-l-4 border-l-amber-500 bg-slate-50">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Control
-                                        Glucosa</span>
-                                    <span id="val-rec-glucosa" class="text-sm font-bold text-slate-900 editable-field"
-                                        contenteditable="true" data-key="rec_glucosa">{{ datos.rec_glucosa or 'Estable'
-                                        }}</span>
-                                </div>
-                                <div class="p-6 rounded-2xl border-l-4 border-l-emerald-500 bg-slate-50">
-                                    <span
-                                        class="text-[13px] font-black uppercase text-slate-400 tracking-widest mb-2 block">Perfil
-                                        Lípido</span>
-                                    <span id="val-rec-lipidos-cardio"
-                                        class="text-sm font-bold text-slate-900 editable-field" contenteditable="true"
-                                        data-key="rec_lipidos_cardio">Calculando...</span>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
                 </main>
 
                 <footer class="mt-24 pt-12 border-t border-slate-100 text-center">

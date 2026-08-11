@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 import threading
 from datetime import datetime
 from functools import wraps
+import ai_coach_handler
+
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 # Permitir textos largos de Gemini
@@ -432,11 +434,11 @@ def login_required(f):
 # 1. LA HOME (El Launchpad)
 @app.route('/')
 def home():
-    # Si ya está logueado, lo mandamos a su landing personalizada, si es paciente.
-    if 'user_id' in session:
-        if session.get('role') == 'admin':
-            return render_template('index.html')
-        return redirect(url_for('landing_usuario'))
+    # Si ya está logueado como admin, va al panel
+    if 'user_id' in session and session.get('role') == 'admin':
+        return render_template('index.html')
+    # En cualquier otro caso (no logueado o paciente), mandamos al login 
+    # para que el usuario pueda elegir entrar como admin si lo desea.
     return redirect(url_for('login'))
 
 # --- RUTAS DE AUTENTICACION ---
@@ -639,6 +641,25 @@ def landing_usuario():
     peso_hoy_row = cursor.fetchone()
     peso_hoy = peso_hoy_row[0] if peso_hoy_row else None
 
+    # 9. Cálculo de Racha (Streak) Simplificado
+    cursor.execute("SELECT DISTINCT fecha FROM diario_alimentos WHERE paciente_id = ? ORDER BY fecha DESC LIMIT 15", (p_id,))
+    fechas_reg = [r['fecha'] for r in cursor.fetchall() if r['fecha']]
+    streak = 0
+    if fechas_reg:
+        from datetime import date, timedelta
+        hoy = date.today()
+        current_check = hoy
+        for f_str in fechas_reg:
+            try:
+                # Soporte para formatos con o sin tiempo
+                f_date = datetime.strptime(str(f_str).split(' ')[0], '%Y-%m-%d').date()
+                if f_date == current_check or f_date == current_check - timedelta(days=1):
+                    streak += 1
+                    current_check = f_date
+                else:
+                    break
+            except: continue
+
     conn.close()
     
     return render_template('landing_usuario.html', 
@@ -650,7 +671,59 @@ def landing_usuario():
                           historial_pesos=historial_pesos,
                           metas=metas_nut,
                           nutricional_completado=nutricional_completado,
-                          peso_hoy=peso_hoy)
+                          peso_hoy=peso_hoy,
+                          streak=streak)
+
+@app.route('/cumplimiento')
+@login_required
+def cumplimiento():
+    """Muestra el detalle del cumplimiento semanal del paciente"""
+    p_id = session.get('paciente_id')
+    if not p_id:
+        return redirect(url_for('landing_usuario'))
+        
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        # Educación (40%)
+        cursor.execute("SELECT AVG(porcentaje_visto) as avg_prog FROM progreso_video WHERE paciente_id = ?", (p_id,))
+        avg_edu_row = cursor.fetchone()
+        avg_edu = (avg_edu_row['avg_prog'] if avg_edu_row and avg_edu_row['avg_prog'] is not None else 0)
+        edu_score = (avg_edu / 100) * 40
+        
+        # Nutrición (30%)
+        cursor.execute("SELECT COUNT(DISTINCT fecha) as cant FROM diario_alimentos WHERE paciente_id = ? AND fecha >= date('now', '-7 days')", (p_id,))
+        cant_nut = cursor.fetchone()[0] or 0
+        nut_score = (min(cant_nut, 7) / 7) * 30
+        
+        # Peso (20%)
+        cursor.execute("SELECT COUNT(DISTINCT fecha) as cant FROM registro_peso WHERE paciente_id = ? AND fecha >= date('now', '-7 days')", (p_id,))
+        cant_peso = cursor.fetchone()[0] or 0
+        peso_score = (min(cant_peso, 7) / 7) * 20
+        
+        # Actividad (10%)
+        cursor.execute("SELECT COUNT(DISTINCT fecha) as cant FROM registro_actividad WHERE paciente_id = ? AND fecha >= date('now', '-7 days')", (p_id,))
+        cant_act = cursor.fetchone()[0] or 0
+        act_score = (min(cant_act, 7) / 7) * 10
+        
+        adherencia_total = round(edu_score + nut_score + peso_score + act_score)
+        
+        adherencia_detallada = {
+            "educacion": {"pct": round(avg_edu), "score": round(edu_score, 1), "label": f"Promedio: {round(avg_edu)}%"},
+            "nutricion": {"pct": round((cant_nut/7)*100), "score": round(nut_score, 1), "label": f"{cant_nut} de 7 días"},
+            "peso": {"pct": round((cant_peso/7)*100), "score": round(peso_score, 1), "label": f"{cant_peso} registros"},
+            "actividad": {"pct": round((cant_act/7)*100), "score": round(act_score, 1), "label": f"{cant_act} de 7 check-ins"}
+        }
+        
+        conn.close()
+        return render_template('cumplimiento.html', 
+                               adherencia=adherencia_total, 
+                               detalles=adherencia_detallada)
+    except Exception as e:
+        print(f"Error en cumplimiento: {e}")
+        return redirect(url_for('landing_usuario'))
 
 @app.route('/cuestionario')
 def cuestionario():
@@ -658,7 +731,11 @@ def cuestionario():
 
 # 3. LISTA DE PARTICIPANTES (Gestión)
 @app.route('/lista_participantes')
+@login_required
 def lista_participantes():
+    if session.get('role') != 'admin':
+        return redirect(url_for('landing_usuario'))
+        
     # Esta es la tabla con todos los pacientes registrados
     conn = sqlite3.connect('prodi_salud.db')
     conn.row_factory = sqlite3.Row
@@ -670,13 +747,31 @@ def lista_participantes():
 
 # 4. FORMULARIO DE SEGUIMIENTO SEMANAL (Check-in)
 @app.route('/seguimiento')
+@login_required
 def seguimiento_semanal():
-    # El formulario corto para que el paciente llene cada semana
-    return render_template('seguimiento_semanal.html')
+    p_id = session.get('paciente_id')
+    if not p_id:
+        if session.get('role') == 'admin':
+            return render_template('seguimiento_semanal.html', paciente=None)
+        return render_template('landing_usuario_vacio.html')
+        
+    conn = sqlite3.connect('prodi_salud.db')
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
+    paciente = cursor.fetchone()
+    conn.close()
+    
+    return render_template('seguimiento_semanal.html', paciente=paciente)
 
 # 5. DASHBOARD DEL DIGITAL TWIN (Individual)
 @app.route('/digital_twin/<int:p_id>')
+@login_required
 def ver_gemelo(p_id):
+    # Seguridad: Si el rol es paciente, solo puede ver SU gemelo
+    if session.get('role') == 'paciente' and session.get('paciente_id') != p_id:
+        return redirect(url_for('landing_usuario'))
+        
     # Esta ruta recibe el ID del paciente (ej: /digital_twin/1)
     conn = sqlite3.connect('prodi_salud.db')
     conn.row_factory = sqlite3.Row
@@ -697,14 +792,15 @@ def ver_gemelo(p_id):
         
     return render_template('digital_twin.html', paciente=paciente, historial=historial)
 
-# 6. PERFIL NUTRICIONAL (Baseline Alimentario)
 @app.route('/perfil_nutricional')
 @login_required
 def perfil_nutricional():
     # Validar que tenga historia clínica primero
-    if not session.get('paciente_id'):
-        return render_template('landing_usuario.html', 
-                               notification="Primero debes completar tu Historia Clínica inicial.")
+    p_id = session.get('paciente_id')
+    if not p_id:
+        if session.get('role') == 'admin':
+            return render_template('cuestionario_nutricional.html')
+        return render_template('landing_usuario_vacio.html')
     
     return render_template('cuestionario_nutricional.html')
 
@@ -1405,105 +1501,29 @@ def generar_coach_ollama():
     texto_paciente = data.get('texto', '')
     paciente_id = data.get('id')
     
-    prompt_coach = """Prompt Optimizado: Coach Virtual PRODI
- 
-Perfil del Rol
- 
-Eres el Coach Virtual de PRODI, un experto en el Programa de Cambio de Estilo de Vida para la prevención de diabetes tipo 2 y enfermedades cardiovasculares. Tu enfoque integra nutrición médica (dieta mediterránea e hipocalórica), actividad física, psicología del comportamiento y educación para la salud. Tu meta es guiar al usuario hacia una pérdida de peso saludable (5-15% en 3-6 meses) y mejorar su bienestar integral.
- 
-Base de Conocimiento (Rangos de Referencia)
- 
-Utiliza estos criterios para evaluar el estado del participante:
- 
-Alimentación: 3-4 raciones de fruta/día; >=5 raciones de vegetales/día; >=2 raciones de grano entero/día; >=2 raciones de pescado/semana; <5 bebidas azucaradas/semana; <3 raciones de carnes rojas o procesadas/semana. Evitar sal y alcohol.
- 
-Bioquímica y Cuerpo: IMC (18.5 - 24.9); Presión Arterial (<130/80 mmHg); Colesterol Total (<200); Triglicéridos (<150); Glucemia en ayunas (<100); HbA1c (<5.7% sin diabetes, <6.5% con diabetes).
- 
-Bienestar: Sueño (Puntuación >=7); Salud Mental (Ansiedad <4, Depresión <4).
- 
-Guía de Sesiones (Referencia para Recomendaciones)
- 
-Cuando menciones que el usuario puede profundizar en un tema, haz referencia a estos números de sesión:
- 
-1. Alimentación Consciente y Registro Diario.
-2. Cálculo Calórico y uso de Apps.
-3. Dieta Hipocalórica.
-4. Lectura de Etiquetas Nutricionales.
-5. Ejercicio Aeróbico (7000 pasos/30 min caminata).
-6. Fortalecimiento Muscular y Sentadillas.
-7. Tren Superior y Planchas.
-8, 9, 10. Auditoría del Entorno (Hogar y Exterior).
-11. Grasas Saludables.
-12. Control de Sodio/Sal.
-13. Fibra y Vegetales.
-14. Manejo del Estrés y Relajación.
-15. Mindfulness.
-16. Higiene del Sueño.
- 
-Instrucciones de Formato y Estilo (CRÍTICO)
- 
-Identidad: Inicia siempre presentándote como el "Coach Virtual de PRODI".
- 
-Tono: Narrativo, conversacional y fluido.
- 
-Restricción de Formato: NO utilices listas, viñetas, subtítulos ni asteriscos. El texto debe ser un relato continuo, como si estuvieras hablando directamente con la persona en una sesión privada.
- 
-Refuerzo Positivo: Felicita explícitamente cada valor que se encuentre dentro del rango saludable.
- 
-Estructura de la Recomendación: 
-* Identifica el área de mejora.
-* Explica el QUÉ y el POR QUÉ de la recomendación de inmediato.
-* Finaliza indicando la sesión correspondiente para profundizar (ej: "En la sesión 4 encontrarás herramientas para..."). No incluyas ningún enlace.
- 
-Estructura de la Respuesta
- 
-Análisis Integral: Conecta los datos. Por ejemplo, relaciona el peso elevado con la presión arterial o el consumo de procesados con el sodio.
- 
-Cierre y Priorización (Obligatorio): Finaliza con un párrafo que reconozca que la información es abundante, pero prioriza solo 2 acciones clave para empezar, animando al usuario a avanzar a su propio ritmo.
- 
-Tarea
- 
-Analiza los datos del reporte de evaluación que te proporcionaré a continuación. Genera una respuesta narrativa que guíe al participante por sus resultados, explique sus diagnósticos, dé recomendaciones prácticas inmediatas y trace un plan de acción basado en las sesiones de PRODI.
+    result = ai_coach_handler.generar_coach_narrativa_impl(texto_paciente, paciente_id)
+    if result.get("success"):
+        return jsonify({"success": True, "respuesta": result.get("respuesta")})
+    else:
+        return jsonify({"success": False, "error": result.get("error")}), 500
 
-Configuración de seguridad: Si el usuario reporta valores de crisis (ej. presión arterial extremadamente alta o ideación suicida), debe recomendar buscar atención médica inmediata de forma prioritaria.
-
-Aquí están los datos del paciente:
-"""
-    
-    prompt_completo = prompt_coach + "\n\n" + texto_paciente
-    
-    try:
-        import requests
-        response = requests.post('http://localhost:11434/api/generate', json={
-            "model": "prodi-coach:latest",
-            "prompt": prompt_completo,
-            "stream": False,
-            "options": {
-                "temperature": 0.5
-            }
-        }, timeout=120)
+# --- 1.B. DIÁLOGO INTERACTIVO DEL AVATAR COACH ---
+@app.route('/api/coach_avatar_dialogue', methods=['POST'])
+@login_required
+def coach_avatar_dialogue():
+    p_id = session.get('paciente_id')
+    if not p_id:
+        return jsonify({"error": "Sesión no válida"}), 401
         
-        if response.ok:
-            result = response.json()
-            texto_generado = result.get('response', '')
-            
-            # Guardado directo en la base de datos para evitar pérdida si el usuario cierra la página
-            if paciente_id:
-                try:
-                    conn = sqlite3.connect('prodi_salud.db')
-                    cursor = conn.cursor()
-                    cursor.execute("UPDATE historias_clinicas SET analisis_driver = ? WHERE id = ?", (texto_generado, paciente_id))
-                    conn.commit()
-                    conn.close()
-                except Exception as e:
-                    print("Error guardando en DB desde Ollama:", e)
-                    
-            return jsonify({"success": True, "respuesta": texto_generado})
-        else:
-            return jsonify({"success": False, "error": "Error del modelo Ollama: " + response.text}), 500
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
+    data = request.get_json() or {}
+    user_message = data.get('mensaje', '').strip()
+    is_init = data.get('init', False)
+    
+    result = ai_coach_handler.dialogo_coach_impl(p_id, user_message, is_init)
+    if result.get("success"):
+        return jsonify({"success": True, "respuesta": result.get("respuesta")})
+    else:
+        return jsonify({"success": False, "error": result.get("error")}), 500
     
 # --- 2. FUNCIONES DE CORREO ELECTRÓNICO ---
 def enviar_email_al_equipo(data, resumen_salud):
@@ -1560,6 +1580,9 @@ def submit_nutricion():
     if request.method == 'POST':
         p_id = session.get('paciente_id')
         if not p_id:
+            if session.get('role') == 'admin':
+                flash("Modo Administrador: El formulario funciona correctamente, pero los datos no se guardan al no haber un paciente seleccionado.", "info")
+                return redirect(url_for('home'))
             return "Error: Sesión de paciente no válida.", 403
 
         # 2. Conectar a la base de datos
@@ -1804,6 +1827,70 @@ def registrar_peso():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/registro_actividad')
+@login_required
+def registro_actividad():
+    """Renderiza la página de registro de actividad física"""
+    return render_template('registro_actividad.html')
+
+@app.route('/api/registro_actividad', methods=['POST'])
+@login_required
+def api_registro_actividad():
+    """API para guardar un registro de actividad física"""
+    data = request.get_json()
+    p_id = session.get('paciente_id')
+    tipo = data.get('tipo')
+    duracion = data.get('duracion')
+    intensidad = data.get('intensidad')
+    
+    if not p_id or not tipo or not duracion:
+        return jsonify({"error": "Datos incompletos"}), 400
+    
+    # Estimación simple de calorías
+    METs = {"Baja": 3, "Media": 5, "Alta": 8}
+    kcal_est = int(duracion * METs.get(intensidad, 5))
+    
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO registro_actividad (paciente_id, fecha, tipo, minutos, intensidad, calorias_est) 
+            VALUES (?, date('now'), ?, ?, ?, ?)
+        """, (p_id, tipo, duracion, intensidad, kcal_est))
+        conn.commit()
+        conn.close()
+        return jsonify({"status": "success", "calorias": kcal_est}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/historial_actividad')
+@login_required
+def api_historial_actividad():
+    """API para obtener el historial de actividad de hoy"""
+    p_id = session.get('paciente_id')
+    if not p_id:
+        return jsonify([]), 200
+        
+    try:
+        conn = sqlite3.connect('prodi_salud.db')
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT * FROM registro_actividad 
+            WHERE paciente_id = ? AND fecha = date('now')
+            ORDER BY id DESC
+        """, (p_id,))
+        rows = cursor.fetchall()
+        conn.close()
+        
+        historial = [dict(row) for row in rows]
+        for item in historial:
+            item['duracion'] = item['minutos']
+            
+        return jsonify(historial), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/digital_twin/<int:p_id>')
 def digital_twin_dashboard(p_id):
     """Renderiza la vista del Gemelo Digital para un paciente"""
@@ -1925,6 +2012,10 @@ def reporte_detalle(p_id):
         conn = sqlite3.connect('prodi_salud.db')
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
+        
+        # Marcar reporte como visto
+        cursor.execute("UPDATE historias_clinicas SET reporte_visto = 1 WHERE id = ?", (p_id,))
+        conn.commit()
         
         cursor.execute("SELECT * FROM historias_clinicas WHERE id = ?", (p_id,))
         paciente = cursor.fetchone()

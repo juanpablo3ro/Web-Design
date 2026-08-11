@@ -19,7 +19,7 @@
         </div>
 
         <form id="form-twin">
-            <input type="hidden" id="paciente_id" name="paciente_id" value="{{ paciente.id }}">
+            <input type="hidden" id="paciente_id" name="paciente_id" value="{{ paciente.id if paciente else '' }}">
 
             <fieldset>
                 <legend>Métricas Semanales</legend>
